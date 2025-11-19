@@ -94,7 +94,7 @@ function App() {
         </div>
       </header> */}
       <header>
-        <h1>
+        <h1 style={{ textAlign: 'center' }}>
           航空预测风险可视化大屏
         </h1>
       </header>
