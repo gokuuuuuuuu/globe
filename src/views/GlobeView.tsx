@@ -1,6 +1,9 @@
-import { Line, OrbitControls, Text } from '@react-three/drei'
+import { Line, OrbitControls, Text, Stars } from '@react-three/drei'
+import { EffectComposer, Bloom } from '@react-three/postprocessing'
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
+import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
+import { Sidebar } from '../components/Sidebar'
 import {
   BufferGeometry,
   Color,
@@ -10,6 +13,7 @@ import {
   ShapeGeometry,
   Vector3,
   Group,
+  MeshBasicMaterial,
 } from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useAppStore } from '../store/useAppStore'
@@ -142,7 +146,22 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     tooltipPosition,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
-  
+  const globeGroupRef = useRef<Group>(null)
+  const isInteractingRef = useRef(false)
+
+  useEffect(() => {
+    const controls = orbitControlsRef.current
+    if (!controls) return
+    const onStart = () => { isInteractingRef.current = true }
+    const onEnd = () => { isInteractingRef.current = false }
+    controls.addEventListener('start', onStart)
+    controls.addEventListener('end', onEnd)
+    return () => {
+      controls.removeEventListener('start', onStart)
+      controls.removeEventListener('end', onEnd)
+    }
+  }, [])
+
   // 用于区分点击和拖动的状态
   const pointerStateRef = useRef<{
     downTime: number
@@ -293,19 +312,31 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           
           // 使用 boundingSphere 的半径作为权重（更大的多边形有更大的半径）
           const weight = sphere.radius * sphere.radius // 使用面积作为权重
+          
+          const updateCenter = (key: string, isoCode: string | null, name: string | null) => {
+            const existing = countryCenters.get(key)
+            if (!existing) {
+              countryCenters.set(key, {
+                weightedCenter: center.clone().multiplyScalar(weight),
+                totalWeight: weight,
+                iso: isoCode,
+                fallbackName: name,
+              })
+            } else {
+              existing.weightedCenter.add(center.clone().multiplyScalar(weight))
+              existing.totalWeight += weight
+            }
+          }
+
           const labelKey = iso ?? featureName ?? `${featureIndex}-${polygonIndex}`
           
-          const existing = countryCenters.get(labelKey)
-          if (!existing) {
-            countryCenters.set(labelKey, {
-              weightedCenter: center.clone().multiplyScalar(weight),
-              totalWeight: weight,
-              iso,
-              fallbackName: featureName,
-            })
+          if (iso === 'CN' && featureName) {
+             // 1. 省份标签
+             updateCenter(`CN-${featureName}`, iso, featureName)
+             // 2. 国家标签 (聚合) - fallbackName 为 null，以便后续使用 atlas 中的国家名
+             updateCenter('CN', iso, null)
           } else {
-            existing.weightedCenter.add(center.clone().multiplyScalar(weight))
-            existing.totalWeight += weight
+             updateCenter(labelKey, iso, featureName)
           }
         }
 
@@ -329,7 +360,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     countryCenters.forEach((data, labelKey) => {
       const finalCenter = data.weightedCenter.clone().divideScalar(data.totalWeight)
       const normalizedCenter = finalCenter.clone().normalize()
-      const labelPosition = normalizedCenter.multiplyScalar(GLOBE_RADIUS + 0.05)
+        const labelPosition = normalizedCenter.multiplyScalar(GLOBE_RADIUS + 0.08)
       
       labelsMap.set(labelKey, {
         iso: data.iso,
@@ -353,6 +384,11 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
   const countryLabels = useMemo<CountryLabel[]>(() => {
     return labelCandidates
       .map(({ key, iso, fallbackName, position }) => {
+        // 如果是中国的省份（key 以 CN- 开头），直接使用 fallbackName
+        if (key.startsWith('CN-') && fallbackName) {
+            return { key, iso, position, name: fallbackName }
+        }
+
         const country = iso ? atlas.countries[iso] : undefined
         const name = country?.name ?? fallbackName
         if (!name) return null
@@ -371,23 +407,19 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
   // 计算航线：从选中国家的机场到其他机场
   const flightRoutes = useMemo(() => {
     if (!selectedCountry) {
-      console.log('没有选中的国家')
       return []
     }
+    
     // 标准化国家代码
     const normalizedSelectedCountry = normalizeCountryCode(selectedCountry)
-    console.log('选中的国家代码 (原始):', selectedCountry, '标准化后:', normalizedSelectedCountry)
-    console.log('所有机场:', airportInstances.map(a => ({ id: a.id, country: a.countryCode })))
     
     if (!normalizedSelectedCountry) {
-      console.log('无法标准化国家代码')
       return []
     }
     
     const selectedAirports = airportInstances.filter(airport => 
       normalizeCountryCode(airport.countryCode) === normalizedSelectedCountry
     )
-    console.log('匹配的机场数量:', selectedAirports.length, '机场:', selectedAirports.map(a => a.id))
     
     if (selectedAirports.length === 0) return []
     
@@ -408,22 +440,45 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       machineRisk: number
       environmentRisk: number
     }> = []
+    
+    // 限制航线数量
+    const maxRoutes = 100
+    let routeCount = 0
+    
     selectedAirports.forEach((airport, index) => {
       airportInstances.forEach((target, targetIndex) => {
+        if (routeCount >= maxRoutes) return
         if (target.id !== airport.id) {
+          // 简单的随机筛选
+          if (Math.random() > 0.3) return
+          
+          routeCount++
+          
           // 生成示例航班数据
           const flightNumber = `${airport.countryCode}${target.countryCode}${String(index * 100 + targetIndex).padStart(3, '0')}`
           const now = new Date()
           const departureTime = new Date(now.getTime() + (index * 60 + targetIndex * 30) * 60000)
           const arrivalTime = new Date(departureTime.getTime() + (2 + Math.random() * 4) * 3600000)
           
+          const fromIsSelected = true // 起点肯定是选中的
+          const toIsSelected = normalizeCountryCode(target.countryCode) === normalizedSelectedCountry
+          
+          // 计算升起后的位置，与板块升起高度(0.15)保持一致
+          const fromPos = airport.position.clone()
+          const fromElevated = fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
+          
+          const toPos = target.position.clone()
+          const toElevated = toIsSelected 
+            ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
+            : toPos
+
           routes.push({
             id: `${airport.id}-${target.id}`,
-            from: airport.position.clone(),
-            to: target.position.clone(),
-            color: airport.color,
-            fromIsSelected: true, // 起点是选中国家的机场
-            toIsSelected: normalizeCountryCode(target.countryCode) === normalizedSelectedCountry,
+            from: fromElevated,
+            to: toElevated,
+            color: '#4ff0ff', // 统一使用青色/蓝色发光色
+            fromIsSelected,
+            toIsSelected,
             flightNumber,
             fromAirport: airport.name,
             toAirport: target.name,
@@ -437,7 +492,6 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         }
       })
     })
-    console.log('生成的航线数量:', routes.length)
     return routes
   }, [selectedCountry, airportInstances])
 
@@ -447,6 +501,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
 
   return (
     <div className="view-root">
+      {/* 侧边栏 */}
+      <Sidebar />
+      {/* 标题覆盖层 */}
+      <div className="canvas-title-overlay">
+        <h1>航空预测风险可视化大屏</h1>
+      </div>
       {/* Tooltip 组件 */}
       {(hoveredAirport || hoveredFlightRoute) && tooltipPosition && (
         <div
@@ -524,154 +584,161 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       )}
       <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
         <color attach="background" args={['#000000']} />
+        <Stars
+          radius={300}
+          depth={60}
+          count={5000}
+          factor={4}
+          saturation={0}
+          fade
+          speed={0.5}
+        />
         <ambientLight intensity={0.6} />
         <directionalLight position={[4, 6, 2]} intensity={0.7} />
         <Suspense fallback={null}>
-          <mesh renderOrder={0}>
-            <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
-            <meshStandardMaterial
-              color="#050505"
-              roughness={0.95}
-              metalness={0.05}
-              transparent={false}
-              opacity={1}
-              depthWrite={true}
-            />
-          </mesh>
-          <group>
-            {airportInstances.map((airport) => {
-              // 标准化国家代码进行匹配
-              const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
-              const normalizedAirportCountry = normalizeCountryCode(airport.countryCode)
-              const isSelected = normalizedSelectedCountry === normalizedAirportCountry
-              if (isSelected) {
-                console.log('机场被选中:', airport.id, airport.countryCode, '匹配:', normalizedSelectedCountry)
-              }
-              return (
-                <AirportParticle
-                  key={airport.id}
-                  airport={airport}
-                  isSelected={isSelected}
-                />
-              )
-            })}
-          </group>
-          {/* 航线 */}
-          {flightRoutes.length > 0 && (
+          <GlobeRotator
+            globeGroupRef={globeGroupRef}
+            isInteractingRef={isInteractingRef}
+            selectedCountry={selectedCountry}
+            hoveredCountry={hoveredCountry}
+          />
+          <group ref={globeGroupRef}>
+            <mesh renderOrder={0}>
+              <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
+              <meshStandardMaterial
+                color="#050505"
+                roughness={0.95}
+                metalness={0.05}
+                transparent={false}
+                opacity={1}
+                depthWrite={true}
+              />
+            </mesh>
             <group>
-              {flightRoutes.map((route, index) => {
-                console.log('渲染航线:', index, '从', route.from, '到', route.to)
+              {airportInstances.map((airport) => {
+                // 标准化国家代码进行匹配
+                const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
+                const normalizedAirportCountry = normalizeCountryCode(airport.countryCode)
+                const isSelected = normalizedSelectedCountry === normalizedAirportCountry
                 return (
-                  <FlightRoute
-                    key={`route-${route.id}`}
-                    id={route.id}
-                    from={route.from}
-                    to={route.to}
-                    color={route.color}
-                    fromIsSelected={route.fromIsSelected}
-                    toIsSelected={route.toIsSelected}
-                    flightNumber={route.flightNumber}
-                    fromAirport={route.fromAirport}
-                    toAirport={route.toAirport}
-                    status={route.status}
-                    scheduledDeparture={route.scheduledDeparture}
-                    scheduledArrival={route.scheduledArrival}
-                    humanRisk={route.humanRisk}
-                    machineRisk={route.machineRisk}
-                    environmentRisk={route.environmentRisk}
+                  <AirportParticle
+                    key={airport.id}
+                    airport={airport}
+                    isSelected={isSelected}
                   />
                 )
               })}
             </group>
-          )}
-          {fillPolygons.map(({ id, iso, geometry }) => {
-            const isSelected = !!(iso && selectedCountry === iso)
-            const isHovered = !!(iso && hoveredCountry === iso)
-            const handlers = createPointerHandlers(iso, () => {
-              if (iso) setSelectedCountry(iso)
-            })
-            return (
-              <ElevatedPolygon
-                key={id}
-                iso={iso}
-                geometry={geometry}
-                isSelected={isSelected}
-                isHovered={isHovered}
-                baseColor={baseColor}
-                hoverColor={hoverColor}
-                highlightColor={highlightColor}
-                onPointerOver={() => {
-                  if (!iso) return
-                  setHoveredCountry(iso)
-                }}
-                onPointerOut={() => {
-                  setHoveredCountry(null)
-                }}
-                onPointerDown={handlers.onPointerDown}
-                onPointerMove={handlers.onPointerMove}
-                onPointerUp={handlers.onPointerUp}
-              />
-            )
-          })}
-          {linePolygons.map(({ id, iso, points }) => {
-            const isSelected = !!(iso && selectedCountry === iso)
-            const isHovered = !!(iso && hoveredCountry === iso)
-            const handlers = createPointerHandlers(iso, () => {
-              if (iso) setSelectedCountry(iso)
-            })
-            return (
-              <ElevatedLine
-                key={id}
-                iso={iso}
-                points={points}
-                isSelected={isSelected}
-                isHovered={isHovered}
-                baseColor={baseColor}
-                hoverColor={hoverColor}
-                highlightColor={highlightColor}
-                onPointerOver={() => {
-                  if (!iso) return
-                  setHoveredCountry(iso)
-                }}
-                onPointerOut={() => {
-                  setHoveredCountry(null)
-                }}
-                onPointerDown={handlers.onPointerDown}
-                onPointerMove={handlers.onPointerMove}
-                onPointerUp={handlers.onPointerUp}
-              />
-            )
-          })}
-          {countryLabels.map(({ key, iso, name, position }) => {
-            const handlers = createPointerHandlers(iso, () => {
-              if (iso) setSelectedCountry(iso)
-            })
-            return (
-              <CountryLabelText
-                key={key}
-                iso={iso}
-                name={name}
-                position={position}
-                isSelected={!!(iso && selectedCountry === iso)}
-                isHovered={!!(iso && hoveredCountry === iso)}
-                onPointerDown={handlers.onPointerDown}
-                onPointerMove={handlers.onPointerMove}
-                onPointerUp={handlers.onPointerUp}
-                onPointerOver={() => {
-                  if (!iso) return
-                  setHoveredCountry(iso)
-                }}
-                onPointerOut={() => {
-                  setHoveredCountry(null)
-                }}
-              />
-            )
-          })}
+            {/* 航线 - 使用新的发光路径组件 */}
+            {flightRoutes.length > 0 && (
+               <GlowingFlightPaths routes={flightRoutes} radius={GLOBE_RADIUS} />
+            )}
+            {/* 后期处理 - Bloom 泛光效果 */}
+            <EffectComposer>
+              <Bloom luminanceThreshold={0.2} intensity={2.0} radius={0.8} mipmapBlur />
+            </EffectComposer>
+            
+            {fillPolygons.map(({ id, iso, geometry }) => {
+              const isSelected = !!(iso && selectedCountry === iso)
+              const isHovered = !!(iso && hoveredCountry === iso)
+              const handlers = createPointerHandlers(iso, () => {
+                if (iso) setSelectedCountry(iso)
+              })
+              return (
+                <ElevatedPolygon
+                  key={id}
+                  iso={iso}
+                  geometry={geometry}
+                  isSelected={isSelected}
+                  isHovered={isHovered}
+                  baseColor={baseColor}
+                  hoverColor={hoverColor}
+                  highlightColor={highlightColor}
+                  onPointerOver={() => {
+                    if (!iso) return
+                    setHoveredCountry(iso)
+                  }}
+                  onPointerOut={() => {
+                    setHoveredCountry(null)
+                  }}
+                  onPointerDown={handlers.onPointerDown}
+                  onPointerMove={handlers.onPointerMove}
+                  onPointerUp={handlers.onPointerUp}
+                />
+              )
+            })}
+            {linePolygons.map(({ id, iso, points }) => {
+              const isSelected = !!(iso && selectedCountry === iso)
+              const isHovered = !!(iso && hoveredCountry === iso)
+              const handlers = createPointerHandlers(iso, () => {
+                if (iso) setSelectedCountry(iso)
+              })
+              return (
+                <ElevatedLine
+                  key={id}
+                  iso={iso}
+                  points={points}
+                  isSelected={isSelected}
+                  isHovered={isHovered}
+                  baseColor={baseColor}
+                  hoverColor={hoverColor}
+                  highlightColor={highlightColor}
+                  onPointerOver={() => {
+                    if (!iso) return
+                    setHoveredCountry(iso)
+                  }}
+                  onPointerOut={() => {
+                    setHoveredCountry(null)
+                  }}
+                  onPointerDown={handlers.onPointerDown}
+                  onPointerMove={handlers.onPointerMove}
+                  onPointerUp={handlers.onPointerUp}
+                />
+              )
+            })}
+            {countryLabels.map(({ key, iso, name, position }) => {
+              // 过滤逻辑：
+              // 1. 省份标签 (CN-xxx)：仅在选中中国时显示
+              if (key.startsWith('CN-')) {
+                if (selectedCountry !== 'CN') return null
+              }
+              // 2. 中国国家标签 (CN)：仅在未选中中国时显示
+              if (key === 'CN') {
+                if (selectedCountry === 'CN') return null
+              }
+
+              const handlers = createPointerHandlers(iso, () => {
+                if (iso) setSelectedCountry(iso)
+              })
+              return (
+                <CountryLabelText
+                  key={key}
+                  iso={iso}
+                  name={name}
+                  position={position}
+                  isSelected={!!(iso && selectedCountry === iso)}
+                  isHovered={!!(iso && hoveredCountry === iso)}
+                  onPointerDown={handlers.onPointerDown}
+                  onPointerMove={handlers.onPointerMove}
+                  onPointerUp={handlers.onPointerUp}
+                  onPointerOver={() => {
+                    if (!iso) return
+                    setHoveredCountry(iso)
+                  }}
+                  onPointerOut={() => {
+                    setHoveredCountry(null)
+                  }}
+                />
+              )
+            })}
+          </group>
         </Suspense>
         <CameraController
           selectedCountry={selectedCountry}
           countryLabels={countryLabels}
           orbitControlsRef={orbitControlsRef}
+          globeGroupRef={globeGroupRef}
+          airportInstances={airportInstances}
         />
         <OrbitControls
           ref={orbitControlsRef}
@@ -717,11 +784,11 @@ function ElevatedPolygon({
 }: ElevatedPolygonProps) {
   const { camera } = useThree()
   const groupRef = useRef<Group>(null)
-  const targetOffset = useMemo(() => new Vector3(), [])
-  const currentOffset = useMemo(() => new Vector3(), [])
   const tempCameraDir = useMemo(() => new Vector3(), [])
   const tempCentroidDir = useMemo(() => new Vector3(), [])
+  const isVisibleRef = useRef(true)
   const [isVisible, setIsVisible] = useState(true)
+  const currentScale = useRef(1)
 
   const centroid = useMemo(() => {
     if (!geometry.boundingSphere) {
@@ -730,21 +797,32 @@ function ElevatedPolygon({
     return geometry.boundingSphere?.center ?? new Vector3()
   }, [geometry])
 
+  const radius = useMemo(() => {
+    const pos = geometry.getAttribute('position')
+    if (pos.count > 0) {
+      return new Vector3(pos.getX(0), pos.getY(0), pos.getZ(0)).length()
+    }
+    return 1.4 // fallback to GLOBE_RADIUS - 0.2
+  }, [geometry])
+
   useFrame(() => {
     if (!groupRef.current) return
     
-    // 检查是否在视野内（面向相机）
+    // 检查是否在视野内（面向相机）- 降低检查频率
     const cameraDir = tempCameraDir.copy(camera.position).normalize()
     const centroidDir = tempCentroidDir.copy(centroid).normalize()
     const visible = cameraDir.dot(centroidDir) > 0.2
-    setIsVisible(visible)
+    if (isVisibleRef.current !== visible) {
+      isVisibleRef.current = visible
+      setIsVisible(visible)
+    }
     
-    const target = isSelected ? 0.15 : 0
-    const normal = centroid.clone().normalize()
-    targetOffset.copy(normal).multiplyScalar(target)
-
-    currentOffset.lerp(targetOffset, 0.1)
-    groupRef.current.position.copy(currentOffset)
+    // 使用缩放代替位移，避免多板块升起时出现裂缝
+    const targetHeight = isSelected ? 0.15 : 0
+    const targetScale = (radius + targetHeight) / radius
+    
+    currentScale.current += (targetScale - currentScale.current) * 0.1
+    groupRef.current.scale.setScalar(currentScale.current)
   })
 
   const color = isSelected ? highlightColor : isHovered ? hoverColor : baseColor
@@ -824,11 +902,14 @@ function ElevatedLine({
 }: ElevatedLineProps) {
   const { camera } = useThree()
   const groupRef = useRef<Group>(null)
-  const targetOffset = useMemo(() => new Vector3(), [])
-  const currentOffset = useMemo(() => new Vector3(), [])
   const tempCameraDir = useMemo(() => new Vector3(), [])
   const tempCentroidDir = useMemo(() => new Vector3(), [])
   const [isVisible, setIsVisible] = useState(true)
+  const currentScale = useRef(1)
+
+  const radius = useMemo(() => {
+    return points[0]?.length() ?? 1.603
+  }, [points])
 
   const centroid = useMemo(() => {
     const center = new Vector3()
@@ -845,12 +926,12 @@ function ElevatedLine({
     const visible = cameraDir.dot(centroidDir) > 0.2
     setIsVisible(visible)
     
-    const target = isSelected ? 0.15 : 0
-    const normal = centroid.clone().normalize()
-    targetOffset.copy(normal).multiplyScalar(target)
-
-    currentOffset.lerp(targetOffset, 0.1)
-    groupRef.current.position.copy(currentOffset)
+    // 使用缩放代替位移，避免多板块升起时出现裂缝
+    const targetHeight = isSelected ? 0.15 : 0
+    const targetScale = (radius + targetHeight) / radius
+    
+    currentScale.current += (targetScale - currentScale.current) * 0.1
+    groupRef.current.scale.setScalar(currentScale.current)
   })
 
   const color = isSelected ? highlightColor : isHovered ? hoverColor : baseColor
@@ -1003,14 +1084,39 @@ function CountryLabelText({
   )
 }
 
+interface GlobeRotatorProps {
+  globeGroupRef: React.MutableRefObject<Group | null>
+  isInteractingRef: React.MutableRefObject<boolean>
+  selectedCountry: string | null
+  hoveredCountry: string | null
+}
+
+function GlobeRotator({
+  globeGroupRef,
+  isInteractingRef,
+  selectedCountry,
+  hoveredCountry,
+}: GlobeRotatorProps) {
+  const { viewingAirportId } = useAppStore()
+  useFrame((_state, delta) => {
+    if (globeGroupRef.current && !selectedCountry && !isInteractingRef.current && !hoveredCountry && !viewingAirportId) {
+      globeGroupRef.current.rotation.y += delta * 0.05
+    }
+  })
+  return null
+}
+
 interface CameraControllerProps {
   selectedCountry: string | null
   countryLabels: CountryLabel[]
   orbitControlsRef: React.MutableRefObject<OrbitControlsImpl | null>
+  globeGroupRef: React.MutableRefObject<Group | null>
+  airportInstances: Array<AirportParticle & { position: Vector3 }>
 }
 
-function CameraController({ selectedCountry, countryLabels, orbitControlsRef }: CameraControllerProps) {
+function CameraController({ selectedCountry, countryLabels, orbitControlsRef, globeGroupRef, airportInstances }: CameraControllerProps) {
   const { camera } = useThree()
+  const { targetAirportId, setTargetAirportId, setViewingAirportId } = useAppStore()
   const isInitializedRef = useRef(false)
   const targetCameraPositionRef = useRef<Vector3 | null>(null)
   const targetLookAtPointRef = useRef<Vector3 | null>(null)
@@ -1029,7 +1135,14 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef }: 
     
     // 等待 OrbitControls 初始化
     const timer = setTimeout(() => {
-      const chinaPosition = latLonToCartesian(CHINA_LAT, CHINA_LON, GLOBE_RADIUS)
+      const chinaLocalPosition = latLonToCartesian(CHINA_LAT, CHINA_LON, GLOBE_RADIUS)
+      const chinaPosition = chinaLocalPosition.clone()
+      
+      // 转换为世界坐标
+      if (globeGroupRef.current) {
+        chinaPosition.applyMatrix4(globeGroupRef.current.matrixWorld)
+      }
+
       const targetDistance = 3.5 // 初始距离，稍微放大
       const cameraPos = calculateCameraPosition(chinaPosition, targetDistance)
       
@@ -1044,7 +1157,7 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef }: 
     }, 100)
     
     return () => clearTimeout(timer)
-  }, [camera, orbitControlsRef])
+  }, [camera, orbitControlsRef, globeGroupRef])
 
   // 当选择国家改变时，转到对应国家位置
   useEffect(() => {
@@ -1054,12 +1167,49 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef }: 
     if (!countryLabel || !orbitControlsRef.current) return
 
     // 使用标签位置归一化后乘以地球半径，得到地球表面的点
-    const targetPoint = countryLabel.position.clone().normalize().multiplyScalar(GLOBE_RADIUS)
+    const localPoint = countryLabel.position.clone().normalize().multiplyScalar(GLOBE_RADIUS)
+    
+    // 转换为世界坐标
+    const targetPoint = localPoint.clone()
+    if (globeGroupRef.current) {
+      targetPoint.applyMatrix4(globeGroupRef.current.matrixWorld)
+    }
+
     const targetDistance = 3.0 // 选择国家时的距离，更近一些
     targetCameraPositionRef.current = calculateCameraPosition(targetPoint, targetDistance)
     targetLookAtPointRef.current = targetPoint.clone()
     isAnimatingRef.current = true
-  }, [selectedCountry, countryLabels, orbitControlsRef, camera])
+  }, [selectedCountry, countryLabels, orbitControlsRef, camera, globeGroupRef])
+
+  // 当targetAirportId改变时，zoom到对应机场
+  useEffect(() => {
+    if (!targetAirportId || !isInitializedRef.current || !orbitControlsRef.current) return
+
+    const airport = airportInstances.find(a => a.id === targetAirportId)
+    if (!airport) return
+
+    // 设置正在查看的机场，用于显示高亮效果
+    setViewingAirportId(targetAirportId)
+
+    // 使用机场位置
+    const localPoint = airport.position.clone()
+    
+    // 转换为世界坐标
+    const targetPoint = localPoint.clone()
+    if (globeGroupRef.current) {
+      targetPoint.applyMatrix4(globeGroupRef.current.matrixWorld)
+    }
+
+    const targetDistance = 2.5 // zoom到机场时的距离，更近
+    targetCameraPositionRef.current = calculateCameraPosition(targetPoint, targetDistance)
+    targetLookAtPointRef.current = targetPoint.clone()
+    isAnimatingRef.current = true
+
+    // 清除targetAirportId，避免重复触发
+    setTimeout(() => {
+      setTargetAirportId(null)
+    }, 100)
+  }, [targetAirportId, airportInstances, orbitControlsRef, camera, globeGroupRef, setTargetAirportId, setViewingAirportId])
 
   // 监听用户交互，如果用户在操作，停止动画并将目标点重置为原点
   useEffect(() => {
@@ -1072,6 +1222,8 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef }: 
         targetLookAtPointRef.current = null
         isAnimatingRef.current = false
       }
+      // 用户开始交互时，清除查看状态，允许地球继续旋转
+      setViewingAirportId(null)
       // 用户开始交互时，将目标点重置为原点，使相机围绕地球中心旋转
       controls.target.set(0, 0, 0)
       controls.update()
@@ -1081,7 +1233,7 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef }: 
     return () => {
       controls.removeEventListener('start', handleStart)
     }
-  }, [orbitControlsRef])
+  }, [orbitControlsRef, setViewingAirportId])
 
   // 平滑动画到目标位置
   useFrame(() => {
@@ -1119,22 +1271,19 @@ interface AirportParticleProps {
 }
 
 function AirportParticle({ airport, isSelected }: AirportParticleProps) {
-  const { gl } = useThree()
+  const { gl, camera } = useThree()
   const groupRef = useRef<Group>(null)
+  const ringRef = useRef<Group>(null)
+  const labelRef = useRef<Group>(null)
   const targetOffset = useMemo(() => new Vector3(), [])
   const currentOffset = useMemo(() => new Vector3(), [])
-  const [glowIntensity, setGlowIntensity] = useState(1)
-  const { setHoveredAirport, setTooltipPosition } = useAppStore()
+  const glowIntensityRef = useRef(1)
+  const materialRefs = useRef<{ outer?: MeshBasicMaterial; middle?: MeshBasicMaterial; ring?: MeshBasicMaterial }>({})
+  const { setHoveredAirport, setTooltipPosition, viewingAirportId } = useAppStore()
+  const isViewing = viewingAirportId === airport.id
   
   // 保存原始位置，避免被修改
   const basePosition = useMemo(() => airport.position.clone(), [airport.position])
-  
-  // 调试信息
-  useEffect(() => {
-    if (isSelected) {
-      console.log('机场上升:', airport.id, 'isSelected:', isSelected)
-    }
-  }, [isSelected, airport.id])
 
   // 处理鼠标事件
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
@@ -1179,10 +1328,38 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     const finalPosition = basePosition.clone().add(currentOffset)
     groupRef.current.position.copy(finalPosition)
     
-    // 发光动画效果
+    // 发光动画效果 - 使用 ref 直接更新材质，避免状态更新
     const time = Date.now() * 0.001
-    const intensity = isSelected ? 1.2 + Math.sin(time * 3) * 0.3 : 0.8 + Math.sin(time * 2) * 0.2
-    setGlowIntensity(intensity)
+    let intensity = isSelected ? 1.2 + Math.sin(time * 3) * 0.3 : 0.8 + Math.sin(time * 2) * 0.2
+    
+    // 如果是正在查看的机场，增强效果
+    if (isViewing) {
+      intensity = 2.0 + Math.sin(time * 4) * 0.5 // 更强的脉冲效果
+    }
+    
+    glowIntensityRef.current = intensity
+    
+    // 直接更新材质透明度，避免重新渲染
+    if (materialRefs.current.outer) {
+      materialRefs.current.outer.opacity = (isViewing ? 0.4 : 0.2) * intensity
+    }
+    if (materialRefs.current.middle) {
+      materialRefs.current.middle.opacity = (isViewing ? 0.8 : 0.5) * intensity
+    }
+    
+    // 更新光环效果（如果正在查看）
+    if (isViewing && ringRef.current && materialRefs.current.ring) {
+      const ringScale = 1.0 + Math.sin(time * 3) * 0.3
+      ringRef.current.scale.setScalar(ringScale)
+      materialRefs.current.ring.opacity = 0.3 + Math.sin(time * 3) * 0.2
+    }
+    
+    // 更新标签（如果正在查看）
+    if (isViewing && labelRef.current) {
+      labelRef.current.lookAt(camera.position)
+      const labelOffset = normalVec.clone().multiplyScalar(0.05)
+      labelRef.current.position.copy(finalPosition.clone().add(labelOffset))
+    }
   })
 
   return (
@@ -1194,292 +1371,68 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <sphereGeometry args={[0.012, 16, 16]} />
+        <sphereGeometry args={[isViewing ? 0.018 : 0.012, 16, 16]} />
         <meshBasicMaterial
+          ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
           color={airport.color}
           transparent
-          opacity={0.2 * glowIntensity}
+          opacity={0.2}
         />
       </mesh>
       {/* 中层光晕 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.008, 16, 16]} />
+        <sphereGeometry args={[isViewing ? 0.012 : 0.008, 16, 16]} />
         <meshBasicMaterial
+          ref={(ref) => { if (ref) materialRefs.current.middle = ref }}
           color={airport.color}
           transparent
-          opacity={0.5 * glowIntensity}
+          opacity={0.5}
         />
       </mesh>
       {/* 内层亮点 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.004, 8, 8]} />
+        <sphereGeometry args={[isViewing ? 0.006 : 0.004, 8, 8]} />
         <meshBasicMaterial
           color="#ffffff"
           transparent
           opacity={0.95}
         />
       </mesh>
-    </group>
-  )
-}
-
-interface FlightRouteProps {
-  id: string
-  from: Vector3
-  to: Vector3
-  color: string
-  fromIsSelected: boolean
-  toIsSelected: boolean
-  flightNumber: string
-  fromAirport: string
-  toAirport: string
-  status: string
-  scheduledDeparture: string
-  scheduledArrival: string
-  humanRisk: number
-  machineRisk: number
-  environmentRisk: number
-}
-
-function FlightRoute({ 
-  id: _id, // eslint-disable-line @typescript-eslint/no-unused-vars
-  from, 
-  to, 
-  color, 
-  fromIsSelected, 
-  toIsSelected,
-  flightNumber,
-  fromAirport,
-  toAirport,
-  status,
-  scheduledDeparture,
-  scheduledArrival,
-  humanRisk,
-  machineRisk,
-  environmentRisk,
-}: FlightRouteProps) {
-  const { gl } = useThree()
-  const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
-  const particlePositionRef = useRef(0)
-  const [isHovered, setIsHovered] = useState(false)
-  
-  // 根据状态确定颜色
-  const getStatusColor = useCallback((status: string, baseColor: string) => {
-    switch (status) {
-      case '飞行中':
-        return '#10b981' // 绿色 - 飞行中
-      case '已起飞':
-        return '#3b82f6' // 蓝色 - 已起飞
-      case '已到达':
-        return '#6b7280' // 灰色 - 已到达
-      case '计划中':
-      default:
-        return baseColor // 使用原始颜色
-    }
-  }, [])
-  
-  const routeColor = useMemo(() => getStatusColor(status, color), [status, color, getStatusColor])
-  
-  // 计算上升后的位置
-  const getElevatedPosition = useCallback((position: Vector3, isSelected: boolean) => {
-    const normal = position.clone().normalize()
-    const offset = isSelected ? 0.15 : 0
-    return position.clone().add(normal.clone().multiplyScalar(offset))
-  }, [])
-
-  // 创建弧线路径（大圆航线）
-  const curvePoints = useMemo(() => {
-    const points: Vector3[] = []
-    const steps = 80 // 增加点数使线条更平滑
-    
-    // 计算上升后的起点和终点
-    const elevatedFrom = getElevatedPosition(from, fromIsSelected)
-    const elevatedTo = getElevatedPosition(to, toIsSelected)
-    
-    // 计算大圆路径
-    const start = elevatedFrom.clone().normalize()
-    const end = elevatedTo.clone().normalize()
-    const angle = start.angleTo(end)
-    
-    // 计算弧线高度（使航线呈现弧形）
-    const maxHeight = 0.3 // 最大高度偏移
-    // 确保航线在地球表面上方，最小距离为地球半径 + 偏移
-    const minDistance = GLOBE_RADIUS + 0.05
-    
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps
-      const currentAngle = angle * t
-      
-      // 使用球面线性插值 (slerp)
-      const sinAngle = Math.sin(angle)
-      let point: Vector3
-      
-      if (sinAngle < 0.0001) {
-        // 如果角度太小，直接线性插值
-        point = start.clone().lerp(end, t).normalize()
-      } else {
-        const sinT = Math.sin(currentAngle)
-        const sin1T = Math.sin(angle - currentAngle)
-        point = start.clone()
-          .multiplyScalar(sin1T / sinAngle)
-          .add(end.clone().multiplyScalar(sinT / sinAngle))
-          .normalize()
-      }
-      
-      // 计算弧线高度（中间高，两端低）
-      const heightFactor = Math.sin(t * Math.PI) // 0 到 1 再到 0
-      const heightOffset = heightFactor * maxHeight
-      
-      // 根据起点和终点的距离，计算路径上的高度
-      const fromDist = Math.max(elevatedFrom.length(), minDistance)
-      const toDist = Math.max(elevatedTo.length(), minDistance)
-      const baseDist = fromDist + (toDist - fromDist) * t
-      const finalDist = Math.max(baseDist + heightOffset, minDistance)
-      
-      points.push(point.multiplyScalar(finalDist))
-    }
-    
-    return points
-  }, [from, to, fromIsSelected, toIsSelected, getElevatedPosition])
-
-  // 动画粒子位置
-  useFrame(() => {
-    particlePositionRef.current += 0.01
-    if (particlePositionRef.current > 1) {
-      particlePositionRef.current = 0
-    }
-  })
-
-  // 获取粒子位置
-  const getParticlePosition = useCallback(() => {
-    if (curvePoints.length === 0) return null
-    const index = Math.floor(particlePositionRef.current * (curvePoints.length - 1))
-    return curvePoints[Math.min(index, curvePoints.length - 1)]
-  }, [curvePoints])
-
-  // 处理鼠标事件
-  const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    setIsHovered(true)
-    const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
-    setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
-    setHoveredFlightRoute({
-      flightNumber,
-      fromAirport,
-      toAirport,
-      status,
-      scheduledDeparture,
-      scheduledArrival,
-      humanRisk,
-      machineRisk,
-      environmentRisk,
-    })
-    if (gl.domElement) {
-      gl.domElement.style.cursor = 'pointer'
-    }
-  }, [flightNumber, fromAirport, toAirport, status, scheduledDeparture, scheduledArrival, humanRisk, machineRisk, environmentRisk, setHoveredFlightRoute, setTooltipPosition, gl])
-
-  const handlePointerOut = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    setIsHovered(false)
-    setHoveredFlightRoute(null)
-    setTooltipPosition(null)
-    if (gl.domElement) {
-      gl.domElement.style.cursor = 'default'
-    }
-  }, [setHoveredFlightRoute, setTooltipPosition, gl])
-
-  const handlePointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
-    setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
-  }, [setTooltipPosition])
-
-  // 确保航线可见
-  if (curvePoints.length === 0) {
-    console.warn('航线点为空')
-    return null
-  }
-  
-  const lineWidth = isHovered ? 4 : 2.5
-  const opacity = isHovered ? 1 : 0.7
-  const glowOpacity = isHovered ? 0.4 : 0.25
-  
-  const particlePos = getParticlePosition()
-  
-  return (
-    <group>
-      {/* 外层光晕 - 最粗最透明 */}
-      <Line
-        points={curvePoints}
-        color={routeColor}
-        lineWidth={lineWidth * 2.5}
-        transparent
-        opacity={glowOpacity * 0.3}
-        renderOrder={4}
-        depthTest={true}
-        depthWrite={false}
-      />
-      {/* 中层光晕 */}
-      <Line
-        points={curvePoints}
-        color={routeColor}
-        lineWidth={lineWidth * 1.8}
-        transparent
-        opacity={glowOpacity * 0.5}
-        renderOrder={5}
-        depthTest={true}
-        depthWrite={false}
-      />
-      {/* 主航线 */}
-      <Line
-        points={curvePoints}
-        color={routeColor}
-        lineWidth={lineWidth}
-        transparent
-        opacity={opacity}
-        renderOrder={6}
-        depthTest={true}
-        depthWrite={false}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-        onPointerMove={handlePointerMove}
-      />
-      {/* 流动的粒子效果 */}
-      {particlePos && status === '飞行中' && (
-        <mesh position={particlePos.toArray()} renderOrder={7}>
-          <sphereGeometry args={[0.008, 8, 8]} />
-          <meshBasicMaterial
-            color="#ffffff"
-            transparent
-            opacity={0.9}
-            depthTest={true}
-            depthWrite={false}
-          />
-        </mesh>
+      {/* 正在查看时的光环效果 */}
+      {isViewing && (
+        <group ref={ringRef}>
+          <mesh position={[0, 0, 0]}>
+            <ringGeometry args={[0.015, 0.025, 32]} />
+            <meshBasicMaterial
+              ref={(ref) => { if (ref) materialRefs.current.ring = ref }}
+              color={airport.color}
+              transparent
+              opacity={0.3}
+              side={DoubleSide}
+            />
+          </mesh>
+        </group>
       )}
-      {/* 起点标记 */}
-      <mesh position={curvePoints[0].toArray()} renderOrder={7}>
-        <sphereGeometry args={[0.01, 8, 8]} />
-        <meshBasicMaterial
-          color={routeColor}
-          transparent
-          opacity={0.9}
-          depthTest={true}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* 终点标记 */}
-      <mesh position={curvePoints[curvePoints.length - 1].toArray()} renderOrder={7}>
-        <sphereGeometry args={[0.01, 8, 8]} />
-        <meshBasicMaterial
-          color={routeColor}
-          transparent
-          opacity={0.9}
-          depthTest={true}
-          depthWrite={false}
-        />
-      </mesh>
+      {/* 正在查看时的机场名称标签 */}
+      {isViewing && (
+        <group ref={labelRef}>
+          <Text
+            color="#ffffff"
+            fontSize={0.015}
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.002}
+            outlineColor="rgba(0,0,0,0.8)"
+            maxWidth={0.15}
+            renderOrder={100}
+          >
+            {airport.name}
+          </Text>
+        </group>
+      )}
     </group>
   )
 }
+
+// FlightRoute component removed as it has been replaced by GlowingFlightPaths
+

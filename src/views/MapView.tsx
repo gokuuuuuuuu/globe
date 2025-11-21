@@ -3,14 +3,13 @@ import { Canvas } from '@react-three/fiber'
 import { Suspense, useMemo } from 'react'
 import { Color, DoubleSide, Path, Shape, Vector3 } from 'three'
 import { useAppStore } from '../store/useAppStore'
-import type { AtlasData, WorldData } from '../types'
+import type { WorldData } from '../types'
 import { deriveIsoCode, latLonToPlane } from '../utils/geo'
 
 const MAP_SCALE = 6
 
 interface MapViewProps {
   world: WorldData
-  atlas: AtlasData
 }
 
 interface PolygonLine {
@@ -25,7 +24,7 @@ interface PolygonFill {
   shape: Shape
 }
 
-export function MapView({ world, atlas }: MapViewProps) {
+export function MapView({ world }: MapViewProps) {
   const { selectedCountry, setSelectedCountry, hoveredCountry, setHoveredCountry } = useAppStore()
 
   const { linePolygons, fillPolygons } = useMemo<{
@@ -174,19 +173,7 @@ export function MapView({ world, atlas }: MapViewProps) {
         </Suspense>
         <OrbitControls enableRotate={false} enablePan maxZoom={120} minZoom={20} />
       </Canvas>
-      <div className="view-overlay">
-        <h2>Map view</h2>
-        <p>二维投影，以简化方式呈现各国轮廓。</p>
-        {selectedCountry && atlas.countries[selectedCountry] && (
-          <div className="country-card">
-            <h3>{atlas.countries[selectedCountry].name}</h3>
-            <p>
-              所在纬度：{atlas.countries[selectedCountry].lat?.toFixed(2) ?? '未知'}，经度：
-              {atlas.countries[selectedCountry].lon?.toFixed(2) ?? '未知'}
-            </p>
-          </div>
-        )}
-      </div>
+      
     </div>
   )
 }

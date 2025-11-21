@@ -21,6 +21,9 @@ interface FlightRouteHoverInfo {
   environmentRisk: number // 环风险值
 }
 
+export type SidebarTab = 'airport' | 'airline' | 'person'
+export type RiskZone = 'red' | 'orange' | 'yellow' | 'green'
+
 interface AppState {
   view: ViewMode
   setView: (view: ViewMode) => void
@@ -34,6 +37,47 @@ interface AppState {
   setHoveredFlightRoute: (info: FlightRouteHoverInfo | null) => void
   tooltipPosition: { x: number; y: number } | null
   setTooltipPosition: (pos: { x: number; y: number } | null) => void
+  // 侧边栏状态
+  sidebarTab: SidebarTab
+  setSidebarTab: (tab: SidebarTab) => void
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  riskZones: RiskZone[]
+  setRiskZones: (zones: RiskZone[]) => void
+  // Zoom到机场
+  targetAirportId: string | null
+  setTargetAirportId: (id: string | null) => void
+  // 当前正在查看的机场（用于显示高亮效果）
+  viewingAirportId: string | null
+  setViewingAirportId: (id: string | null) => void
+  // 工具栏状态
+  showLabels: boolean
+  setShowLabels: (show: boolean) => void
+  showWindLayer: boolean
+  setShowWindLayer: (show: boolean) => void
+  showTemperatureLayer: boolean
+  setShowTemperatureLayer: (show: boolean) => void
+  // 航班筛选条件
+  flightFilters: {
+    flightNumber: string
+    aircraftNumber: string
+    largeAircraftType: string
+    aircraftType: string
+    pfTechnology: string
+    operatingUnit: string
+    departureAirport: string
+    arrivalAirport: string
+  }
+  setFlightFilters: (filters: Partial<AppState['flightFilters']>) => void
+  // 风险类型筛选
+  riskTypes: string[]
+  setRiskTypes: (types: string[]) => void
+  // 当前选中的机场（用于airline tab）
+  selectedAirportForAirline: string | null
+  setSelectedAirportForAirline: (id: string | null) => void
+  // 航班状态筛选
+  flightStatuses: string[]
+  setFlightStatuses: (statuses: string[]) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -49,6 +93,49 @@ export const useAppStore = create<AppState>((set) => ({
   setHoveredFlightRoute: (info) => set({ hoveredFlightRoute: info }),
   tooltipPosition: null,
   setTooltipPosition: (pos) => set({ tooltipPosition: pos }),
+  // 侧边栏状态
+  sidebarTab: 'airport',
+  setSidebarTab: (tab) => set({ sidebarTab: tab }),
+  searchQuery: '',
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  riskZones: ['red', 'orange', 'yellow', 'green'],
+  setRiskZones: (zones) => set({ riskZones: zones }),
+  // Zoom到机场
+  targetAirportId: null,
+  setTargetAirportId: (id) => set({ targetAirportId: id }),
+  // 当前正在查看的机场
+  viewingAirportId: null,
+  setViewingAirportId: (id) => set({ viewingAirportId: id }),
+  // 工具栏状态
+  showLabels: true,
+  setShowLabels: (show) => set({ showLabels: show }),
+  showWindLayer: false,
+  setShowWindLayer: (show) => set({ showWindLayer: show }),
+  showTemperatureLayer: false,
+  setShowTemperatureLayer: (show) => set({ showTemperatureLayer: show }),
+  // 航班筛选条件
+  flightFilters: {
+    flightNumber: '',
+    aircraftNumber: '',
+    largeAircraftType: '',
+    aircraftType: '',
+    pfTechnology: '',
+    operatingUnit: '',
+    departureAirport: '',
+    arrivalAirport: '',
+  },
+  setFlightFilters: (filters) => set((state) => ({
+    flightFilters: { ...state.flightFilters, ...filters }
+  })),
+  // 风险类型筛选
+  riskTypes: [],
+  setRiskTypes: (types) => set({ riskTypes: types }),
+  // 当前选中的机场（用于airline tab）
+  selectedAirportForAirline: null,
+  setSelectedAirportForAirline: (id) => set({ selectedAirportForAirline: id }),
+  // 航班状态筛选
+  flightStatuses: ['未起飞', '巡航中'],
+  setFlightStatuses: (statuses) => set({ flightStatuses: statuses }),
 }))
 
 

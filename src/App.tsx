@@ -5,6 +5,7 @@ import { GlobeView } from './views/GlobeView'
 import { MapView } from './views/MapView'
 import { useAtlasData } from './hooks/useAtlasData'
 import { useAppStore } from './store/useAppStore'
+import { LeftToolbar } from './components/LeftToolbar'
 // import type { ViewMode } from './types'
 
 // const VIEW_TABS: { key: ViewMode; label: string; desc: string }[] = [
@@ -48,7 +49,7 @@ function App() {
       case 'globe':
         return <GlobeView atlas={atlas} world={world} />
       case 'map':
-        return <MapView atlas={atlas} world={world} />
+        return <MapView world={world} />
       case 'stacks':
         return <CountryStacksView atlas={atlas} />
       default:
@@ -58,6 +59,7 @@ function App() {
 
   return (
     <div className="app-root">
+      <LeftToolbar />
       {/* <header className="app-header">
         <div className="brand">
           <div className="brand-title">Atlas Globe</div>
@@ -93,11 +95,6 @@ function App() {
           <span className="active-country">当前：{activeCountryName}</span>
         </div>
       </header> */}
-      <header>
-        <h1 style={{ textAlign: 'center' }}>
-          航空预测风险可视化大屏
-        </h1>
-      </header>
       <main className="app-main">
         {isLoading && (
           <div className="status-card">
