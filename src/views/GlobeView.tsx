@@ -19,6 +19,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useAppStore } from '../store/useAppStore'
 import type { AtlasData, WorldData } from '../types'
 import { deriveIsoCode, latLonToCartesian } from '../utils/geo'
+import { AIRPORTS, FLIGHTS, getAirportByCode } from '../data/flightData'
 
 const GLOBE_RADIUS = 1.6
 
@@ -57,17 +58,11 @@ interface CountryLabel {
   position: Vector3
 }
 
-interface AirportParticle {
-  id: string
-  name: string
-  lat: number
-  lon: number
-  color: string
-  countryCode: string // 国家代码
-  operatorCount: number // 执飞单位数量
-  flightCount: number // 航班数量
-  environmentRisk: number // 环境风险值
-}
+// 使用统一数据源中的Airport接口
+import type { Airport } from '../data/flightData'
+
+// Airport接口已经包含了所有需要的字段，直接使用
+type AirportParticle = Airport
 
 // 国家代码映射表：从可能的ISO代码格式映射到标准ISO_A2格式
 const COUNTRY_CODE_MAP: Record<string, string> = {
@@ -91,38 +86,8 @@ function normalizeCountryCode(code: string | null): string | null {
   return COUNTRY_CODE_MAP[upper] || upper
 }
 
-const DEMO_AIRPORTS: AirportParticle[] = [
-  // 中国
-  { id: 'PEK', name: 'Beijing Capital', lat: 40.0799, lon: 116.6031, color: '#22d3ee', countryCode: 'CN', operatorCount: 12, flightCount: 856, environmentRisk: 3.2 },
-  { id: 'PVG', name: 'Shanghai Pudong', lat: 31.1434, lon: 121.8052, color: '#22d3ee', countryCode: 'CN', operatorCount: 15, flightCount: 1024, environmentRisk: 3.5 },
-  { id: 'CAN', name: 'Guangzhou Baiyun', lat: 23.3924, lon: 113.2988, color: '#22d3ee', countryCode: 'CN', operatorCount: 10, flightCount: 678, environmentRisk: 2.8 },
-  // 美国
-  { id: 'JFK', name: 'New York JFK', lat: 40.6413, lon: -73.7781, color: '#f472b6', countryCode: 'US', operatorCount: 18, flightCount: 1245, environmentRisk: 4.1 },
-  { id: 'LAX', name: 'Los Angeles', lat: 33.9425, lon: -118.4081, color: '#f472b6', countryCode: 'US', operatorCount: 20, flightCount: 1456, environmentRisk: 4.3 },
-  { id: 'ORD', name: 'Chicago O\'Hare', lat: 41.9786, lon: -87.9048, color: '#f472b6', countryCode: 'US', operatorCount: 16, flightCount: 1123, environmentRisk: 3.9 },
-  // 英国
-  { id: 'LHR', name: 'London Heathrow', lat: 51.4706, lon: -0.4619, color: '#facc15', countryCode: 'GB', operatorCount: 14, flightCount: 987, environmentRisk: 3.7 },
-  { id: 'LGW', name: 'London Gatwick', lat: 51.1537, lon: -0.1821, color: '#facc15', countryCode: 'GB', operatorCount: 8, flightCount: 456, environmentRisk: 2.5 },
-  // 阿联酋
-  { id: 'DXB', name: 'Dubai International', lat: 25.2532, lon: 55.3657, color: '#fb7185', countryCode: 'AE', operatorCount: 22, flightCount: 1567, environmentRisk: 4.5 },
-  // 澳大利亚
-  { id: 'SYD', name: 'Sydney Kingsford', lat: -33.9399, lon: 151.1753, color: '#34d399', countryCode: 'AU', operatorCount: 11, flightCount: 723, environmentRisk: 3.0 },
-  { id: 'MEL', name: 'Melbourne', lat: -37.6733, lon: 144.8433, color: '#34d399', countryCode: 'AU', operatorCount: 9, flightCount: 567, environmentRisk: 2.7 },
-  // 日本
-  { id: 'NRT', name: 'Tokyo Narita', lat: 35.7720, lon: 140.3929, color: '#a78bfa', countryCode: 'JP', operatorCount: 13, flightCount: 892, environmentRisk: 3.4 },
-  { id: 'HND', name: 'Tokyo Haneda', lat: 35.5494, lon: 139.7798, color: '#a78bfa', countryCode: 'JP', operatorCount: 12, flightCount: 834, environmentRisk: 3.3 },
-  // 德国
-  { id: 'FRA', name: 'Frankfurt', lat: 50.0379, lon: 8.5622, color: '#60a5fa', countryCode: 'DE', operatorCount: 17, flightCount: 1098, environmentRisk: 3.8 },
-  { id: 'MUC', name: 'Munich', lat: 48.3538, lon: 11.7861, color: '#60a5fa', countryCode: 'DE', operatorCount: 10, flightCount: 645, environmentRisk: 2.9 },
-  // 法国
-  { id: 'CDG', name: 'Paris Charles de Gaulle', lat: 49.0097, lon: 2.5479, color: '#fbbf24', countryCode: 'FR', operatorCount: 19, flightCount: 1234, environmentRisk: 4.0 },
-  // 新加坡
-  { id: 'SIN', name: 'Singapore Changi', lat: 1.3644, lon: 103.9915, color: '#10b981', countryCode: 'SG', operatorCount: 21, flightCount: 1345, environmentRisk: 4.2 },
-  // 韩国
-  { id: 'ICN', name: 'Seoul Incheon', lat: 37.4602, lon: 126.4407, color: '#ec4899', countryCode: 'KR', operatorCount: 15, flightCount: 956, environmentRisk: 3.6 },
-  // 泰国
-  { id: 'BKK', name: 'Bangkok Suvarnabhumi', lat: 13.6811, lon: 100.7475, color: '#f59e0b', countryCode: 'TH', operatorCount: 12, flightCount: 789, environmentRisk: 3.1 },
-]
+// 使用统一数据源
+const DEMO_AIRPORTS: AirportParticle[] = AIRPORTS
 
 function sanitizeRing(ring: number[][]): number[][] {
   if (ring.length > 1) {
@@ -144,6 +109,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     hoveredAirport,
     hoveredFlightRoute,
     tooltipPosition,
+    viewingAirportId,
+    selectedFlightRouteId,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
   const globeGroupRef = useRef<Group>(null)
@@ -404,25 +371,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     })
   }, [])
 
-  // 计算航线：从选中国家的机场到其他机场
+  // 计算航线：基于统一的航班数据生成航线
   const flightRoutes = useMemo(() => {
-    if (!selectedCountry) {
-      return []
-    }
-    
-    // 标准化国家代码
-    const normalizedSelectedCountry = normalizeCountryCode(selectedCountry)
-    
-    if (!normalizedSelectedCountry) {
-      return []
-    }
-    
-    const selectedAirports = airportInstances.filter(airport => 
-      normalizeCountryCode(airport.countryCode) === normalizedSelectedCountry
-    )
-    
-    if (selectedAirports.length === 0) return []
-    
     const routes: Array<{ 
       id: string
       from: Vector3
@@ -441,59 +391,185 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       environmentRisk: number
     }> = []
     
+    // 情况1: 如果选中了特定航线，只显示该航线
+    if (selectedFlightRouteId) {
+      const flight = FLIGHTS.find(f => f.id === selectedFlightRouteId)
+      if (flight) {
+        const fromAirport = getAirportByCode(flight.fromAirport)
+        const toAirport = getAirportByCode(flight.toAirport)
+        
+        if (fromAirport && toAirport) {
+          const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
+          const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
+          
+          if (fromAirportInstance && toAirportInstance) {
+            const fromPos = fromAirportInstance.position.clone()
+            const toPos = toAirportInstance.position.clone()
+            
+            routes.push({
+              id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
+              from: fromPos,
+              to: toPos,
+              color: '#60a5fa', // 高亮颜色
+              fromIsSelected: false,
+              toIsSelected: false,
+              flightNumber: flight.flightNumber,
+              fromAirport: fromAirport.name,
+              toAirport: toAirport.name,
+              status: flight.status,
+              scheduledDeparture: flight.scheduledDeparture,
+              scheduledArrival: flight.scheduledArrival,
+              humanRisk: flight.humanRisk,
+              machineRisk: flight.machineRisk,
+              environmentRisk: flight.environmentRisk,
+            })
+          }
+        }
+      }
+      return routes
+    }
+    
+    // 情况2: 如果正在查看某个机场，显示该机场的所有航线
+    if (viewingAirportId) {
+      const viewingAirport = AIRPORTS.find(a => a.id === viewingAirportId)
+      if (!viewingAirport) return routes
+      
+      // 筛选与该机场相关的航班（起飞机场或降落机场）
+      const relevantFlights = FLIGHTS.filter(flight => {
+        return flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+      })
+      
+      relevantFlights.forEach(flight => {
+        const fromAirport = getAirportByCode(flight.fromAirport)
+        const toAirport = getAirportByCode(flight.toAirport)
+        
+        if (!fromAirport || !toAirport) return
+        
+        const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
+        const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
+        
+        if (!fromAirportInstance || !toAirportInstance) return
+        
+        const fromPos = fromAirportInstance.position.clone()
+        const toPos = toAirportInstance.position.clone()
+        
+        // 如果机场在选中的国家，则升起
+        const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
+        const fromIsSelected = normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
+        const toIsSelected = normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+        
+        const fromElevated = fromIsSelected
+          ? fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
+          : fromPos
+        const toElevated = toIsSelected
+          ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
+          : toPos
+
+        routes.push({
+          id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
+          from: fromElevated,
+          to: toElevated,
+          color: '#4ff0ff',
+          fromIsSelected: !!fromIsSelected,
+          toIsSelected: !!toIsSelected,
+          flightNumber: flight.flightNumber,
+          fromAirport: fromAirport.name,
+          toAirport: toAirport.name,
+          status: flight.status,
+          scheduledDeparture: flight.scheduledDeparture,
+          scheduledArrival: flight.scheduledArrival,
+          humanRisk: flight.humanRisk,
+          machineRisk: flight.machineRisk,
+          environmentRisk: flight.environmentRisk,
+        })
+      })
+      
+      return routes
+    }
+    
+    // 情况3: 默认情况，基于选中的国家显示航线
+    if (!selectedCountry) {
+      return []
+    }
+    
+    // 标准化国家代码
+    const normalizedSelectedCountry = normalizeCountryCode(selectedCountry)
+    
+    if (!normalizedSelectedCountry) {
+      return []
+    }
+    
+    const selectedAirports = airportInstances.filter(airport => 
+      normalizeCountryCode(airport.countryCode) === normalizedSelectedCountry
+    )
+    
+    if (selectedAirports.length === 0) return []
+    
+    // 从统一航班数据中筛选相关航班
+    // 筛选条件：起飞机场或降落机场在选中国家的机场列表中
+    const relevantFlights = FLIGHTS.filter(flight => {
+      const fromAirport = getAirportByCode(flight.fromAirport)
+      const toAirport = getAirportByCode(flight.toAirport)
+      
+      const fromInSelected = fromAirport && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
+      const toInSelected = toAirport && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+      
+      // 至少有一个机场在选中的国家
+      return fromInSelected || toInSelected
+    })
+    
     // 限制航线数量
     const maxRoutes = 100
-    let routeCount = 0
+    const flightsToShow = relevantFlights.slice(0, maxRoutes)
     
-    selectedAirports.forEach((airport, index) => {
-      airportInstances.forEach((target, targetIndex) => {
-        if (routeCount >= maxRoutes) return
-        if (target.id !== airport.id) {
-          // 简单的随机筛选
-          if (Math.random() > 0.3) return
-          
-          routeCount++
-          
-          // 生成示例航班数据
-          const flightNumber = `${airport.countryCode}${target.countryCode}${String(index * 100 + targetIndex).padStart(3, '0')}`
-          const now = new Date()
-          const departureTime = new Date(now.getTime() + (index * 60 + targetIndex * 30) * 60000)
-          const arrivalTime = new Date(departureTime.getTime() + (2 + Math.random() * 4) * 3600000)
-          
-          const fromIsSelected = true // 起点肯定是选中的
-          const toIsSelected = normalizeCountryCode(target.countryCode) === normalizedSelectedCountry
-          
-          // 计算升起后的位置，与板块升起高度(0.15)保持一致
-          const fromPos = airport.position.clone()
-          const fromElevated = fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
-          
-          const toPos = target.position.clone()
-          const toElevated = toIsSelected 
-            ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
-            : toPos
+    flightsToShow.forEach(flight => {
+      const fromAirport = getAirportByCode(flight.fromAirport)
+      const toAirport = getAirportByCode(flight.toAirport)
+      
+      // 如果机场不在列表中，跳过
+      if (!fromAirport || !toAirport) return
+      
+      // 查找对应的airportInstances（包含position）
+      const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
+      const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
+      
+      if (!fromAirportInstance || !toAirportInstance) return
+      
+      const fromIsSelected = normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
+      const toIsSelected = normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+      
+      // 计算升起后的位置，与板块升起高度(0.15)保持一致
+      const fromPos = fromAirportInstance.position.clone()
+      const fromElevated = fromIsSelected
+        ? fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
+        : fromPos
+      
+      const toPos = toAirportInstance.position.clone()
+      const toElevated = toIsSelected 
+        ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
+        : toPos
 
-          routes.push({
-            id: `${airport.id}-${target.id}`,
-            from: fromElevated,
-            to: toElevated,
-            color: '#4ff0ff', // 统一使用青色/蓝色发光色
-            fromIsSelected,
-            toIsSelected,
-            flightNumber,
-            fromAirport: airport.name,
-            toAirport: target.name,
-            status: ['计划中', '已起飞', '飞行中', '已到达'][Math.floor(Math.random() * 4)],
-            scheduledDeparture: departureTime.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-            scheduledArrival: arrivalTime.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
-            humanRisk: Math.round((Math.random() * 2 + 1) * 10) / 10,
-            machineRisk: Math.round((Math.random() * 2 + 1) * 10) / 10,
-            environmentRisk: Math.round((Math.random() * 2 + 1) * 10) / 10,
-          })
-        }
+      routes.push({
+        id: `${fromAirport.id}-${toAirport.id}-${flight.id}`, // 使用航班ID确保唯一性
+        from: fromElevated,
+        to: toElevated,
+        color: '#4ff0ff', // 统一使用青色/蓝色发光色
+        fromIsSelected,
+        toIsSelected,
+        flightNumber: flight.flightNumber,
+        fromAirport: fromAirport.name,
+        toAirport: toAirport.name,
+        status: flight.status,
+        scheduledDeparture: flight.scheduledDeparture,
+        scheduledArrival: flight.scheduledArrival,
+        humanRisk: flight.humanRisk,
+        machineRisk: flight.machineRisk,
+        environmentRisk: flight.environmentRisk,
       })
     })
+    
     return routes
-  }, [selectedCountry, airportInstances])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId])
 
   const baseColor = new Color('#ffffff')
   const hoverColor = new Color('#facc15')
@@ -507,6 +583,20 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       <div className="canvas-title-overlay">
         <h1>航空预测风险可视化大屏</h1>
       </div>
+      {/* 无航线提示 */}
+      {((viewingAirportId && flightRoutes.length === 0) || (selectedFlightRouteId && flightRoutes.length === 0)) && (
+        <div className="globe-empty-routes-hint">
+          <div className="empty-routes-content">
+            <div className="empty-routes-icon">✈️</div>
+            <div className="empty-routes-title">暂无航线数据</div>
+            <div className="empty-routes-message">
+              {viewingAirportId 
+                ? '该机场当前没有可显示的航线'
+                : '当前选中的航线无法在地图上显示'}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Tooltip 组件 */}
       {(hoveredAirport || hoveredFlightRoute) && tooltipPosition && (
         <div
@@ -739,6 +829,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           orbitControlsRef={orbitControlsRef}
           globeGroupRef={globeGroupRef}
           airportInstances={airportInstances}
+          flightRoutes={flightRoutes}
         />
         <OrbitControls
           ref={orbitControlsRef}
@@ -1097,9 +1188,10 @@ function GlobeRotator({
   selectedCountry,
   hoveredCountry,
 }: GlobeRotatorProps) {
-  const { viewingAirportId } = useAppStore()
+  const { viewingAirportId, viewingFlightRouteId, selectedFlightRouteId } = useAppStore()
   useFrame((_state, delta) => {
-    if (globeGroupRef.current && !selectedCountry && !isInteractingRef.current && !hoveredCountry && !viewingAirportId) {
+    // 如果选中了国家、正在交互、悬停国家、查看机场或航线，则停止自转
+    if (globeGroupRef.current && !selectedCountry && !isInteractingRef.current && !hoveredCountry && !viewingAirportId && !viewingFlightRouteId && !selectedFlightRouteId) {
       globeGroupRef.current.rotation.y += delta * 0.05
     }
   })
@@ -1112,11 +1204,19 @@ interface CameraControllerProps {
   orbitControlsRef: React.MutableRefObject<OrbitControlsImpl | null>
   globeGroupRef: React.MutableRefObject<Group | null>
   airportInstances: Array<AirportParticle & { position: Vector3 }>
+  flightRoutes: Array<{
+    id: string
+    from: Vector3
+    to: Vector3
+    flightNumber: string
+    fromAirport: string
+    toAirport: string
+  }>
 }
 
-function CameraController({ selectedCountry, countryLabels, orbitControlsRef, globeGroupRef, airportInstances }: CameraControllerProps) {
+function CameraController({ selectedCountry, countryLabels, orbitControlsRef, globeGroupRef, airportInstances, flightRoutes }: CameraControllerProps) {
   const { camera } = useThree()
-  const { targetAirportId, setTargetAirportId, setViewingAirportId } = useAppStore()
+  const { targetAirportId, setTargetAirportId, setViewingAirportId, targetFlightRouteId, setTargetFlightRouteId, setViewingFlightRouteId } = useAppStore()
   const isInitializedRef = useRef(false)
   const targetCameraPositionRef = useRef<Vector3 | null>(null)
   const targetLookAtPointRef = useRef<Vector3 | null>(null)
@@ -1211,6 +1311,75 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
     }, 100)
   }, [targetAirportId, airportInstances, orbitControlsRef, camera, globeGroupRef, setTargetAirportId, setViewingAirportId])
 
+  // 当targetFlightRouteId改变时，zoom到对应航线
+  useEffect(() => {
+    if (!targetFlightRouteId || !isInitializedRef.current || !orbitControlsRef.current) return
+
+    const route = flightRoutes.find(r => r.id === targetFlightRouteId)
+    if (!route) return
+
+    // 设置正在查看的航线，用于显示高亮效果
+    setViewingFlightRouteId(targetFlightRouteId)
+
+    // 计算航线的中点（在航线上方）
+    const midPoint = new Vector3().addVectors(route.from, route.to).multiplyScalar(0.5)
+    // 将中点向外延伸，使其位于航线拱形上方
+    const routeDistance = route.from.distanceTo(route.to)
+    const midLen = midPoint.length()
+    const heightOffset = GLOBE_RADIUS * 0.3 + routeDistance * 0.3
+    const elevatedMidPoint = midPoint.clone().normalize().multiplyScalar(midLen + heightOffset)
+    
+    // 计算航线的方向向量（从起点到终点）
+    const routeDirection = new Vector3().subVectors(route.to, route.from).normalize()
+    
+    // 计算从原点到中点的方向（径向方向）
+    const radialDirection = elevatedMidPoint.clone().normalize()
+    
+    // 计算垂直于航线方向和径向方向的向量（用于确定相机的侧向位置）
+    // 这个向量将帮助我们让相机正对航线
+    let sideVector = new Vector3().crossVectors(routeDirection, radialDirection)
+    
+    // 如果叉积结果为零（方向平行），使用另一个方向
+    if (sideVector.length() < 0.01) {
+      // 使用一个默认的上方向
+      const upVector = new Vector3(0, 1, 0)
+      sideVector = new Vector3().crossVectors(routeDirection, upVector)
+      if (sideVector.length() < 0.01) {
+        // 如果还是平行，使用另一个方向
+        sideVector = new Vector3(1, 0, 0).cross(routeDirection)
+      }
+    }
+    sideVector.normalize()
+    
+    // 计算相机应该位于的位置：在航线中点的侧上方，正对航线
+    // 使用侧向偏移和适当的距离，使相机能够正对航线
+    const sideOffset = sideVector.clone().multiplyScalar(routeDistance * 0.5) // 侧向偏移，使相机能够看到航线的侧面
+    const cameraOffset = elevatedMidPoint.clone().add(sideOffset) // 相机应该看向的点（航线中点 + 侧向偏移）
+    
+    // zoom到航线时的距离，要根据航线长度调整
+    const targetDistance = Math.max(2.5, Math.min(4.0, routeDistance * 1.2))
+    
+    // 计算相机位置：从原点出发，沿着相机偏移方向，距离为 targetDistance
+    const cameraDirection = cameraOffset.clone().normalize()
+    const cameraPosition = cameraDirection.multiplyScalar(targetDistance)
+    
+    // 转换为世界坐标
+    const targetPoint = elevatedMidPoint.clone()
+    if (globeGroupRef.current) {
+      cameraPosition.applyMatrix4(globeGroupRef.current.matrixWorld)
+      targetPoint.applyMatrix4(globeGroupRef.current.matrixWorld)
+    }
+    
+    targetCameraPositionRef.current = cameraPosition
+    targetLookAtPointRef.current = targetPoint.clone()
+    isAnimatingRef.current = true
+
+    // 清除targetFlightRouteId，避免重复触发
+    setTimeout(() => {
+      setTargetFlightRouteId(null)
+    }, 100)
+  }, [targetFlightRouteId, flightRoutes, orbitControlsRef, camera, globeGroupRef, setTargetFlightRouteId, setViewingFlightRouteId])
+
   // 监听用户交互，如果用户在操作，停止动画并将目标点重置为原点
   useEffect(() => {
     const controls = orbitControlsRef.current
@@ -1224,6 +1393,7 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
       }
       // 用户开始交互时，清除查看状态，允许地球继续旋转
       setViewingAirportId(null)
+      setViewingFlightRouteId(null)
       // 用户开始交互时，将目标点重置为原点，使相机围绕地球中心旋转
       controls.target.set(0, 0, 0)
       controls.update()
@@ -1233,7 +1403,7 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
     return () => {
       controls.removeEventListener('start', handleStart)
     }
-  }, [orbitControlsRef, setViewingAirportId])
+  }, [orbitControlsRef, setViewingAirportId, setViewingFlightRouteId])
 
   // 平滑动画到目标位置
   useFrame(() => {

@@ -173,6 +173,49 @@ header h1 {
   border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+/* 无航线提示 */
+.globe-empty-routes-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 200;
+  pointer-events: none;
+}
+
+.empty-routes-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 32px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px rgba(2, 6, 23, 0.45);
+  min-width: 300px;
+}
+
+.empty-routes-icon {
+  font-size: 3rem;
+  opacity: 0.6;
+}
+
+.empty-routes-title {
+  color: #f1f5f9;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.empty-routes-message {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
 .view-overlay {
   position: absolute;
   top: 24px;

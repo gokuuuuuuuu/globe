@@ -582,3 +582,524 @@
   font-weight: 600;
 }
 
+/* 航线详情内容（在sidebar-content内） */
+.flight-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 当前选中标题（在详情面板顶部） */
+.detail-selected-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 4px;
+}
+
+.detail-selected-title {
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+.detail-deselect-btn {
+  padding: 4px 8px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.detail-deselect-btn:hover {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+/* 基本信息 */
+.detail-basic-info {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-section-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.detail-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.6;
+  align-items: center;
+}
+
+.detail-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.detail-info-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #94a3b8;
+  min-width: fit-content;
+}
+
+.detail-info-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+/* 机组成员 - 列展示 */
+.detail-crew-row {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 8px;
+}
+
+.detail-crew-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 4px;
+}
+
+.detail-crew-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.detail-crew-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  transition: all 0.2s ease;
+}
+
+.detail-crew-member.detail-crew-clickable {
+  cursor: pointer;
+}
+
+.detail-crew-member.detail-crew-clickable:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.detail-crew-member:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.detail-crew-member.detail-crew-highlight:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.detail-crew-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  min-width: 60px;
+}
+
+.detail-crew-role {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  min-width: 40px;
+}
+
+.detail-crew-id {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #94a3b8;
+  font-family: 'Courier New', monospace;
+}
+
+/* 信息小节（在基本信息内） */
+.detail-info-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.detail-subsection-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+/* 内联风险值显示 */
+.detail-risk-values-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.detail-risk-value-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.detail-risk-value-item .detail-risk-label {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.detail-risk-value-item .detail-risk-number {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* 内联预测风险显示 */
+.detail-predicted-risks-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.detail-predicted-item-inline {
+  padding: 6px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* 风险值 */
+.detail-risk-values {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-risk-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.detail-risk-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+}
+
+.detail-risk-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.detail-risk-number {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* 预测风险 */
+.detail-predicted-risks {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.detail-predicted-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-predicted-item {
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Person Tab Styles */
+.person-detail-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.person-detail-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.person-detail-icon {
+  font-size: 3rem;
+  opacity: 0.8;
+}
+
+.person-detail-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.person-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.person-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+}
+
+.person-detail-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.person-detail-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+/* Team Card Styles */
+.team-card {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.team-card:hover {
+  border-color: rgba(148, 163, 184, 0.4);
+}
+
+.team-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.team-card-header:hover {
+  background-color: rgba(15, 23, 42, 0.5);
+}
+
+.team-card-icon {
+  font-size: 1.5rem;
+  opacity: 0.8;
+}
+
+.team-card-name {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+.team-card-toggle {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  transition: transform 0.2s ease;
+}
+
+.team-card-collapsed {
+  padding: 0 16px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-card-content {
+  padding: 0 16px 16px 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.team-leader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+}
+
+.team-leader-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.team-leader-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #f1f5f9;
+}
+
+.team-members {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-members-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.team-members-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.team-member-name {
+  padding: 6px 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+
+/* 展开时的详细样式 */
+.team-leader-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+}
+
+.team-leader-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.team-leader-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-members-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-members-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-member-detail-card {
+  padding: 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-member-detail-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.team-member-detail-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.team-member-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 6px;
+}
+
+.team-member-detail-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.team-member-detail-value {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #f1f5f9;
+}
+

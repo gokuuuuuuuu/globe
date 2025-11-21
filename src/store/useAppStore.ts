@@ -78,6 +78,21 @@ interface AppState {
   // 航班状态筛选
   flightStatuses: string[]
   setFlightStatuses: (statuses: string[]) => void
+  // 当前选中的航线（用于显示详情）
+  selectedFlightRouteId: string | null
+  setSelectedFlightRouteId: (id: string | null) => void
+  // Zoom到航线
+  targetFlightRouteId: string | null
+  setTargetFlightRouteId: (id: string | null) => void
+  // 当前正在查看的航线（用于显示高亮效果）
+  viewingFlightRouteId: string | null
+  setViewingFlightRouteId: (id: string | null) => void
+  // 当前选中的人员（用于person tab）
+  selectedPersonId: string | null
+  setSelectedPersonId: (id: string | null) => void
+  // 展开的机队ID列表（用于person tab）
+  expandedTeamIds: string[]
+  setExpandedTeamIds: (ids: string[]) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -136,6 +151,21 @@ export const useAppStore = create<AppState>((set) => ({
   // 航班状态筛选
   flightStatuses: ['未起飞', '巡航中'],
   setFlightStatuses: (statuses) => set({ flightStatuses: statuses }),
+  // 当前选中的航线
+  selectedFlightRouteId: null,
+  setSelectedFlightRouteId: (id) => set({ selectedFlightRouteId: id }),
+  // Zoom到航线
+  targetFlightRouteId: null,
+  setTargetFlightRouteId: (id) => set({ targetFlightRouteId: id }),
+  // 当前正在查看的航线
+  viewingFlightRouteId: null,
+  setViewingFlightRouteId: (id) => set({ viewingFlightRouteId: id }),
+  // 当前选中的人员
+  selectedPersonId: null,
+  setSelectedPersonId: (id) => set({ selectedPersonId: id }),
+  // 展开的机队ID列表
+  expandedTeamIds: [],
+  setExpandedTeamIds: (ids) => set({ expandedTeamIds: ids }),
 }))
 
 

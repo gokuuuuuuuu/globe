@@ -105,7 +105,7 @@ function FlightPlane({
   const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
 
   // 缓慢飞行动画
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (!groupRef.current || !camera) return
 
     // 缓慢增加进度（模拟飞机飞行速度）- 降低速度
@@ -361,26 +361,35 @@ interface GlowingFlightPathsProps {
 }
 
 export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) {
+  const { viewingFlightRouteId } = useAppStore()
+  
   return (
     <group>
-      {routes.map((route) => (
-        <GlowingFlightPath
-          key={route.id}
-          start={route.from}
-          end={route.to}
-          radius={radius}
-          color={route.color}
-          flightNumber={route.flightNumber}
-          fromAirport={route.fromAirport}
-          toAirport={route.toAirport}
-          status={route.status}
-          scheduledDeparture={route.scheduledDeparture}
-          scheduledArrival={route.scheduledArrival}
-          humanRisk={route.humanRisk}
-          machineRisk={route.machineRisk}
-          environmentRisk={route.environmentRisk}
-        />
-      ))}
+      {routes.map((route) => {
+        const isViewing = viewingFlightRouteId === route.id
+        // 如果正在查看，使用更亮的颜色和更大的半径
+        const routeColor = isViewing ? '#60a5fa' : route.color
+        const routeRadius = isViewing ? radius * 1.2 : radius
+        
+        return (
+          <GlowingFlightPath
+            key={route.id}
+            start={route.from}
+            end={route.to}
+            radius={routeRadius}
+            color={routeColor}
+            flightNumber={route.flightNumber}
+            fromAirport={route.fromAirport}
+            toAirport={route.toAirport}
+            status={route.status}
+            scheduledDeparture={route.scheduledDeparture}
+            scheduledArrival={route.scheduledArrival}
+            humanRisk={route.humanRisk}
+            machineRisk={route.machineRisk}
+            environmentRisk={route.environmentRisk}
+          />
+        )
+      })}
     </group>
   )
 }

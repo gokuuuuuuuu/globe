@@ -1,120 +1,27 @@
-import {  useMemo } from 'react'
+import {  useMemo, useState } from 'react'
 import { useAppStore, type RiskZone } from '../store/useAppStore'
+import { AIRPORTS, FLIGHTS, calculateRiskFromEnvironmentRisk, type Airport, type Flight } from '../data/flightData'
+import { PERSONS, TEAMS, getPersonById, getTeamById } from '../data/personData'
 import './Sidebar.css'
 
-// 机场数据接口
-interface AirportData {
-  id: string
-  name: string
-  nameZh: string
-  code: string
-  operatorCount: number // 放飞单位
-  flightCount: number // 航班数
-  riskValue: string // 风险值，如 "7-9"
+// 扩展机场数据接口，添加风险值相关字段（用于Sidebar显示）
+interface AirportData extends Airport {
+  riskValue: string // 风险值，如 "7.9"
   riskZone: RiskZone // 风险区间
-  lat: number
-  lon: number
 }
 
-// 机场中文名称映射
-const AIRPORT_NAMES_ZH: Record<string, string> = {
-  'PEK': '北京・首都',
-  'PVG': '上海・浦东',
-  'CAN': '广州・白云',
-  'JFK': '纽约・肯尼迪',
-  'LAX': '洛杉矶',
-  'ORD': '芝加哥・奥黑尔',
-  'LHR': '伦敦・希思罗',
-  'LGW': '伦敦・盖特威克',
-  'DXB': '迪拜',
-  'SYD': '悉尼',
-  'MEL': '墨尔本',
-  'NRT': '东京・成田',
-  'HND': '东京・羽田',
-  'FRA': '法兰克福',
-  'MUC': '慕尼黑',
-  'CDG': '巴黎・戴高乐',
-  'SIN': '新加坡・樟宜',
-  'ICN': '首尔・仁川',
-  'BKK': '曼谷・素万那普',
-}
-
-// 根据环境风险值生成风险值字符串和风险区间
-function calculateRiskFromEnvironmentRisk(envRisk: number): { riskValue: string; riskZone: RiskZone } {
-  // 将环境风险值转换为字符串格式
-  const riskValue = envRisk.toFixed(1)
-  
-  // 根据新的风险值分类标准确定风险区间
-  // 7-10为高风险(red), 5-7为高中风险(orange), 2-5为中风险(yellow), 0-2为低风险(green)
-  let riskZone: RiskZone
-  if (envRisk >= 7) {
-    riskZone = 'red'
-  } else if (envRisk >= 5) {
-    riskZone = 'orange'
-  } else if (envRisk >= 2) {
-    riskZone = 'yellow'
-  } else {
-    riskZone = 'green'
+// 将统一数据源转换为Sidebar需要的格式
+const MOCK_AIRPORTS: AirportData[] = AIRPORTS.map(airport => {
+  const { riskValue, riskZone } = calculateRiskFromEnvironmentRisk(airport.environmentRisk)
+  return {
+    ...airport,
+    riskValue,
+    riskZone,
   }
-  
-  return { riskValue, riskZone }
-}
+})
 
-// 从GlobeView导入的DEMO_AIRPORTS数据（简化版本，实际应该共享数据源）
-// 这里使用模拟数据，但ID和坐标与GlobeView中的DEMO_AIRPORTS匹配
-const MOCK_AIRPORTS: AirportData[] = [
-  { id: 'PEK', name: 'Beijing Capital', nameZh: AIRPORT_NAMES_ZH['PEK'] || '北京', code: 'PEK', operatorCount: 12, flightCount: 856, ...calculateRiskFromEnvironmentRisk(3.2), lat: 40.0799, lon: 116.6031 },
-  { id: 'PVG', name: 'Shanghai Pudong', nameZh: AIRPORT_NAMES_ZH['PVG'] || '上海', code: 'PVG', operatorCount: 15, flightCount: 1024, ...calculateRiskFromEnvironmentRisk(3.5), lat: 31.1434, lon: 121.8052 },
-  { id: 'CAN', name: 'Guangzhou Baiyun', nameZh: AIRPORT_NAMES_ZH['CAN'] || '广州', code: 'CAN', operatorCount: 10, flightCount: 678, ...calculateRiskFromEnvironmentRisk(2.8), lat: 23.3924, lon: 113.2988 },
-  { id: 'JFK', name: 'New York JFK', nameZh: AIRPORT_NAMES_ZH['JFK'] || '纽约', code: 'JFK', operatorCount: 18, flightCount: 1245, ...calculateRiskFromEnvironmentRisk(4.1), lat: 40.6413, lon: -73.7781 },
-  { id: 'LAX', name: 'Los Angeles', nameZh: AIRPORT_NAMES_ZH['LAX'] || '洛杉矶', code: 'LAX', operatorCount: 20, flightCount: 1456, ...calculateRiskFromEnvironmentRisk(4.3), lat: 33.9425, lon: -118.4081 },
-  { id: 'ORD', name: 'Chicago O\'Hare', nameZh: AIRPORT_NAMES_ZH['ORD'] || '芝加哥', code: 'ORD', operatorCount: 16, flightCount: 1123, ...calculateRiskFromEnvironmentRisk(3.9), lat: 41.9786, lon: -87.9048 },
-  { id: 'LHR', name: 'London Heathrow', nameZh: AIRPORT_NAMES_ZH['LHR'] || '伦敦', code: 'LHR', operatorCount: 14, flightCount: 987, ...calculateRiskFromEnvironmentRisk(3.7), lat: 51.4706, lon: -0.4619 },
-  { id: 'LGW', name: 'London Gatwick', nameZh: AIRPORT_NAMES_ZH['LGW'] || '伦敦', code: 'LGW', operatorCount: 8, flightCount: 456, ...calculateRiskFromEnvironmentRisk(2.5), lat: 51.1537, lon: -0.1821 },
-  { id: 'DXB', name: 'Dubai International', nameZh: AIRPORT_NAMES_ZH['DXB'] || '迪拜', code: 'DXB', operatorCount: 22, flightCount: 1567, ...calculateRiskFromEnvironmentRisk(4.5), lat: 25.2532, lon: 55.3657 },
-  { id: 'SYD', name: 'Sydney Kingsford', nameZh: AIRPORT_NAMES_ZH['SYD'] || '悉尼', code: 'SYD', operatorCount: 11, flightCount: 723, ...calculateRiskFromEnvironmentRisk(3.0), lat: -33.9399, lon: 151.1753 },
-  { id: 'MEL', name: 'Melbourne', nameZh: AIRPORT_NAMES_ZH['MEL'] || '墨尔本', code: 'MEL', operatorCount: 9, flightCount: 567, ...calculateRiskFromEnvironmentRisk(2.7), lat: -37.6733, lon: 144.8433 },
-  { id: 'NRT', name: 'Tokyo Narita', nameZh: AIRPORT_NAMES_ZH['NRT'] || '东京', code: 'NRT', operatorCount: 13, flightCount: 892, ...calculateRiskFromEnvironmentRisk(3.4), lat: 35.7720, lon: 140.3929 },
-  { id: 'HND', name: 'Tokyo Haneda', nameZh: AIRPORT_NAMES_ZH['HND'] || '东京', code: 'HND', operatorCount: 12, flightCount: 834, ...calculateRiskFromEnvironmentRisk(3.3), lat: 35.5494, lon: 139.7798 },
-  { id: 'FRA', name: 'Frankfurt', nameZh: AIRPORT_NAMES_ZH['FRA'] || '法兰克福', code: 'FRA', operatorCount: 17, flightCount: 1098, ...calculateRiskFromEnvironmentRisk(3.8), lat: 50.0379, lon: 8.5622 },
-  { id: 'MUC', name: 'Munich', nameZh: AIRPORT_NAMES_ZH['MUC'] || '慕尼黑', code: 'MUC', operatorCount: 10, flightCount: 645, ...calculateRiskFromEnvironmentRisk(2.9), lat: 48.3538, lon: 11.7861 },
-  { id: 'CDG', name: 'Paris Charles de Gaulle', nameZh: AIRPORT_NAMES_ZH['CDG'] || '巴黎', code: 'CDG', operatorCount: 19, flightCount: 1234, ...calculateRiskFromEnvironmentRisk(4.0), lat: 49.0097, lon: 2.5479 },
-  { id: 'SIN', name: 'Singapore Changi', nameZh: AIRPORT_NAMES_ZH['SIN'] || '新加坡', code: 'SIN', operatorCount: 21, flightCount: 1345, ...calculateRiskFromEnvironmentRisk(4.2), lat: 1.3644, lon: 103.9915 },
-  { id: 'ICN', name: 'Seoul Incheon', nameZh: AIRPORT_NAMES_ZH['ICN'] || '首尔', code: 'ICN', operatorCount: 15, flightCount: 956, ...calculateRiskFromEnvironmentRisk(3.6), lat: 37.4602, lon: 126.4407 },
-  { id: 'BKK', name: 'Bangkok Suvarnabhumi', nameZh: AIRPORT_NAMES_ZH['BKK'] || '曼谷', code: 'BKK', operatorCount: 12, flightCount: 789, ...calculateRiskFromEnvironmentRisk(3.1), lat: 13.6811, lon: 100.7475 },
-]
-
-// 模拟航班数据
-const MOCK_FLIGHTS: FlightData[] = [
-  { id: '1', flightNumber: 'MU5862', fromAirport: 'WTS', fromAirportZh: '五台山', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '17:05', estimatedDeparture: '17:05', scheduledArrival: '22:50', estimatedArrival: '22:50', status: '未起飞', humanRisk: 1.9, machineRisk: 1.9, environmentRisk: 7.9, airportId: 'PVG' },
-  { id: '2', flightNumber: 'MU5862', fromAirport: 'WTS', fromAirportZh: '五台山', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '17:05', estimatedDeparture: '17:05', scheduledArrival: '22:50', estimatedArrival: '22:50', status: '未起飞', humanRisk: 1.9, machineRisk: 1.9, environmentRisk: 7.9, airportId: 'PVG' },
-  { id: '3', flightNumber: 'MU5862', fromAirport: 'WTS', fromAirportZh: '五台山', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '17:05', estimatedDeparture: '17:05', scheduledArrival: '22:50', estimatedArrival: '22:50', status: '巡航中', humanRisk: 1.9, machineRisk: 1.9, environmentRisk: 7.9, airportId: 'PVG' },
-  { id: '4', flightNumber: 'MU5862', fromAirport: 'WTS', fromAirportZh: '五台山', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '17:05', estimatedDeparture: '17:05', scheduledArrival: '22:50', estimatedArrival: '22:50', status: '巡航中', humanRisk: 1.9, machineRisk: 1.9, environmentRisk: 7.9, airportId: 'PVG' },
-  { id: '5', flightNumber: 'MU5862', fromAirport: 'WTS', fromAirportZh: '五台山', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '17:05', estimatedDeparture: '17:05', scheduledArrival: '22:50', estimatedArrival: '22:50', status: '已落地', humanRisk: 1.9, machineRisk: 1.9, environmentRisk: 7.9, airportId: 'PVG' },
-  { id: '6', flightNumber: 'MU5862', fromAirport: 'WTS', fromAirportZh: '五台山', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '17:05', estimatedDeparture: '17:05', scheduledArrival: '22:50', estimatedArrival: '22:50', status: '已落地', humanRisk: 1.9, machineRisk: 1.9, environmentRisk: 7.9, airportId: 'PVG' },
-  // 添加一些其他机场的航班
-  { id: '7', flightNumber: 'CA1234', fromAirport: 'PEK', fromAirportZh: '北京首都', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '10:00', estimatedDeparture: '10:00', scheduledArrival: '12:30', estimatedArrival: '12:30', status: '巡航中', humanRisk: 2.1, machineRisk: 2.0, environmentRisk: 6.5, airportId: 'PEK' },
-  { id: '8', flightNumber: 'CZ5678', fromAirport: 'CAN', fromAirportZh: '广州白云', toAirport: 'PVG', toAirportZh: '上海浦东', scheduledDeparture: '14:20', estimatedDeparture: '14:20', scheduledArrival: '16:45', estimatedArrival: '16:45', status: '未起飞', humanRisk: 1.8, machineRisk: 1.9, environmentRisk: 7.2, airportId: 'CAN' },
-]
-
-// 航班数据接口
-interface FlightData {
-  id: string
-  flightNumber: string
-  fromAirport: string
-  fromAirportZh: string
-  toAirport: string
-  toAirportZh: string
-  scheduledDeparture: string // 预飞时间
-  estimatedDeparture: string // 计飞时间
-  scheduledArrival: string // 预到时间
-  estimatedArrival: string // 计划到达时间
-  status: '未起飞' | '巡航中' | '已落地'
-  humanRisk: number // 人风险值
-  machineRisk: number // 机风险值
-  environmentRisk: number // 环风险值
-  airportId?: string // 关联的机场ID
-}
+// 使用统一的航班数据
+const MOCK_FLIGHTS: Flight[] = FLIGHTS
 
 // 风险值转换为数字用于排序
 function parseRiskValue(riskValue: string): number {
@@ -145,7 +52,19 @@ export function Sidebar() {
     setSelectedAirportForAirline,
     flightStatuses,
     setFlightStatuses,
+    selectedFlightRouteId,
+    setSelectedFlightRouteId,
+    setTargetFlightRouteId,
+    riskTypes,
+    setViewingAirportId,
+    selectedPersonId,
+    setSelectedPersonId,
+    expandedTeamIds,
+    setExpandedTeamIds,
   } = useAppStore()
+  
+  // 本地状态：从tab进入时，默认展开所有机队
+  const [isFromTab, setIsFromTab] = useState(false)
 
   // 处理风险区间切换
   const handleRiskZoneToggle = (zone: RiskZone) => {
@@ -181,12 +100,14 @@ export function Sidebar() {
   const handleViewClick = (airport: AirportData) => {
     setTargetAirportId(airport.id)
     setSelectedAirportForAirline(airport.id)
+    setViewingAirportId(airport.id) // 设置正在查看的机场，用于在globe上显示该机场的所有航线
     setSidebarTab('airline')
   }
 
   // 取消选中机场
   const handleDeselectAirport = () => {
     setSelectedAirportForAirline(null)
+    setViewingAirportId(null) // 清除正在查看的机场
   }
 
   // 处理航班状态切换
@@ -203,6 +124,43 @@ export function Sidebar() {
     if (!selectedAirportForAirline) return null
     return MOCK_AIRPORTS.find(a => a.id === selectedAirportForAirline) || null
   }, [selectedAirportForAirline])
+
+  // 处理航线 View 按钮点击
+  const handleFlightViewClick = (flight: Flight) => {
+    // 先设置选中的航班ID，用于显示详情面板
+    setSelectedFlightRouteId(flight.id)
+    // 清除viewingAirportId，确保只显示当前选中的航线
+    setViewingAirportId(null)
+    
+    // 根据起降机场生成航线ID（格式：起飞机场-降落机场-航班ID，与GlobeView保持一致）
+    // 需要从机场代码映射到机场ID
+    const fromAirport = AIRPORTS.find(a => a.code === flight.fromAirport)
+    const toAirport = AIRPORTS.find(a => a.code === flight.toAirport)
+    
+    // 如果两个机场都在 AIRPORTS 中，则触发 zoom in
+    if (fromAirport && toAirport) {
+      // 使用与GlobeView相同的ID格式：${fromAirport.id}-${toAirport.id}-${flight.id}
+      const routeId = `${fromAirport.id}-${toAirport.id}-${flight.id}`
+      setTargetFlightRouteId(routeId) // 触发zoom in
+    }
+    // 如果机场不在列表中，仍然显示详情面板，只是不进行 zoom in
+  }
+
+  // 处理取消选中航线
+  const handleDeselectFlight = () => {
+    setSelectedFlightRouteId(null)
+    setTargetFlightRouteId(null)
+    // 如果取消选中航线，但还有选中的机场，则恢复显示该机场的所有航线
+    if (selectedAirportForAirline) {
+      setViewingAirportId(selectedAirportForAirline)
+    }
+  }
+
+  // 获取当前选中的航线信息
+  const selectedFlight = useMemo(() => {
+    if (!selectedFlightRouteId) return null
+    return MOCK_FLIGHTS.find(f => f.id === selectedFlightRouteId) || null
+  }, [selectedFlightRouteId])
 
   // 过滤和排序航班数据
   const filteredFlights = useMemo(() => {
@@ -290,7 +248,12 @@ export function Sidebar() {
         </button>
         <button
           className={`sidebar-tab ${sidebarTab === 'person' ? 'active' : ''}`}
-          onClick={() => setSidebarTab('person')}
+          onClick={() => {
+            setSidebarTab('person')
+            setIsFromTab(true) // 从tab进入，默认展开所有机队
+            setSelectedPersonId(null) // 清除选中的人员
+            setExpandedTeamIds(TEAMS.map(t => t.id)) // 展开所有机队
+          }}
         >
           <span className="tab-icon">👥</span>
           <span className="tab-label">Person</span>
@@ -386,8 +349,8 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* 状态筛选（仅airline tab显示） */}
-      {sidebarTab === 'airline' && (
+      {/* 状态筛选（仅airline tab显示，且未选中航线时显示） */}
+      {sidebarTab === 'airline' && !selectedFlightRouteId && (
         <div className="sidebar-flight-statuses">
           <div className="flight-statuses-label">状态</div>
           <div className="flight-statuses-checkboxes">
@@ -454,14 +417,21 @@ export function Sidebar() {
           </div>
         )}
         {sidebarTab === 'airline' && (
-          <div className="sidebar-list">
-            {filteredFlights.length === 0 ? (
-              <div className="sidebar-empty">暂无航班数据</div>
-            ) : (
-              filteredFlights.map((flight) => (
-                <div key={flight.id} className="sidebar-flight-item">
+          <>
+            {selectedFlight ? (
+              // 显示详情面板
+              <div className="flight-detail-content">
+                {/* 当前选中标题 */}
+                <div className="detail-selected-header">
+                  <div className="detail-selected-title">当前选中:</div>
+                  <button className="detail-deselect-btn" onClick={handleDeselectFlight}>
+                    取消选中
+                  </button>
+                </div>
+                {/* 当前选中航线卡片 - 使用与列表一致的样式 */}
+                <div className="sidebar-flight-item">
                   <div className="flight-item-header">
-                    <div className="flight-number">{flight.flightNumber}</div>
+                    <div className="flight-number">{selectedFlight.flightNumber}</div>
                     <button className="flight-view-button">
                       <span>View</span>
                     </button>
@@ -469,51 +439,459 @@ export function Sidebar() {
                   <div className="flight-item-body">
                     <div className="flight-departure">
                       <div className="flight-time-info">
-                        <span className="flight-time-label">预飞 {flight.scheduledDeparture}</span>
-                        <span className="flight-time-value">计飞 {flight.estimatedDeparture}</span>
+                        <span className="flight-time-label">预飞 {selectedFlight.scheduledDeparture}</span>
+                        <span className="flight-time-value">计飞 {selectedFlight.estimatedDeparture} {selectedFlight.fromAirportZh}</span>
                       </div>
                     </div>
                     <div className="flight-status-section">
-                      <div className="flight-status-badge" style={{ backgroundColor: getStatusColor(flight.status) }}>
-                        {flight.status}
+                      <div className="flight-status-badge" style={{ backgroundColor: getStatusColor(selectedFlight.status) }}>
+                        {selectedFlight.status}
                       </div>
-                      {(flight.status === '巡航中' || flight.status === '未起飞') && (
+                      {(selectedFlight.status === '巡航中' || selectedFlight.status === '未起飞') && (
                         <div className="flight-route">
-                          <span className="flight-route-from">{flight.fromAirportZh}</span>
+                          <span className="flight-route-from">{selectedFlight.fromAirportZh}</span>
                           <span className="flight-route-arrow">→</span>
-                          <span className="flight-route-to">{flight.toAirportZh}</span>
+                          <span className="flight-route-to">{selectedFlight.toAirportZh}</span>
                         </div>
                       )}
                     </div>
                     <div className="flight-arrival">
                       <div className="flight-time-info">
-                        <span className="flight-time-label">{flight.scheduledArrival} 预到</span>
-                        <span className="flight-time-value">{flight.estimatedArrival} 计到</span>
+                        <span className="flight-time-label">{selectedFlight.scheduledArrival} 预到</span>
+                        <span className="flight-time-value">{selectedFlight.estimatedArrival} 计到 {selectedFlight.toAirportZh}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flight-item-footer">
                     <span className="flight-risk-value">
-                      人 <span style={{ color: getRiskValueColorFromNumber(flight.humanRisk) }}>{flight.humanRisk.toFixed(1)}</span>
+                      人 <span style={{ color: getRiskValueColorFromNumber(selectedFlight.humanRisk) }}>{selectedFlight.humanRisk.toFixed(1)}</span>
                     </span>
                     <span className="flight-risk-value">
-                      机 <span style={{ color: getRiskValueColorFromNumber(flight.machineRisk) }}>{flight.machineRisk.toFixed(1)}</span>
+                      机 <span style={{ color: getRiskValueColorFromNumber(selectedFlight.machineRisk) }}>{selectedFlight.machineRisk.toFixed(1)}</span>
                     </span>
                     <span className="flight-risk-value">
-                      环 <span style={{ color: getRiskValueColorFromNumber(flight.environmentRisk) }}>{flight.environmentRisk.toFixed(1)}</span>
+                      环 <span style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>{selectedFlight.environmentRisk.toFixed(1)}</span>
                     </span>
                   </div>
                 </div>
-              ))
+
+                {/* 基本信息 */}
+                <div className="detail-basic-info">
+                  <div className="detail-section-title">基本信息</div>
+                  
+                  {/* 机号、大机型、机型 */}
+                  <div className="detail-info-row">
+                    {selectedFlight.aircraftNumber && (
+                      <div className="detail-info-item">
+                        <span className="detail-info-label">机号</span>
+                        <span className="detail-info-value">{selectedFlight.aircraftNumber}</span>
+                      </div>
+                    )}
+                    {selectedFlight.largeAircraftType && (
+                      <div className="detail-info-item">
+                        <span className="detail-info-label">大机型</span>
+                        <span className="detail-info-value">{selectedFlight.largeAircraftType}</span>
+                      </div>
+                    )}
+                    {selectedFlight.aircraftType && (
+                      <div className="detail-info-item">
+                        <span className="detail-info-label">机型</span>
+                        <span className="detail-info-value">{selectedFlight.aircraftType}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PF工号、PF技术、执飞单位 */}
+                  <div className="detail-info-row">
+                    {(() => {
+                      // 从crewMembers中获取PF人员信息（通常是第一个成员，role为'Tb'）
+                      const pfMember = selectedFlight.crewMembers?.find(m => m.role === 'Tb') || selectedFlight.crewMembers?.[0]
+                      const pfPerson = pfMember ? getPersonById(pfMember.personId) : null
+                      
+                      // 优先使用person数据中的信息，如果没有则使用航班数据中的
+                      const pfId = pfPerson?.pfId || selectedFlight.pfId
+                      const pfTechnology = pfPerson?.pfTechnology || selectedFlight.pfTechnology
+                      
+                      return (
+                        <>
+                          {pfId && (
+                            <div className="detail-info-item">
+                              <span className="detail-info-label">PF工号</span>
+                              <span className="detail-info-value">{pfId}</span>
+                            </div>
+                          )}
+                          {pfTechnology && (
+                            <div className="detail-info-item">
+                              <span className="detail-info-label">PF技术</span>
+                              <span className="detail-info-value">{pfTechnology}</span>
+                            </div>
+                          )}
+                          {selectedFlight.operatingUnit && (
+                            <div className="detail-info-item">
+                              <span className="detail-info-label">执飞单位</span>
+                              <span className="detail-info-value">{selectedFlight.operatingUnit}</span>
+                            </div>
+                          )}
+                        </>
+                      )
+                    })()}
+                  </div>
+
+                  {/* 机组成员 - 列展示 */}
+                  {selectedFlight.crewMembers && selectedFlight.crewMembers.length > 0 && (
+                    <div className="detail-info-row detail-crew-row">
+                      <span className="detail-info-label detail-crew-title">机组成员</span>
+                      <div className="detail-crew-list">
+                        {selectedFlight.crewMembers.map((member, idx) => {
+                          // 从person数据中获取完整的人员信息
+                          const person = getPersonById(member.personId)
+                          if (!person) return null
+                          
+                          return (
+                            <div 
+                              key={idx} 
+                              className={`detail-crew-member ${idx === 1 ? 'detail-crew-highlight' : ''} detail-crew-clickable`}
+                              onClick={() => {
+                                // 跳转到person tab
+                                setSidebarTab('person')
+                                setIsFromTab(false) // 从人员点击进入，不是从tab进入
+                                
+                                // 找到该人员所属的机队并展开
+                                if (person.teamId) {
+                                  const team = getTeamById(person.teamId)
+                                  if (team) {
+                                    // 展开该人员所属的机队
+                                    setExpandedTeamIds([team.id])
+                                    // 不选中人员，显示机队信息
+                                    setSelectedPersonId(null)
+                                  } else {
+                                    // 如果找不到机队，则选中该人员
+                                    setSelectedPersonId(person.id)
+                                    setExpandedTeamIds([])
+                                  }
+                                } else {
+                                  // 如果人员没有teamId，则选中该人员
+                                  setSelectedPersonId(person.id)
+                                  setExpandedTeamIds([])
+                                }
+                              }}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <span className="detail-crew-name">{person.name}</span>
+                              <span className="detail-crew-role">{member.role}</span>
+                              <span className="detail-crew-id">{person.pfId}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 放行签派员 */}
+                  {selectedFlight.dispatcher && (
+                    <div className="detail-info-row">
+                      <div className="detail-info-item">
+                        <span className="detail-info-label">放行签派员</span>
+                        <span className="detail-info-value">{selectedFlight.dispatcher}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 备降机场 */}
+                  {selectedFlight.alternateAirport && (
+                    <div className="detail-info-row">
+                      <div className="detail-info-item">
+                        <span className="detail-info-label">备降机场</span>
+                        <span className="detail-info-value">{selectedFlight.alternateAirport}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 风险值 */}
+                  <div className="detail-info-section">
+                    <div className="detail-subsection-title">风险值</div>
+                    <div className="detail-risk-values-inline">
+                      <div className="detail-risk-value-item">
+                        <span className="detail-risk-label">人</span>
+                        <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.humanRisk) }}>
+                          {selectedFlight.humanRisk.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="detail-risk-value-item">
+                        <span className="detail-risk-label">机</span>
+                        <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.machineRisk) }}>
+                          {selectedFlight.machineRisk.toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="detail-risk-value-item">
+                        <span className="detail-risk-label">环</span>
+                        <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>
+                          {selectedFlight.environmentRisk.toFixed(2)}
+                        </span>
+                      </div>
+                      {selectedFlight.riskValues && (
+                        <>
+                          <div className="detail-risk-value-item">
+                            <span className="detail-risk-label">滑出</span>
+                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiOut) }}>
+                              {selectedFlight.riskValues.taxiOut.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="detail-risk-value-item">
+                            <span className="detail-risk-label">起飞</span>
+                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.takeoff) }}>
+                              {selectedFlight.riskValues.takeoff.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="detail-risk-value-item">
+                            <span className="detail-risk-label">巡航</span>
+                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.cruise) }}>
+                              {selectedFlight.riskValues.cruise.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="detail-risk-value-item">
+                            <span className="detail-risk-label">着陆</span>
+                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.landing) }}>
+                              {selectedFlight.riskValues.landing.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="detail-risk-value-item">
+                            <span className="detail-risk-label">滑入</span>
+                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiIn) }}>
+                              {selectedFlight.riskValues.taxiIn.toFixed(2)}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 预测风险 - 根据左侧sidebar的风险类型筛选显示 */}
+                  {selectedFlight.predictedRisks && selectedFlight.predictedRisks.length > 0 && (
+                    <div className="detail-info-section">
+                      <div className="detail-subsection-title">预测风险</div>
+                      <div className="detail-predicted-risks-inline">
+                        {selectedFlight.predictedRisks
+                          .filter((risk) => {
+                            // 如果riskTypes为空，显示所有；否则只显示在riskTypes中的
+                            if (riskTypes.length === 0) return true
+                            return riskTypes.includes(risk.type)
+                          })
+                          .map((risk, idx) => (
+                            <div 
+                              key={idx} 
+                              className="detail-predicted-item-inline"
+                              style={{ 
+                                color: risk.severity === 'red' ? '#ef4444' : risk.severity === 'orange' ? '#f97316' : '#eab308'
+                              }}
+                            >
+                              {risk.type}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              // 显示航班列表
+              <div className="sidebar-list">
+                {filteredFlights.length === 0 ? (
+                  <div className="sidebar-empty">暂无航班数据</div>
+                ) : (
+                  filteredFlights.map((flight) => (
+                    <div key={flight.id} className="sidebar-flight-item">
+                      <div className="flight-item-header">
+                        <div className="flight-number">{flight.flightNumber}</div>
+                        <button 
+                          className="flight-view-button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleFlightViewClick(flight)
+                          }}
+                        >
+                          <span>View</span>
+                        </button>
+                      </div>
+                      <div className="flight-item-body">
+                        <div className="flight-departure">
+                          <div className="flight-time-info">
+                            <span className="flight-time-label">预飞 {flight.scheduledDeparture}</span>
+                            <span className="flight-time-value">计飞 {flight.estimatedDeparture}</span>
+                          </div>
+                        </div>
+                        <div className="flight-status-section">
+                          <div className="flight-status-badge" style={{ backgroundColor: getStatusColor(flight.status) }}>
+                            {flight.status}
+                          </div>
+                          {(flight.status === '巡航中' || flight.status === '未起飞') && (
+                            <div className="flight-route">
+                              <span className="flight-route-from">{flight.fromAirportZh}</span>
+                              <span className="flight-route-arrow">→</span>
+                              <span className="flight-route-to">{flight.toAirportZh}</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flight-arrival">
+                          <div className="flight-time-info">
+                            <span className="flight-time-label">{flight.scheduledArrival} 预到</span>
+                            <span className="flight-time-value">{flight.estimatedArrival} 计到</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flight-item-footer">
+                        <span className="flight-risk-value">
+                          人 <span style={{ color: getRiskValueColorFromNumber(flight.humanRisk) }}>{flight.humanRisk.toFixed(1)}</span>
+                        </span>
+                        <span className="flight-risk-value">
+                          机 <span style={{ color: getRiskValueColorFromNumber(flight.machineRisk) }}>{flight.machineRisk.toFixed(1)}</span>
+                        </span>
+                        <span className="flight-risk-value">
+                          环 <span style={{ color: getRiskValueColorFromNumber(flight.environmentRisk) }}>{flight.environmentRisk.toFixed(1)}</span>
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
         {sidebarTab === 'person' && (
           <div className="sidebar-list">
-            <div className="sidebar-empty">人员数据待实现</div>
+            {selectedPersonId ? (
+              // 显示选中的人员详情
+              <div className="person-detail-content">
+                <div className="detail-selected-header">
+                  <div className="detail-selected-title">当前选中:</div>
+                  <button 
+                    className="detail-deselect-btn" 
+                    onClick={() => {
+                      setSelectedPersonId(null)
+                      // 取消选中后，如果是从tab进入的，展开所有机队；否则折叠所有机队
+                      if (isFromTab) {
+                        setExpandedTeamIds(TEAMS.map(t => t.id))
+                      } else {
+                        setExpandedTeamIds([])
+                      }
+                    }}
+                  >
+                    取消选中
+                  </button>
+                </div>
+                {(() => {
+                  const person = PERSONS.find(p => p.id === selectedPersonId)
+                  if (!person) return <div className="sidebar-empty">人员不存在</div>
+                  
+                  return (
+                    <div className="person-detail-card">
+                      <div className="person-detail-icon">👤</div>
+                      <div className="person-detail-name">{person.name}</div>
+                      <div className="person-detail-info">
+                        <div className="person-detail-item">
+                          <span className="person-detail-label">PF技术等级</span>
+                          <span className="person-detail-value">{person.pfTechnology}</span>
+                        </div>
+                        <div className="person-detail-item">
+                          <span className="person-detail-label">PF工号</span>
+                          <span className="person-detail-value">{person.pfId}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            ) : (
+              // 显示所有机队列表
+              <>
+                <div className="sidebar-data-hint">
+                  数据仅包含近10小时内有飞航班
+                </div>
+                {TEAMS.map(team => {
+                  const isExpanded = expandedTeamIds.includes(team.id)
+                  return (
+                    <div key={team.id} className="team-card">
+                      <div 
+                        className="team-card-header"
+                        onClick={() => {
+                          if (isExpanded) {
+                            setExpandedTeamIds(expandedTeamIds.filter(id => id !== team.id))
+                          } else {
+                            setExpandedTeamIds([...expandedTeamIds, team.id])
+                          }
+                        }}
+                      >
+                        <div className="team-card-icon">👥</div>
+                        <div className="team-card-name">{team.name}</div>
+                        <div className="team-card-toggle">{isExpanded ? '▼' : '▶'}</div>
+                      </div>
+                      {/* 折叠时显示分队长和成员 */}
+                      {!isExpanded && (
+                        <div className="team-card-collapsed">
+                          <div className="team-leader">
+                            <span className="team-leader-label">分队长</span>
+                            <span className="team-leader-name">{team.leader.name}</span>
+                          </div>
+                          <div className="team-members">
+                            <span className="team-members-label">成员</span>
+                            <div className="team-members-list">
+                              {team.members.map((member, idx) => (
+                                <span key={idx} className="team-member-name">{member.name}</span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {/* 展开时详细展示每一位的PF技术等级和PF工号 */}
+                      {isExpanded && (
+                        <div className="team-card-content">
+                          <div className="team-leader-detail">
+                            <div className="team-leader-header">
+                              <span className="team-leader-label">分队长</span>
+                              <span className="team-leader-name">{team.leader.name}</span>
+                            </div>
+                            <div className="team-leader-info">
+                              <div className="team-member-detail-item">
+                                <span className="team-member-detail-label">PF技术等级</span>
+                                <span className="team-member-detail-value">{team.leader.pfTechnology}</span>
+                              </div>
+                              <div className="team-member-detail-item">
+                                <span className="team-member-detail-label">PF工号</span>
+                                <span className="team-member-detail-value">{team.leader.pfId}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="team-members-detail">
+                            <span className="team-members-label">成员</span>
+                            <div className="team-members-detail-list">
+                              {team.members.map((member, idx) => (
+                                <div key={idx} className="team-member-detail-card">
+                                  <div className="team-member-detail-name">{member.name}</div>
+                                  <div className="team-member-detail-info">
+                                    <div className="team-member-detail-item">
+                                      <span className="team-member-detail-label">PF技术等级</span>
+                                      <span className="team-member-detail-value">{member.pfTechnology}</span>
+                                    </div>
+                                    <div className="team-member-detail-item">
+                                      <span className="team-member-detail-label">PF工号</span>
+                                      <span className="team-member-detail-value">{member.pfId}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </>
+            )}
           </div>
         )}
       </div>
+
     </div>
   )
 }
