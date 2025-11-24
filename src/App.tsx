@@ -49,7 +49,7 @@ function App() {
       case 'globe':
         return <GlobeView atlas={atlas} world={world} />
       case 'map':
-        return <MapView world={world} />
+        return <MapView world={world} atlas={atlas} />
       case 'stacks':
         return <CountryStacksView atlas={atlas} />
       default:

@@ -725,7 +725,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             )}
             {/* 后期处理 - Bloom 泛光效果 */}
             <EffectComposer>
-              <Bloom luminanceThreshold={0.2} intensity={2.0} radius={0.8} mipmapBlur />
+              <Bloom luminanceThreshold={0.6} intensity={0.8} radius={0.4} mipmapBlur />
             </EffectComposer>
             
             {fillPolygons.map(({ id, iso, geometry }) => {
@@ -1500,21 +1500,21 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     
     // 发光动画效果 - 使用 ref 直接更新材质，避免状态更新
     const time = Date.now() * 0.001
-    let intensity = isSelected ? 1.2 + Math.sin(time * 3) * 0.3 : 0.8 + Math.sin(time * 2) * 0.2
+    let intensity = isSelected ? 1.0 + Math.sin(time * 3) * 0.2 : 0.6 + Math.sin(time * 2) * 0.15
     
     // 如果是正在查看的机场，增强效果
     if (isViewing) {
-      intensity = 2.0 + Math.sin(time * 4) * 0.5 // 更强的脉冲效果
+      intensity = 1.5 + Math.sin(time * 4) * 0.3 // 适度的脉冲效果
     }
     
     glowIntensityRef.current = intensity
     
     // 直接更新材质透明度，避免重新渲染
     if (materialRefs.current.outer) {
-      materialRefs.current.outer.opacity = (isViewing ? 0.4 : 0.2) * intensity
+      materialRefs.current.outer.opacity = (isViewing ? 0.3 : 0.15) * intensity
     }
     if (materialRefs.current.middle) {
-      materialRefs.current.middle.opacity = (isViewing ? 0.8 : 0.5) * intensity
+      materialRefs.current.middle.opacity = (isViewing ? 0.6 : 0.4) * intensity
     }
     
     // 更新光环效果（如果正在查看）
@@ -1546,7 +1546,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
           ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
           color={airport.color}
           transparent
-          opacity={0.2}
+          opacity={0.15}
         />
       </mesh>
       {/* 中层光晕 */}
@@ -1556,7 +1556,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
           ref={(ref) => { if (ref) materialRefs.current.middle = ref }}
           color={airport.color}
           transparent
-          opacity={0.5}
+          opacity={0.4}
         />
       </mesh>
       {/* 内层亮点 */}

@@ -1,15 +1,19 @@
-import { Line, OrthographicCamera, OrbitControls } from '@react-three/drei'
-import { Canvas } from '@react-three/fiber'
-import { Suspense, useMemo } from 'react'
-import { Color, DoubleSide, Path, Shape, Vector3 } from 'three'
+import { Line, OrthographicCamera, OrbitControls, Text } from '@react-three/drei'
+import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
+import { Suspense, useMemo, useRef, useCallback, useEffect } from 'react'
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
+import { Color, DoubleSide, Path, Shape, Vector3, Group, MeshBasicMaterial } from 'three'
 import { useAppStore } from '../store/useAppStore'
-import type { WorldData } from '../types'
+import type { WorldData, AtlasData } from '../types'
 import { deriveIsoCode, latLonToPlane } from '../utils/geo'
+import { AIRPORTS, FLIGHTS, getAirportByCode } from '../data/flightData'
+import { MapFlightPaths } from '../components/MapFlightPaths'
 
 const MAP_SCALE = 6
 
 interface MapViewProps {
   world: WorldData
+  atlas?: AtlasData
 }
 
 interface PolygonLine {
@@ -24,18 +28,99 @@ interface PolygonFill {
   shape: Shape
 }
 
-export function MapView({ world }: MapViewProps) {
-  const { selectedCountry, setSelectedCountry, hoveredCountry, setHoveredCountry } = useAppStore()
+// 国家代码映射表
+const COUNTRY_CODE_MAP: Record<string, string> = {
+  'CN': 'CN', 'CHN': 'CN', 'CHINA': 'CN',
+  'US': 'US', 'USA': 'US', 'UNITED STATES': 'US',
+  'GB': 'GB', 'GBR': 'GB', 'UK': 'GB', 'UNITED KINGDOM': 'GB',
+  'AE': 'AE', 'ARE': 'AE', 'UAE': 'AE', 'UNITED ARAB EMIRATES': 'AE',
+  'AU': 'AU', 'AUS': 'AU', 'AUSTRALIA': 'AU',
+  'JP': 'JP', 'JPN': 'JP', 'JAPAN': 'JP',
+  'DE': 'DE', 'DEU': 'DE', 'GERMANY': 'DE',
+  'FR': 'FR', 'FRA': 'FR', 'FRANCE': 'FR',
+  'SG': 'SG', 'SGP': 'SG', 'SINGAPORE': 'SG',
+  'KR': 'KR', 'KOR': 'KR', 'SOUTH KOREA': 'KR',
+  'TH': 'TH', 'THA': 'TH', 'THAILAND': 'TH',
+}
 
-  const { linePolygons, fillPolygons } = useMemo<{
+function normalizeCountryCode(code: string | null): string | null {
+  if (!code) return null
+  const upper = code.toUpperCase().trim()
+  return COUNTRY_CODE_MAP[upper] || upper
+}
+
+interface LabelCandidate {
+  key: string
+  iso: string | null
+  fallbackName: string | null
+  position: Vector3
+}
+
+interface CountryLabel {
+  key: string
+  iso: string | null
+  name: string
+  position: Vector3
+}
+
+export function MapView({ world, atlas }: MapViewProps) {
+  const { 
+    selectedCountry, 
+    setSelectedCountry, 
+    hoveredCountry, 
+    setHoveredCountry,
+    hoveredAirport,
+    hoveredFlightRoute,
+    tooltipPosition,
+    viewingAirportId,
+    selectedFlightRouteId,
+  } = useAppStore()
+  const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
+
+  // 设置鼠标按钮：左键用于拖动
+  useEffect(() => {
+    const controls = orbitControlsRef.current
+    if (!controls) return
+    
+    // 设置鼠标按钮：左键用于拖动（平移），禁用中键和右键
+    // 0 = 旋转, 1 = 平移, 2 = 缩放
+    controls.mouseButtons = {
+      LEFT: 1, // 左键用于拖动（平移）
+      MIDDLE: undefined, // 禁用中键
+      RIGHT: undefined, // 禁用右键
+    }
+  }, [])
+
+  const { linePolygons, fillPolygons, labelCandidates } = useMemo<{
     linePolygons: PolygonLine[]
     fillPolygons: PolygonFill[]
+    labelCandidates: LabelCandidate[]
   }>(() => {
     const lines: PolygonLine[] = []
     const fills: PolygonFill[] = []
+    const labelsMap = new Map<
+      string,
+      {
+        iso: string | null
+        fallbackName: string | null
+        position: Vector3
+      }
+    >()
+    // 用于计算每个国家的加权中心
+    const countryCenters = new Map<
+      string,
+      {
+        weightedCenter: Vector3
+        totalWeight: number
+        iso: string | null
+        fallbackName: string | null
+      }
+    >()
 
     world.features.forEach((feature, featureIndex) => {
       const iso = deriveIsoCode(feature)
+      const featureName =
+        typeof feature.properties?.name === 'string' ? feature.properties.name : null
       const { geometry } = feature
 
       const processPolygon = (rings: number[][][], polygonIndex: number) => {
@@ -81,6 +166,46 @@ export function MapView({ world }: MapViewProps) {
           iso,
           shape,
         })
+
+        // 计算这个多边形的中心点和权重
+        const center = new Vector3()
+        outerRing.forEach((point) => {
+          center.add(point)
+        })
+        center.divideScalar(outerRing.length)
+        
+        // 使用多边形面积作为权重（简化计算：使用边界框面积）
+        const minX = Math.min(...outerRing.map(p => p.x))
+        const maxX = Math.max(...outerRing.map(p => p.x))
+        const minY = Math.min(...outerRing.map(p => p.y))
+        const maxY = Math.max(...outerRing.map(p => p.y))
+        const weight = (maxX - minX) * (maxY - minY)
+        
+        const updateCenter = (key: string, isoCode: string | null, name: string | null) => {
+          const existing = countryCenters.get(key)
+          if (!existing) {
+            countryCenters.set(key, {
+              weightedCenter: center.clone().multiplyScalar(weight),
+              totalWeight: weight,
+              iso: isoCode,
+              fallbackName: name,
+            })
+          } else {
+            existing.weightedCenter.add(center.clone().multiplyScalar(weight))
+            existing.totalWeight += weight
+          }
+        }
+
+        const labelKey = iso ?? featureName ?? `${featureIndex}-${polygonIndex}`
+        
+        if (iso === 'CN' && featureName) {
+          // 1. 省份标签
+          updateCenter(`CN-${featureName}`, iso, featureName)
+          // 2. 国家标签 (聚合)
+          updateCenter('CN', iso, null)
+        } else {
+          updateCenter(labelKey, iso, featureName)
+        }
       }
 
       if (geometry.type === 'Polygon') {
@@ -92,8 +217,220 @@ export function MapView({ world }: MapViewProps) {
       }
     })
 
-    return { linePolygons: lines, fillPolygons: fills }
+    // 计算每个国家的加权中心并转换为标签位置
+    countryCenters.forEach((data, labelKey) => {
+      const finalCenter = data.weightedCenter.clone().divideScalar(data.totalWeight)
+      
+      labelsMap.set(labelKey, {
+        iso: data.iso,
+        fallbackName: data.fallbackName,
+        position: finalCenter,
+      })
+    })
+
+    const labelCandidates: LabelCandidate[] = Array.from(labelsMap.entries()).map(
+      ([key, value]) => ({
+        key,
+        iso: value.iso,
+        fallbackName: value.fallbackName,
+        position: value.position,
+      }),
+    )
+
+    return { linePolygons: lines, fillPolygons: fills, labelCandidates }
   }, [world])
+
+  const countryLabels = useMemo<CountryLabel[]>(() => {
+    if (!atlas) return []
+    return labelCandidates
+      .map(({ key, iso, fallbackName, position }) => {
+        // 如果是中国的省份（key 以 CN- 开头），直接使用 fallbackName
+        if (key.startsWith('CN-') && fallbackName) {
+          return { key, iso, position, name: fallbackName }
+        }
+
+        const country = iso ? atlas.countries[iso] : undefined
+        const name = country?.name ?? fallbackName
+        if (!name) return null
+        return { key, iso, position, name }
+      })
+      .filter((value): value is CountryLabel => value !== null)
+  }, [atlas, labelCandidates])
+
+  // 机场实例（使用平面坐标）
+  const airportInstances = useMemo(() => {
+    return AIRPORTS.map((airport) => {
+      const position = latLonToPlane(airport.lat, airport.lon, MAP_SCALE)
+      return { ...airport, position }
+    })
+  }, [])
+
+  // 计算航线
+  const flightRoutes = useMemo(() => {
+    const routes: Array<{ 
+      id: string
+      from: Vector3
+      to: Vector3
+      color: string
+      fromIsSelected: boolean
+      toIsSelected: boolean
+      flightNumber: string
+      fromAirport: string
+      toAirport: string
+      status: string
+      scheduledDeparture: string
+      scheduledArrival: string
+      humanRisk: number
+      machineRisk: number
+      environmentRisk: number
+    }> = []
+    
+    // 情况1: 如果选中了特定航线，只显示该航线
+    if (selectedFlightRouteId) {
+      const flight = FLIGHTS.find(f => f.id === selectedFlightRouteId)
+      if (flight) {
+        const fromAirport = getAirportByCode(flight.fromAirport)
+        const toAirport = getAirportByCode(flight.toAirport)
+        
+        if (fromAirport && toAirport) {
+          const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
+          const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
+          
+          if (fromAirportInstance && toAirportInstance) {
+            routes.push({
+              id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
+              from: fromAirportInstance.position.clone(),
+              to: toAirportInstance.position.clone(),
+              color: '#60a5fa',
+              fromIsSelected: false,
+              toIsSelected: false,
+              flightNumber: flight.flightNumber,
+              fromAirport: fromAirport.name,
+              toAirport: toAirport.name,
+              status: flight.status,
+              scheduledDeparture: flight.scheduledDeparture,
+              scheduledArrival: flight.scheduledArrival,
+              humanRisk: flight.humanRisk,
+              machineRisk: flight.machineRisk,
+              environmentRisk: flight.environmentRisk,
+            })
+          }
+        }
+      }
+      return routes
+    }
+    
+    // 情况2: 如果正在查看某个机场，显示该机场的所有航线
+    if (viewingAirportId) {
+      const viewingAirport = AIRPORTS.find(a => a.id === viewingAirportId)
+      if (!viewingAirport) return routes
+      
+      const relevantFlights = FLIGHTS.filter(flight => {
+        return flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+      })
+      
+      relevantFlights.forEach(flight => {
+        const fromAirport = getAirportByCode(flight.fromAirport)
+        const toAirport = getAirportByCode(flight.toAirport)
+        
+        if (!fromAirport || !toAirport) return
+        
+        const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
+        const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
+        
+        if (!fromAirportInstance || !toAirportInstance) return
+        
+        const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
+        const fromIsSelected = normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
+        const toIsSelected = normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+        
+        routes.push({
+          id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
+          from: fromAirportInstance.position.clone(),
+          to: toAirportInstance.position.clone(),
+          color: '#4ff0ff',
+          fromIsSelected: !!fromIsSelected,
+          toIsSelected: !!toIsSelected,
+          flightNumber: flight.flightNumber,
+          fromAirport: fromAirport.name,
+          toAirport: toAirport.name,
+          status: flight.status,
+          scheduledDeparture: flight.scheduledDeparture,
+          scheduledArrival: flight.scheduledArrival,
+          humanRisk: flight.humanRisk,
+          machineRisk: flight.machineRisk,
+          environmentRisk: flight.environmentRisk,
+        })
+      })
+      
+      return routes
+    }
+    
+    // 情况3: 默认情况，基于选中的国家显示航线
+    if (!selectedCountry) {
+      return []
+    }
+    
+    const normalizedSelectedCountry = normalizeCountryCode(selectedCountry)
+    
+    if (!normalizedSelectedCountry) {
+      return []
+    }
+    
+    const selectedAirports = airportInstances.filter(airport => 
+      normalizeCountryCode(airport.countryCode) === normalizedSelectedCountry
+    )
+    
+    if (selectedAirports.length === 0) return []
+    
+    const relevantFlights = FLIGHTS.filter(flight => {
+      const fromAirport = getAirportByCode(flight.fromAirport)
+      const toAirport = getAirportByCode(flight.toAirport)
+      
+      const fromInSelected = fromAirport && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
+      const toInSelected = toAirport && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+      
+      return fromInSelected || toInSelected
+    })
+    
+    const maxRoutes = 100
+    const flightsToShow = relevantFlights.slice(0, maxRoutes)
+    
+    flightsToShow.forEach(flight => {
+      const fromAirport = getAirportByCode(flight.fromAirport)
+      const toAirport = getAirportByCode(flight.toAirport)
+      
+      if (!fromAirport || !toAirport) return
+      
+      const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
+      const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
+      
+      if (!fromAirportInstance || !toAirportInstance) return
+      
+      const fromIsSelected = normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
+      const toIsSelected = normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+
+      routes.push({
+        id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
+        from: fromAirportInstance.position.clone(),
+        to: toAirportInstance.position.clone(),
+        color: '#4ff0ff',
+        fromIsSelected,
+        toIsSelected,
+        flightNumber: flight.flightNumber,
+        fromAirport: fromAirport.name,
+        toAirport: toAirport.name,
+        status: flight.status,
+        scheduledDeparture: flight.scheduledDeparture,
+        scheduledArrival: flight.scheduledArrival,
+        humanRisk: flight.humanRisk,
+        machineRisk: flight.machineRisk,
+        environmentRisk: flight.environmentRisk,
+      })
+    })
+    
+    return routes
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId])
 
   const baseColor = new Color('#2dd4bf')
   const hoverColor = new Color('#facc15')
@@ -170,11 +507,383 @@ export function MapView({ world }: MapViewProps) {
               />
             )
           })}
+          {/* 机场显示 */}
+          {airportInstances.map((airport) => {
+            const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
+            const normalizedAirportCountry = normalizeCountryCode(airport.countryCode)
+            const isSelected = normalizedSelectedCountry === normalizedAirportCountry
+            return (
+              <MapAirportParticle
+                key={airport.id}
+                airport={airport}
+                isSelected={isSelected}
+              />
+            )
+          })}
+          {/* 航线显示 */}
+          {flightRoutes.length > 0 && (
+            <MapFlightPaths routes={flightRoutes} />
+          )}
+          {/* 国家标签 - 只显示选中的国家、悬停的国家或主要国家 */}
+          {countryLabels
+            .filter(({ key, iso }) => {
+              // 只显示选中的国家、悬停的国家，或者主要大国
+              const isSelected = iso && selectedCountry === iso
+              const isHovered = iso && hoveredCountry === iso
+              
+              // 主要国家列表（基于面积和重要性，只显示最重要的国家）
+              const majorCountries = ['CN', 'US', 'RU', 'CA', 'BR', 'AU', 'IN', 'AR', 'KZ', 'DZ', 'SA', 'MX', 'ID', 'MN', 'LY', 'IR', 'PE', 'NG', 'TZ', 'EG', 'MA', 'ZA', 'SD', 'YE', 'TH', 'ES', 'TR', 'BO', 'MM', 'AF', 'VE', 'MY', 'PH', 'IQ', 'SE', 'GB', 'FR', 'DE', 'JP', 'IT', 'KR', 'PL', 'VN', 'NO', 'NZ', 'BD', 'EC', 'RO', 'KE', 'SY', 'KH', 'UY', 'TN', 'BG', 'NP', 'GR', 'BA', 'LK', 'GT', 'JO', 'AE', 'CZ', 'PT', 'HU', 'RS', 'IE', 'GE', 'CR', 'SK', 'HR', 'LV', 'LT', 'SI', 'ME', 'EE', 'DK', 'NL', 'CH', 'AT', 'BE', 'SG']
+              
+              // 省份标签：完全隐藏，避免遮挡地图
+              // 如果需要显示省份，可以改为：return selectedCountry === 'CN' && isHovered
+              if (key.startsWith('CN-')) {
+                return false // 不显示省份标签
+              }
+              
+              // 中国国家标签仅在未选中中国时显示
+              if (key === 'CN') {
+                return selectedCountry !== 'CN'
+              }
+              
+              // 显示选中的国家、悬停的国家，或主要国家
+              if (isSelected || isHovered) {
+                return true
+              }
+              
+              // 只显示主要国家（避免标签过多）
+              return iso && majorCountries.includes(iso)
+            })
+            .map(({ key, iso, name, position }) => {
+              return (
+                <MapCountryLabel
+                  key={key}
+                  iso={iso}
+                  name={name}
+                  position={position}
+                  isSelected={!!(iso && selectedCountry === iso)}
+                  isHovered={!!(iso && hoveredCountry === iso)}
+                  onPointerOver={() => {
+                    if (!iso) return
+                    setHoveredCountry(iso)
+                  }}
+                  onPointerOut={() => {
+                    setHoveredCountry(null)
+                  }}
+                  onPointerDown={() => {
+                    if (iso) setSelectedCountry(iso)
+                  }}
+                />
+              )
+            })}
         </Suspense>
-        <OrbitControls enableRotate={false} enablePan maxZoom={120} minZoom={20} />
+        <OrbitControls 
+          ref={orbitControlsRef}
+          enableRotate={false} 
+          enablePan={true} 
+          enableZoom={true}
+          enableDamping={true}
+          dampingFactor={0.05}
+          panSpeed={1.0}
+          zoomSpeed={1.0}
+          maxZoom={300} 
+          minZoom={20}
+        />
       </Canvas>
-      
+      {/* Tooltip 组件 */}
+      {(hoveredAirport || hoveredFlightRoute) && tooltipPosition && (
+        <div
+          className="globe-tooltip"
+          style={{
+            position: 'fixed',
+            left: `${tooltipPosition.x + 15}px`,
+            top: `${tooltipPosition.y + 15}px`,
+            zIndex: 1000,
+          }}
+        >
+          {hoveredAirport && (
+            <div className="tooltip-content">
+              <div className="tooltip-title">机场信息</div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">机场名：</span>
+                <span className="tooltip-value">{hoveredAirport.airportName}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">执飞单位数量：</span>
+                <span className="tooltip-value">{hoveredAirport.operatorCount}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">航班数量：</span>
+                <span className="tooltip-value">{hoveredAirport.flightCount}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">环境风险值：</span>
+                <span className="tooltip-value">{hoveredAirport.environmentRisk}</span>
+              </div>
+            </div>
+          )}
+          {hoveredFlightRoute && (
+            <div className="tooltip-content">
+              <div className="tooltip-title">航班信息</div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">航班号：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.flightNumber}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">起飞机场：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.fromAirport}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">降落机场：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.toAirport}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">状态：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.status}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">预飞时间：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.scheduledDeparture}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">预到时间：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.scheduledArrival}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">人风险值：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.humanRisk}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">机风险值：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.machineRisk}</span>
+              </div>
+              <div className="tooltip-row">
+                <span className="tooltip-label">环风险值：</span>
+                <span className="tooltip-value">{hoveredFlightRoute.environmentRisk}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
+  )
+}
+
+interface MapAirportParticleProps {
+  airport: typeof AIRPORTS[0] & { position: Vector3 }
+  isSelected: boolean
+}
+
+function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
+  const { gl, camera } = useThree()
+  const groupRef = useRef<Group>(null)
+  const labelRef = useRef<Group>(null)
+  const glowIntensityRef = useRef(1)
+  const materialRefs = useRef<{ outer?: MeshBasicMaterial; inner?: MeshBasicMaterial }>({})
+  const { setHoveredAirport, setTooltipPosition, viewingAirportId } = useAppStore()
+  const isViewing = viewingAirportId === airport.id
+  
+  const basePosition = useMemo(() => airport.position.clone(), [airport.position])
+
+  const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
+    setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
+    setHoveredAirport({
+      airportId: airport.id,
+      airportName: airport.name,
+      operatorCount: airport.operatorCount,
+      flightCount: airport.flightCount,
+      environmentRisk: airport.environmentRisk,
+    })
+    if (gl.domElement) {
+      gl.domElement.style.cursor = 'pointer'
+    }
+  }, [airport, setHoveredAirport, setTooltipPosition, gl])
+
+  const handlePointerOut = useCallback((event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    setHoveredAirport(null)
+    setTooltipPosition(null)
+    if (gl.domElement) {
+      gl.domElement.style.cursor = 'default'
+    }
+  }, [setHoveredAirport, setTooltipPosition, gl])
+
+  const handlePointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
+    setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
+  }, [setTooltipPosition])
+
+  useFrame(() => {
+    if (!groupRef.current) return
+    
+    const finalPosition = basePosition.clone()
+    finalPosition.z = 0.05 // 稍微抬高以便在地图上方显示
+    groupRef.current.position.copy(finalPosition)
+    
+    // 发光动画效果（2D地图上更柔和）
+    const time = Date.now() * 0.001
+    let intensity = isSelected ? 1.1 + Math.sin(time * 2) * 0.2 : 0.7 + Math.sin(time * 1.5) * 0.15
+    
+    if (isViewing) {
+      intensity = 1.5 + Math.sin(time * 3) * 0.3
+    }
+    
+    glowIntensityRef.current = intensity
+    
+    if (materialRefs.current.outer) {
+      materialRefs.current.outer.opacity = (isViewing ? 0.3 : isSelected ? 0.25 : 0.15) * intensity
+    }
+    if (materialRefs.current.inner) {
+      materialRefs.current.inner.opacity = (isViewing ? 0.9 : isSelected ? 0.8 : 0.6) * intensity
+    }
+    
+    if (isViewing && labelRef.current && camera) {
+      labelRef.current.lookAt(camera.position)
+      const labelOffset = new Vector3(0, 0, 0.08)
+      labelRef.current.position.copy(finalPosition.clone().add(labelOffset))
+    }
+  })
+
+  // 2D地图上的机场显示：使用扁平圆形
+  const size = isViewing ? 0.25 : isSelected ? 0.2 : 0.15
+  const innerSize = isViewing ? 0.1 : isSelected ? 0.08 : 0.06
+
+  return (
+    <group ref={groupRef}>
+      {/* 外层光晕（扁平圆形） */}
+      <mesh 
+        position={[0, 0, 0]}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        onPointerMove={handlePointerMove}
+      >
+        <circleGeometry args={[size, 32]} />
+        <meshBasicMaterial
+          ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
+          color={airport.color}
+          transparent
+          opacity={0.15}
+          side={DoubleSide}
+        />
+      </mesh>
+      {/* 内层实心点 */}
+      <mesh position={[0, 0, 0.01]}>
+        <circleGeometry args={[innerSize, 16]} />
+        <meshBasicMaterial
+          ref={(ref) => { if (ref) materialRefs.current.inner = ref }}
+          color={airport.color}
+          transparent
+          opacity={0.6}
+          side={DoubleSide}
+        />
+      </mesh>
+      {/* 中心白点 */}
+      <mesh position={[0, 0, 0.02]}>
+        <circleGeometry args={[innerSize * 0.4, 8]} />
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent
+          opacity={0.95}
+          side={DoubleSide}
+        />
+      </mesh>
+      {/* 正在查看时的机场名称标签 */}
+      {isViewing && (
+        <group ref={labelRef}>
+          <Text
+            color="#ffffff"
+            fontSize={0.2}
+            anchorX="center"
+            anchorY="middle"
+            outlineWidth={0.02}
+            outlineColor="#000000"
+            maxWidth={2}
+            renderOrder={100}
+          >
+            {airport.name}
+          </Text>
+        </group>
+      )}
+    </group>
+  )
+}
+
+interface MapCountryLabelProps {
+  iso: string | null
+  name: string
+  position: Vector3
+  isSelected: boolean
+  isHovered: boolean
+  onPointerOver: () => void
+  onPointerOut: () => void
+  onPointerDown: () => void
+}
+
+function MapCountryLabel({
+  iso: _iso, // eslint-disable-line @typescript-eslint/no-unused-vars
+  name,
+  position,
+  isSelected,
+  isHovered,
+  onPointerOver,
+  onPointerOut,
+  onPointerDown,
+}: MapCountryLabelProps) {
+  const { gl, camera } = useThree()
+  const groupRef = useRef<Group>(null)
+
+  useFrame(() => {
+    if (!groupRef.current || !camera) return
+    // 在2D地图上，标签始终面向相机
+    groupRef.current.lookAt(camera.position)
+  })
+
+  // 减小字体大小，避免遮挡地图
+  const fontSize = isSelected ? 0.18 : isHovered ? 0.16 : 0.14
+  const outlineWidth = isSelected ? 0.025 : isHovered ? 0.02 : 0.015
+  const renderOrder = isSelected ? 20 : isHovered ? 10 : 5
+  // 通过颜色透明度实现效果
+  const color = isSelected 
+    ? '#f97316' 
+    : isHovered 
+    ? '#facc15' 
+    : 'rgba(229, 231, 235, 0.7)' // 降低非选中/悬停标签的透明度
+
+  return (
+    <group ref={groupRef} position={[position.x, position.y, 0.1]}>
+      <Text
+        color={color}
+        fontSize={fontSize}
+        anchorX="center"
+        anchorY="middle"
+        outlineWidth={outlineWidth}
+        outlineColor="#000000"
+        maxWidth={1.5}
+        renderOrder={renderOrder}
+        onPointerDown={(event) => {
+          event.stopPropagation()
+          onPointerDown()
+        }}
+        onPointerOver={(event) => {
+          event.stopPropagation()
+          if (gl.domElement) {
+            gl.domElement.style.cursor = 'pointer'
+          }
+          onPointerOver()
+        }}
+        onPointerOut={(event) => {
+          event.stopPropagation()
+          if (gl.domElement) {
+            gl.domElement.style.cursor = 'default'
+          }
+          onPointerOut()
+        }}
+      >
+        {name}
+      </Text>
+    </group>
   )
 }
 

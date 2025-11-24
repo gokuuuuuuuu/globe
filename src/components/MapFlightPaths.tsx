@@ -8,7 +8,7 @@ import {
   Vector3,
   Group,
 } from 'three'
-import { Text } from '@react-three/drei'
+import { Text} from '@react-three/drei'
 import { useAppStore } from '../store/useAppStore'
 
 // 顶点着色器
@@ -27,26 +27,17 @@ const fragmentShader = `
   varying vec2 vUv;
 
   void main() {
-    // 点线效果
-    // vUv.x 沿着管体路径 (0.0 -> 1.0)
-    // vUv.y 沿着管体圆周 (0.0 -> 1.0)
+    float dotSpacing = 0.05;
+    float dotSize = 0.03;
     
-    float dotSpacing = 0.05; // 点之间的间距
-    float dotSize = 0.03; // 点的大小（增大以便更清晰可见）
-    
-    // 计算当前点在点线模式中的位置
     float pos = mod(vUv.x, dotSpacing);
     
-    // 计算距离中心的距离（用于绘制圆形点）
     float centerY = 0.5;
     float distFromCenter = abs(vUv.y - centerY);
     float distFromDotCenter = length(vec2(pos - dotSpacing * 0.5, distFromCenter * 2.0));
     
-    // 如果距离小于点的大小，显示点；否则透明
-    // 使用 smoothstep 让点边缘更柔和
-    float alpha = (1.0 - smoothstep(dotSize * 0.7, dotSize, distFromDotCenter)) * 0.7;
+    float alpha = (1.0 - smoothstep(dotSize * 0.7, dotSize, distFromDotCenter)) * 0.9;
     
-    // 颜色
     vec3 finalColor = uColor;
 
     gl_FragColor = vec4(finalColor, alpha);
@@ -65,15 +56,14 @@ interface FlightRouteInfo {
   environmentRisk: number
 }
 
-interface GlowingFlightPathProps extends FlightRouteInfo {
+interface MapFlightPathProps extends FlightRouteInfo {
   start: Vector3
   end: Vector3
-  radius: number
   color?: string
 }
 
-// 飞机组件
-function FlightPlane({ 
+// 飞机组件（2D版本）
+function MapFlightPlane({ 
   curve, 
   color = '#4ff0ff',
   flightNumber,
@@ -99,25 +89,20 @@ function FlightPlane({
   environmentRisk: number
 }) {
   const groupRef = useRef<Group>(null)
-  // 为每条航线设置随机初始位置，避免所有飞机同时出现
   const progressRef = useRef(Math.random())
   const { gl, camera } = useThree()
   const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
 
-  // 缓慢飞行动画
   useFrame((_state, delta) => {
     if (!groupRef.current || !camera) return
 
-    // 缓慢增加进度（模拟飞机飞行速度）- 降低速度
-    const speed = 0.05 // 飞行速度，越小越慢（从0.1降低到0.05）
+    const speed = 0.05
     progressRef.current += delta * speed
     
-    // 循环飞行（到达终点后重新开始）
     if (progressRef.current >= 1) {
       progressRef.current = 0
     }
 
-    // 获取当前飞机位置
     const t = progressRef.current
     const position = curve.getPoint(t)
     groupRef.current.position.copy(position)
@@ -125,49 +110,14 @@ function FlightPlane({
     // 计算飞机朝向（沿着曲线切线方向）
     const tangent = curve.getTangent(t).normalize()
     
-    // 让飞机始终面向相机（billboard效果），确保图标始终可见
-    const cameraDirection = new Vector3()
-      .subVectors(camera.position, position)
-      .normalize()
+    // 在2D地图上，飞机始终面向相机（从上往下看，z轴向上）
+    groupRef.current.lookAt(position.clone().add(new Vector3(0, 0, 1)))
     
-    // 先让飞机面向相机
-    groupRef.current.lookAt(position.clone().add(cameraDirection))
-    
-    // 计算切线在相机视角平面上的投影
-    const tangentInPlane = tangent.clone()
-    const dot = tangent.dot(cameraDirection)
-    tangentInPlane.sub(cameraDirection.clone().multiplyScalar(dot))
-    
-    // 如果切线在平面上的投影足够大，旋转飞机使其机头指向飞行方向
-    if (tangentInPlane.length() > 0.01) {
-      tangentInPlane.normalize()
-      
-      // 获取当前面向相机时的前方向（在相机视角平面内）
-      // 面向相机时，前方向是 (0, 0, -1) 在相机视角平面上的投影
-      const forward = new Vector3(0, 0, -1)
-      forward.applyQuaternion(groupRef.current.quaternion)
-      const forwardInPlane = forward.clone()
-      forwardInPlane.sub(cameraDirection.clone().multiplyScalar(forward.dot(cameraDirection)))
-      
-      if (forwardInPlane.length() > 0.01) {
-        forwardInPlane.normalize()
-        
-        // 计算右方向
-        const right = new Vector3().crossVectors(cameraDirection, forwardInPlane).normalize()
-        
-        // 计算旋转角度
-        const angle = Math.atan2(
-          tangentInPlane.dot(right),
-          tangentInPlane.dot(forwardInPlane)
-        )
-        
-        // 绕相机方向轴旋转
-        groupRef.current.rotateOnWorldAxis(cameraDirection, angle)
-      }
-    }
+    // 旋转飞机使其机头指向飞行方向（在XY平面内）
+    const angle = Math.atan2(tangent.y, tangent.x)
+    groupRef.current.rotation.z = angle
   })
 
-  // 交互事件处理
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
     const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
@@ -210,14 +160,13 @@ function FlightPlane({
       onPointerOut={handlePointerOut}
       onPointerMove={handlePointerMove}
     >
-      {/* 飞机图标 - 使用 Text 组件显示飞机 emoji */}
       <Text
-        position={[0, 0, 0]}
-        fontSize={0.02}
+        position={[0, 0, 0.02]}
+        fontSize={0.2}
         color={color}
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.002}
+        outlineWidth={0.015}
         outlineColor="#000000"
         renderOrder={1000}
       >
@@ -227,10 +176,9 @@ function FlightPlane({
   )
 }
 
-function GlowingFlightPath({ 
+function MapFlightPath({ 
   start, 
   end, 
-  radius, 
   color = '#4ff0ff',
   flightNumber,
   fromAirport,
@@ -241,41 +189,41 @@ function GlowingFlightPath({
   humanRisk,
   machineRisk,
   environmentRisk
-}: GlowingFlightPathProps) {
+}: MapFlightPathProps) {
   const materialRef = useRef<ShaderMaterial>(null)
   const { gl } = useThree()
   const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
   
-  // 创建曲线几何
+  // 创建2D曲线（使用简单的直线或轻微曲线）
   const curve = useMemo(() => {
-    // 1. 起点和终点
     const vStart = start.clone()
     const vEnd = end.clone()
     
-    // 2. 计算控制点 (中点并向外挤出)
-    // 中点
-    const vMid = new Vector3().addVectors(vStart, vEnd).multiplyScalar(0.5)
-    // 归一化并延伸到更高的高度
+    // 在2D地图上，使用直线或非常轻微的曲线
+    // 对于长距离航线，可以稍微拱起以显示方向
     const dist = vStart.distanceTo(vEnd)
-    const midLen = vMid.length()
+    const vMid = new Vector3().addVectors(vStart, vEnd).multiplyScalar(0.5)
     
-    // 越远的航线，拱起越高
-    const heightOffset = radius * 0.5 + dist * 0.5 
-    vMid.normalize().multiplyScalar(midLen + heightOffset)
+    // 只在长距离航线时稍微拱起，短距离使用直线
+    if (dist > 2) {
+      // 计算垂直于起点到终点方向的偏移
+      const dir = new Vector3().subVectors(vEnd, vStart).normalize()
+      const perp = new Vector3(-dir.y, dir.x, 0) // 垂直向量
+      const offset = perp.multiplyScalar(Math.min(dist * 0.1, 0.3))
+      vMid.add(offset)
+      vMid.z = 0.05 // 轻微抬高
+    } else {
+      vMid.z = 0.02 // 短距离航线几乎直线
+    }
     
-    // 重新调整控制点高度逻辑
-    const controlPoint = vMid.clone().normalize().multiplyScalar(radius * 1.5)
-    
-    return new QuadraticBezierCurve3(vStart, controlPoint, vEnd)
-  }, [start, end, radius])
+    return new QuadraticBezierCurve3(vStart, vMid, vEnd)
+  }, [start, end])
 
-  // 颜色 uniform
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uColor: { value: new Color(color) },
   }), [color])
 
-  // 交互事件处理
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
     const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
@@ -313,7 +261,7 @@ function GlowingFlightPath({
 
   return (
     <group>
-      {/* 虚线航线 */}
+      {/* 航线（2D地图上使用更细的线条） */}
       <mesh
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
@@ -331,7 +279,7 @@ function GlowingFlightPath({
         />
       </mesh>
       {/* 飞机 */}
-      <FlightPlane
+      <MapFlightPlane
         curve={curve}
         color={color}
         flightNumber={flightNumber}
@@ -355,28 +303,24 @@ interface FlightRouteData extends FlightRouteInfo {
   color?: string
 }
 
-interface GlowingFlightPathsProps {
+interface MapFlightPathsProps {
   routes: FlightRouteData[]
-  radius: number
 }
 
-export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) {
+export function MapFlightPaths({ routes }: MapFlightPathsProps) {
   const { viewingFlightRouteId } = useAppStore()
   
   return (
     <group>
       {routes.map((route) => {
         const isViewing = viewingFlightRouteId === route.id
-        // 如果正在查看，使用更亮的颜色和更大的半径
         const routeColor = isViewing ? '#60a5fa' : route.color
-        const routeRadius = isViewing ? radius * 1.2 : radius
         
         return (
-          <GlowingFlightPath
+          <MapFlightPath
             key={route.id}
             start={route.from}
             end={route.to}
-            radius={routeRadius}
             color={routeColor}
             flightNumber={route.flightNumber}
             fromAirport={route.fromAirport}
