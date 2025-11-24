@@ -1122,7 +1122,7 @@ function CountryLabelText({
   const color = isSelected ? '#f97316' : isHovered ? '#facc15' : '#f5f5f4'
   const fontSize = isSelected ? 0.025 : isHovered ? 0.022 : 0.02
   const outlineWidth = isSelected ? 0.003 : isHovered ? 0.0025 : 0.002
-  const outlineColor = isSelected ? 'rgba(0,0,0,0.8)' : isHovered ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.65)'
+  const outlineColor = '#000000'
   const renderOrder = isSelected ? 20 : isHovered ? 10 : 5
 
   return (
@@ -1592,7 +1592,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.002}
-            outlineColor="rgba(0,0,0,0.8)"
+            outlineColor="#000000"
             maxWidth={0.15}
             renderOrder={100}
           >
