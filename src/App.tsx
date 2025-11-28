@@ -3,6 +3,7 @@ import './App.css'
 import { CountryStacksView } from './views/CountryStacksView'
 import { GlobeView } from './views/GlobeView'
 import { MapView } from './views/MapView'
+import { AirportStacksView } from './views/AirportStacksView'
 import { useAtlasData } from './hooks/useAtlasData'
 import { useAppStore } from './store/useAppStore'
 import { LeftToolbar } from './components/LeftToolbar'
@@ -52,6 +53,8 @@ function App() {
         return <MapView world={world} atlas={atlas} />
       case 'stacks':
         return <CountryStacksView atlas={atlas} />
+      case 'airport-stacks':
+        return <AirportStacksView world={world} />
       default:
         return null
     }

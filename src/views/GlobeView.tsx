@@ -4,6 +4,8 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
 import { Sidebar } from '../components/Sidebar'
+import { WindParticles } from './windLayer'
+
 import {
   BufferGeometry,
   Color,
@@ -111,6 +113,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     tooltipPosition,
     viewingAirportId,
     selectedFlightRouteId,
+    showWindLayer,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
   const globeGroupRef = useRef<Group>(null)
@@ -704,6 +707,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 depthWrite={true}
               />
             </mesh>
+            {/* 风粒子图层 */}
+            {showWindLayer && (
+              <WindParticles 
+                radius={GLOBE_RADIUS} 
+                particleCount={6000}
+                speedScale={0.0012}
+              />
+            )}
             <group>
               {airportInstances.map((airport) => {
                 // 标准化国家代码进行匹配
@@ -1604,5 +1615,4 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
   )
 }
 
-// FlightRoute component removed as it has been replaced by GlowingFlightPaths
 

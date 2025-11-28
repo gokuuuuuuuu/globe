@@ -1,4 +1,4 @@
-export type ViewMode = 'globe' | 'map' | 'stacks'
+export type ViewMode = 'globe' | 'map' | 'stacks' | 'airport-stacks'
 
 export interface WorldFeature {
   type: 'Feature'

@@ -37,15 +37,24 @@ export function LeftToolbar() {
 
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  // 地图切换处理（只在globe和map之间切换）
+  // 地图切换处理（在globe和map之间切换）
   const handleMapSwitch = () => {
     if (view === 'globe') {
       setView('map')
     } else if (view === 'map') {
       setView('globe')
     } else {
-      // 如果当前是stacks，切换到globe
+      // 如果当前是其他视图，切换到globe
       setView('globe')
+    }
+  }
+
+  // 切换到机场风险柱状图
+  const handleAirportStacksSwitch = () => {
+    if (view === 'airport-stacks') {
+      setView('globe')
+    } else {
+      setView('airport-stacks')
     }
   }
 
@@ -119,6 +128,13 @@ export function LeftToolbar() {
                 title={getMapTitle()}
               >
                 {getMapIcon()}
+              </button>
+              <button
+                className={`toolbar-icon ${view === 'airport-stacks' ? 'active' : ''}`}
+                onClick={handleAirportStacksSwitch}
+                title={view === 'airport-stacks' ? '切换到3D地图' : '切换到机场风险柱状图'}
+              >
+                📊
               </button>
               <button
                 className={`toolbar-icon ${showLabels ? 'active' : ''}`}
