@@ -16,13 +16,13 @@
 }
 
 .sidebar-header {
-  padding: 20px 24px;
+  padding: 12px 24px; /* 减少内边距从20px到12px */
   border-bottom: none;
   pointer-events: auto;
 }
 
 .login-status {
-  font-size: 0.9rem;
+  font-size: 0.8rem; /* 减小字体从0.9rem到0.8rem */
   color: #cbd5e1;
 }
 
@@ -38,8 +38,8 @@
 
 .sidebar-tabs {
   display: flex;
-  padding: 16px 24px;
-  gap: 8px;
+  padding: 10px 24px; /* 减少内边距从16px到10px */
+  gap: 6px; /* 减少间距从8px到6px */
   border-bottom: none;
   pointer-events: auto;
 }
@@ -49,15 +49,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 4px; /* 减少间距从6px到4px */
+  padding: 8px 10px; /* 减少内边距从10px 12px到8px 10px */
   background: rgba(30, 41, 59, 0.5);
   border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 8px;
+  border-radius: 6px; /* 稍微减小圆角 */
   color: #cbd5e1;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* 减小字体从0.9rem到0.85rem */
 }
 
 .sidebar-tab:hover {
@@ -72,7 +72,7 @@
 }
 
 .tab-icon {
-  font-size: 1rem;
+  font-size: 0.9rem; /* 减小图标从1rem到0.9rem */
 }
 
 .tab-label {
@@ -81,19 +81,19 @@
 
 .sidebar-search {
   position: relative;
-  padding: 16px 24px;
+  padding: 10px 24px; /* 减少内边距从16px到10px */
   border-bottom: none;
   pointer-events: auto;
 }
 
 .search-input {
   width: 100%;
-  padding: 10px 32px 10px 12px;
+  padding: 8px 28px 8px 10px; /* 减少内边距 */
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 6px;
   color: #f1f5f9;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* 减小字体从0.9rem到0.85rem */
   outline: none;
   transition: all 0.2s ease;
 }
@@ -109,12 +109,67 @@
 
 .search-icon {
   position: absolute;
-  right: 36px;
+  right: 32px; /* 调整位置 */
   top: 50%;
   transform: translateY(-50%);
   color: #64748b;
-  font-size: 0.8rem;
+  font-size: 0.75rem; /* 减小图标 */
   pointer-events: none;
+}
+
+/* 筛选部分（可折叠） */
+.sidebar-filter-section {
+  padding: 0 24px;
+  border-bottom: none;
+  pointer-events: auto;
+  margin-top: -4px; /* 减少与上方元素的间距 */
+}
+
+.filter-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0; /* 减少内边距从12px到8px */
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.filter-section-header:hover {
+  opacity: 0.8;
+}
+
+.filter-section-title {
+  font-size: 0.8rem; /* 减小字体从0.85rem到0.8rem */
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.filter-section-toggle {
+  font-size: 0.7rem;
+  color: #64748b;
+  transition: transform 0.2s ease;
+  transform: rotate(0deg);
+}
+
+.filter-section-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.filter-section-content {
+  padding-bottom: 8px; /* 减少内边距从12px到8px */
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 200px;
+  }
 }
 
 .sidebar-risk-zones {
@@ -189,7 +244,7 @@
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 24px;
+  padding: 12px 24px; /* 减少内边距从16px到12px */
   pointer-events: auto;
 }
 
@@ -213,24 +268,24 @@
 .sidebar-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px; /* 减少间距从12px到8px */
 }
 
 .sidebar-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background: rgba(30, 41, 59, 0.6);
+  padding: 12px; /* 减少内边距从16px到12px */
+  /* background 通过内联样式设置，根据风险值动态变化 */
   border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 8px;
+  border-radius: 6px; /* 稍微减小圆角 */
   transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .sidebar-item:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.3);
+  /* background 通过内联样式动态设置，根据风险值变化 */
+  border-color: rgba(148, 163, 184, 0.4);
 }
 
 .sidebar-item.selected {
@@ -242,19 +297,19 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px; /* 减少间距从8px到6px */
 }
 
 .item-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem; /* 稍微减小字体 */
   font-weight: 500;
   color: #f1f5f9;
 }
 
 .item-info {
   display: flex;
-  gap: 16px;
-  font-size: 0.8rem;
+  gap: 12px; /* 减少间距从16px到12px */
+  font-size: 0.75rem; /* 稍微减小字体 */
   color: #94a3b8;
 }
 
@@ -316,7 +371,7 @@
 }
 
 .sidebar-selected-airport {
-  padding: 16px 24px;
+  padding: 10px 24px; /* 减少内边距从16px到10px */
   border-bottom: none;
   pointer-events: auto;
   position: relative;
@@ -337,7 +392,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px; /* 减少间距从12px到8px */
 }
 
 .selected-airport-title {
@@ -365,11 +420,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
+  padding: 10px; /* 减少内边距从12px到10px */
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 8px;
-  gap: 12px;
+  border-radius: 6px; /* 稍微减小圆角 */
+  gap: 10px; /* 减少间距从12px到10px */
 }
 
 .selected-airport-info > div {
@@ -450,10 +505,10 @@
 
 /* 航班列表项样式 */
 .sidebar-flight-item {
-  padding: 16px;
+  padding: 12px; /* 减少内边距从16px到12px */
   background: rgba(30, 41, 59, 0.6);
   border: 1px solid rgba(148, 163, 184, 0.15);
-  border-radius: 8px;
+  border-radius: 6px; /* 稍微减小圆角 */
   transition: all 0.2s ease;
   cursor: pointer;
 }
@@ -467,7 +522,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px; /* 减少间距从12px到8px */
 }
 
 .flight-number {
@@ -497,8 +552,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 12px;
-  gap: 12px;
+  margin-bottom: 8px; /* 减少间距从12px到8px */
+  gap: 10px; /* 减少间距从12px到10px */
 }
 
 .flight-departure,
@@ -516,12 +571,12 @@
 }
 
 .flight-time-label {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #94a3b8;
 }
 
 .flight-time-value {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #cbd5e1;
 }
 
@@ -569,17 +624,18 @@
 .flight-item-footer {
   display: flex;
   justify-content: space-between;
-  padding-top: 12px;
+  padding-top: 8px; /* 减少间距从12px到8px */
   border-top: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 .flight-risk-value {
-  font-size: 0.8rem;
+  font-size: 1.2rem;
   color: #94a3b8;
 }
 
 .flight-risk-value span {
   font-weight: 600;
+  font-size: 1rem;
 }
 
 /* 航线详情内容（在sidebar-content内） */

@@ -10,6 +10,7 @@ import {
 } from 'three'
 import { Text } from '@react-three/drei'
 import { useAppStore } from '../store/useAppStore'
+import { getMachineRiskColor } from '../data/flightData'
 
 // 顶点着色器
 const vertexShader = `
@@ -20,34 +21,33 @@ const vertexShader = `
   }
 `
 
-// 片元着色器 - 点线效果
+// 片元着色器 - 发光实线效果
 const fragmentShader = `
   uniform float uTime;
   uniform vec3 uColor;
   varying vec2 vUv;
 
   void main() {
-    // 点线效果
     // vUv.x 沿着管体路径 (0.0 -> 1.0)
     // vUv.y 沿着管体圆周 (0.0 -> 1.0)
     
-    float dotSpacing = 0.05; // 点之间的间距
-    float dotSize = 0.03; // 点的大小（增大以便更清晰可见）
-    
-    // 计算当前点在点线模式中的位置
-    float pos = mod(vUv.x, dotSpacing);
-    
-    // 计算距离中心的距离（用于绘制圆形点）
+    // 计算距离中心的距离（用于创建发光效果）
     float centerY = 0.5;
     float distFromCenter = abs(vUv.y - centerY);
-    float distFromDotCenter = length(vec2(pos - dotSpacing * 0.5, distFromCenter * 2.0));
     
-    // 如果距离小于点的大小，显示点；否则透明
-    // 使用 smoothstep 让点边缘更柔和
-    float alpha = (1.0 - smoothstep(dotSize * 0.7, dotSize, distFromDotCenter)) * 0.7;
+    // 创建从中心到边缘的渐变效果
+    // 中心最亮，边缘逐渐变暗
+    float edgeFade = 1.0 - smoothstep(0.3, 0.5, distFromCenter);
     
-    // 颜色
-    vec3 finalColor = uColor;
+    // 添加轻微的脉冲效果
+    float pulse = 0.9 + 0.1 * sin(uTime * 2.0 + vUv.x * 10.0);
+    
+    // 计算最终透明度（中心不透明，边缘透明）
+    float alpha = edgeFade * pulse * 0.85;
+    
+    // 增强中心亮度（发光效果）
+    float glowIntensity = 1.0 + 0.5 * (1.0 - distFromCenter * 2.0);
+    vec3 finalColor = uColor * glowIntensity;
 
     gl_FragColor = vec4(finalColor, alpha);
   }
@@ -75,7 +75,6 @@ interface GlowingFlightPathProps extends FlightRouteInfo {
 // 飞机组件
 function FlightPlane({ 
   curve, 
-  color = '#4ff0ff',
   flightNumber,
   fromAirport,
   toAirport,
@@ -108,8 +107,8 @@ function FlightPlane({
   useFrame((_state, delta) => {
     if (!groupRef.current || !camera) return
 
-    // 缓慢增加进度（模拟飞机飞行速度）- 降低速度
-    const speed = 0.05 // 飞行速度，越小越慢（从0.1降低到0.05）
+    // 缓慢增加进度（模拟飞机飞行速度）- 非常慢的速度
+    const speed = 0.01 // 飞行速度，非常慢（从0.05降低到0.01）
     progressRef.current += delta * speed
     
     // 循环飞行（到达终点后重新开始）
@@ -117,10 +116,11 @@ function FlightPlane({
       progressRef.current = 0
     }
 
-    // 获取当前飞机位置
+    // 获取当前飞机位置 - 确保严格在航线上
     const t = progressRef.current
     const position = curve.getPoint(t)
-    groupRef.current.position.copy(position)
+    // 直接设置位置，确保飞机严格在航线上
+    groupRef.current.position.set(position.x, position.y-0.01, position.z)
 
     // 计算飞机朝向（沿着曲线切线方向）
     const tangent = curve.getTangent(t).normalize()
@@ -210,11 +210,11 @@ function FlightPlane({
       onPointerOut={handlePointerOut}
       onPointerMove={handlePointerMove}
     >
-      {/* 飞机图标 - 使用 Text 组件显示飞机 emoji */}
+      {/* 飞机图标 - 使用 Text 组件显示飞机 emoji，颜色根据机的风险值 */}
       <Text
         position={[0, 0, 0]}
         fontSize={0.02}
-        color={color}
+        color={getMachineRiskColor(machineRisk)}
         anchorX="center"
         anchorY="middle"
         outlineWidth={0.002}
@@ -275,6 +275,13 @@ function GlowingFlightPath({
     uColor: { value: new Color(color) },
   }), [color])
 
+  // 更新时间uniform以实现动画效果
+  useFrame(() => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value += 0.01
+    }
+  })
+
   // 交互事件处理
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
@@ -319,7 +326,7 @@ function GlowingFlightPath({
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <tubeGeometry args={[curve, 64, 0.008, 8, false]} />
+        <tubeGeometry args={[curve, 64, 0.002, 16, false]} />
         <shaderMaterial
           ref={materialRef}
           vertexShader={vertexShader}

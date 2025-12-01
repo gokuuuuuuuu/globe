@@ -36,6 +36,9 @@ export function LeftToolbar() {
   } = useAppStore()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
+  // 筛选部分折叠状态，默认折叠
+  const [isFlightFilterCollapsed, setIsFlightFilterCollapsed] = useState(true)
+  const [isRiskTypeFilterCollapsed, setIsRiskTypeFilterCollapsed] = useState(true)
 
   // 地图切换处理（在globe和map之间切换）
   const handleMapSwitch = () => {
@@ -171,15 +174,30 @@ export function LeftToolbar() {
 
       {/* 筛选区域始终显示 */}
       <div className="toolbar-content">
-          {/* 航班信息筛选 */}
+          {/* 航班信息筛选（可折叠） */}
           <div className="filter-section">
-            <div className="filter-section-header">
+            <div 
+              className="filter-section-header"
+              onClick={() => setIsFlightFilterCollapsed(!isFlightFilterCollapsed)}
+              style={{ cursor: 'pointer' }}
+            >
               <h3 className="filter-section-title">航班信息筛选</h3>
-              <button className="filter-reset-btn" onClick={handleResetFlightFilters}>
-                重置
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button 
+                  className="filter-reset-btn" 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleResetFlightFilters()
+                  }}
+                >
+                  重置
+                </button>
+                <span className={`filter-section-toggle ${isFlightFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
+              </div>
             </div>
-            <div className="filter-inputs">
+            {!isFlightFilterCollapsed && (
+              <div className="filter-section-content">
+                <div className="filter-inputs">
               <div className="filter-input-group">
                 <label className="filter-label">航班号</label>
                 <div className="filter-input-wrapper">
@@ -284,18 +302,35 @@ export function LeftToolbar() {
                   <span className="filter-input-arrow">▼</span>
                 </div>
               </div>
-            </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* 风险类型筛选 */}
+          {/* 风险类型筛选（可折叠） */}
           <div className="filter-section">
-            <div className="filter-section-header">
+            <div 
+              className="filter-section-header"
+              onClick={() => setIsRiskTypeFilterCollapsed(!isRiskTypeFilterCollapsed)}
+              style={{ cursor: 'pointer' }}
+            >
               <h3 className="filter-section-title">风险类型筛选</h3>
-              <button className="filter-reset-btn" onClick={handleResetRiskTypes}>
-                重置
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button 
+                  className="filter-reset-btn" 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleResetRiskTypes()
+                  }}
+                >
+                  重置
+                </button>
+                <span className={`filter-section-toggle ${isRiskTypeFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
+              </div>
             </div>
-            <div className="risk-types-grid">
+            {!isRiskTypeFilterCollapsed && (
+              <div className="filter-section-content">
+                <div className="risk-types-grid">
               {RISK_TYPES.map((type) => (
                 <label key={type} className="risk-type-checkbox">
                   <input
@@ -306,7 +341,9 @@ export function LeftToolbar() {
                   <span className="risk-type-label">{type}</span>
                 </label>
               ))}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
     </div>

@@ -4,7 +4,8 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
 import { Sidebar } from '../components/Sidebar'
-import { WindParticles } from './windLayer'
+import { WindLayer } from './windLayer'
+import { TemperatureLayer } from './TemperatureLayer'
 
 import {
   BufferGeometry,
@@ -21,7 +22,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useAppStore } from '../store/useAppStore'
 import type { AtlasData, WorldData } from '../types'
 import { deriveIsoCode, latLonToCartesian } from '../utils/geo'
-import { AIRPORTS, FLIGHTS, getAirportByCode } from '../data/flightData'
+import { AIRPORTS, FLIGHTS, getAirportByCode, getRiskColor } from '../data/flightData'
 
 const GLOBE_RADIUS = 1.6
 
@@ -114,6 +115,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     viewingAirportId,
     selectedFlightRouteId,
     showWindLayer,
+    showTemperatureLayer,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
   const globeGroupRef = useRef<Group>(null)
@@ -139,6 +141,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     downY: number
     moved: boolean
     targetIso: string | null
+  } | null>(null)
+
+  // 跟踪空白区域的点击状态（用于区分点击和拖动）
+  const blankAreaPointerStateRef = useRef<{
+    downTime: number
+    downX: number
+    downY: number
+    moved: boolean
   } | null>(null)
 
   // 创建点击/拖动处理函数
@@ -406,26 +416,42 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
           
           if (fromAirportInstance && toAirportInstance) {
+            // 标准化国家代码（用于判断是否选中）
+            const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
+            const fromIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry)
+            const toIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry)
+            
+            // 计算升起后的位置，与机场圆点升起高度(0.15)保持一致
             const fromPos = fromAirportInstance.position.clone()
+            const fromElevated = fromIsSelected
+              ? fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
+              : fromPos
+            
             const toPos = toAirportInstance.position.clone()
+            const toElevated = toIsSelected
+              ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
+              : toPos
+            
+            // 根据环境风险值设置航线颜色
+            const routeColor = getRiskColor(flight.environmentRisk)
             
             routes.push({
               id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
-              from: fromPos,
-              to: toPos,
-              color: '#60a5fa', // 高亮颜色
-              fromIsSelected: false,
-              toIsSelected: false,
-              flightNumber: flight.flightNumber,
-              fromAirport: fromAirport.name,
-              toAirport: toAirport.name,
-              status: flight.status,
-              scheduledDeparture: flight.scheduledDeparture,
-              scheduledArrival: flight.scheduledArrival,
-              humanRisk: flight.humanRisk,
-              machineRisk: flight.machineRisk,
-              environmentRisk: flight.environmentRisk,
-            })
+              from: fromElevated,
+              to: toElevated,
+              color: routeColor, // 根据环境风险值设置颜色
+              fromIsSelected,
+              toIsSelected,
+          flightNumber: flight.flightNumber,
+          fromAirport: fromAirport.name,
+          toAirport: toAirport.name,
+          status: flight.status,
+          scheduledDeparture: flight.scheduledDeparture,
+          scheduledArrival: flight.scheduledArrival,
+          humanRisk: flight.humanRisk,
+          machineRisk: flight.machineRisk,
+          environmentRisk: flight.environmentRisk,
+        })
           }
         }
       }
@@ -468,11 +494,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
           : toPos
 
+        // 根据环境风险值设置航线颜色
+        const routeColor = getRiskColor(flight.environmentRisk)
+        
         routes.push({
           id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
           from: fromElevated,
           to: toElevated,
-          color: '#4ff0ff',
+          color: routeColor, // 根据环境风险值设置颜色
           fromIsSelected: !!fromIsSelected,
           toIsSelected: !!toIsSelected,
           flightNumber: flight.flightNumber,
@@ -490,42 +519,11 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       return routes
     }
     
-    // 情况3: 默认情况，基于选中的国家显示航线
-    if (!selectedCountry) {
-      return []
-    }
+    // 情况3: 默认情况，显示所有航线
+    // 从统一航班数据中获取所有航班
+    const allFlights = FLIGHTS
     
-    // 标准化国家代码
-    const normalizedSelectedCountry = normalizeCountryCode(selectedCountry)
-    
-    if (!normalizedSelectedCountry) {
-      return []
-    }
-    
-    const selectedAirports = airportInstances.filter(airport => 
-      normalizeCountryCode(airport.countryCode) === normalizedSelectedCountry
-    )
-    
-    if (selectedAirports.length === 0) return []
-    
-    // 从统一航班数据中筛选相关航班
-    // 筛选条件：起飞机场或降落机场在选中国家的机场列表中
-    const relevantFlights = FLIGHTS.filter(flight => {
-      const fromAirport = getAirportByCode(flight.fromAirport)
-      const toAirport = getAirportByCode(flight.toAirport)
-      
-      const fromInSelected = fromAirport && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
-      const toInSelected = toAirport && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
-      
-      // 至少有一个机场在选中的国家
-      return fromInSelected || toInSelected
-    })
-    
-    // 限制航线数量
-    const maxRoutes = 100
-    const flightsToShow = relevantFlights.slice(0, maxRoutes)
-    
-    flightsToShow.forEach(flight => {
+    allFlights.forEach(flight => {
       const fromAirport = getAirportByCode(flight.fromAirport)
       const toAirport = getAirportByCode(flight.toAirport)
       
@@ -538,8 +536,10 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       
       if (!fromAirportInstance || !toAirportInstance) return
       
-      const fromIsSelected = normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
-      const toIsSelected = normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
+      // 标准化国家代码（用于判断是否选中）
+      const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
+      const fromIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry)
+      const toIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry)
       
       // 计算升起后的位置，与板块升起高度(0.15)保持一致
       const fromPos = fromAirportInstance.position.clone()
@@ -552,11 +552,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
         : toPos
 
+      // 根据环境风险值设置航线颜色
+      const routeColor = getRiskColor(flight.environmentRisk)
+
       routes.push({
         id: `${fromAirport.id}-${toAirport.id}-${flight.id}`, // 使用航班ID确保唯一性
         from: fromElevated,
         to: toElevated,
-        color: '#4ff0ff', // 统一使用青色/蓝色发光色
+        color: routeColor, // 根据环境风险值设置颜色
         fromIsSelected,
         toIsSelected,
         flightNumber: flight.flightNumber,
@@ -696,7 +699,53 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             hoveredCountry={hoveredCountry}
           />
           <group ref={globeGroupRef}>
-            <mesh renderOrder={0}>
+            <mesh 
+              renderOrder={-1}
+              onPointerDown={(event) => {
+                // 记录按下状态，用于区分点击和拖动
+                const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
+                const clientX = nativeEvent.clientX ?? 0
+                const clientY = nativeEvent.clientY ?? 0
+                blankAreaPointerStateRef.current = {
+                  downTime: Date.now(),
+                  downX: clientX,
+                  downY: clientY,
+                  moved: false,
+                }
+              }}
+              onPointerMove={(event) => {
+                // 检测是否拖动
+                if (!blankAreaPointerStateRef.current) return
+                const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
+                const clientX = nativeEvent.clientX ?? 0
+                const clientY = nativeEvent.clientY ?? 0
+                const deltaX = Math.abs(clientX - blankAreaPointerStateRef.current.downX)
+                const deltaY = Math.abs(clientY - blankAreaPointerStateRef.current.downY)
+                // 如果移动距离超过 5 像素，认为是拖动
+                if (deltaX > 5 || deltaY > 5) {
+                  blankAreaPointerStateRef.current.moved = true
+                }
+              }}
+              onPointerUp={(event) => {
+                // 只有在短按（< 200ms）且没有移动的情况下才取消选择
+                if (!blankAreaPointerStateRef.current) return
+                const state = blankAreaPointerStateRef.current
+                const duration = Date.now() - state.downTime
+                const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
+                const clientX = nativeEvent.clientX ?? 0
+                const clientY = nativeEvent.clientY ?? 0
+                const deltaX = Math.abs(clientX - state.downX)
+                const deltaY = Math.abs(clientY - state.downY)
+                const moved = state.moved || deltaX > 5 || deltaY > 5
+                
+                // 只有在短按且没有移动的情况下才取消选择
+                if (!moved && duration < 200 && selectedCountry) {
+                  setSelectedCountry(null)
+                }
+                
+                blankAreaPointerStateRef.current = null
+              }}
+            >
               <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
               <meshStandardMaterial
                 color="#050505"
@@ -709,10 +758,21 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             </mesh>
             {/* 风粒子图层 */}
             {showWindLayer && (
-              <WindParticles 
-                radius={GLOBE_RADIUS} 
-                particleCount={6000}
-                speedScale={0.0012}
+              <WindLayer 
+              radius={GLOBE_RADIUS + 0.01}
+              particleCount={20000}
+              trailLength={30}
+              speedScale={2.5}
+              />
+            )}
+            {/* 温度热力图图层 */}
+            {showTemperatureLayer && (
+              <TemperatureLayer 
+                radius={GLOBE_RADIUS}
+                minTemp={-40}
+                maxTemp={50}
+                opacity={0.75}
+                showTemperatureLabels={false}
               />
             )}
             <group>
@@ -1465,6 +1525,24 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
   
   // 保存原始位置，避免被修改
   const basePosition = useMemo(() => airport.position.clone(), [airport.position])
+  
+  // 根据风险值计算闪烁参数
+  const getPulseParams = useMemo(() => {
+    const risk = airport.environmentRisk
+    if (risk >= 7) {
+      // 高风险：快速闪烁，强度大
+      return { speed: 4, intensity: 0.4, baseColor: new Color('#ff1744'), brightColor: new Color('#ff6b9d') }
+    } else if (risk >= 5) {
+      // 中风险：中等速度闪烁
+      return { speed: 3, intensity: 0.3, baseColor: new Color('#ff6f00'), brightColor: new Color('#ffb74d') }
+    } else if (risk >= 2) {
+      // 低风险：慢速闪烁
+      return { speed: 2, intensity: 0.25, baseColor: new Color('#ffc107'), brightColor: new Color('#ffeb3b') }
+    } else {
+      // 极低风险：很慢的闪烁
+      return { speed: 1.5, intensity: 0.2, baseColor: new Color('#4caf50'), brightColor: new Color('#81c784') }
+    }
+  }, [airport.environmentRisk])
 
   // 处理鼠标事件
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
@@ -1520,19 +1598,30 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     
     glowIntensityRef.current = intensity
     
-    // 直接更新材质透明度，避免重新渲染
+    // 闪烁颜色动画 - 根据风险值动态调整颜色
+    const pulse = Math.sin(time * getPulseParams.speed) * 0.5 + 0.5 // 0 到 1 之间
+    const currentColor = new Color().lerpColors(
+      getPulseParams.baseColor,
+      getPulseParams.brightColor,
+      pulse * getPulseParams.intensity
+    )
+    
+    // 更新材质颜色和透明度
     if (materialRefs.current.outer) {
-      materialRefs.current.outer.opacity = (isViewing ? 0.3 : 0.15) * intensity
+      materialRefs.current.outer.color.copy(currentColor)
+      materialRefs.current.outer.opacity = (isViewing ? 0.5 : 0.3) * intensity
     }
     if (materialRefs.current.middle) {
-      materialRefs.current.middle.opacity = (isViewing ? 0.6 : 0.4) * intensity
+      materialRefs.current.middle.color.copy(currentColor)
+      materialRefs.current.middle.opacity = (isViewing ? 0.9 : 0.7) * intensity
     }
     
     // 更新光环效果（如果正在查看）
     if (isViewing && ringRef.current && materialRefs.current.ring) {
       const ringScale = 1.0 + Math.sin(time * 3) * 0.3
       ringRef.current.scale.setScalar(ringScale)
-      materialRefs.current.ring.opacity = 0.3 + Math.sin(time * 3) * 0.2
+      materialRefs.current.ring.color.copy(currentColor)
+      materialRefs.current.ring.opacity = 0.6 + Math.sin(time * 3) * 0.2
     }
     
     // 更新标签（如果正在查看）
@@ -1557,7 +1646,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
           ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
           color={airport.color}
           transparent
-          opacity={0.15}
+          opacity={0.3}
         />
       </mesh>
       {/* 中层光晕 */}
@@ -1567,7 +1656,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
           ref={(ref) => { if (ref) materialRefs.current.middle = ref }}
           color={airport.color}
           transparent
-          opacity={0.4}
+          opacity={0.7}
         />
       </mesh>
       {/* 内层亮点 */}
@@ -1588,7 +1677,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
               ref={(ref) => { if (ref) materialRefs.current.ring = ref }}
               color={airport.color}
               transparent
-              opacity={0.3}
+              opacity={0.6}
               side={DoubleSide}
             />
           </mesh>
@@ -1607,7 +1696,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
             maxWidth={0.15}
             renderOrder={100}
           >
-            {airport.name}
+            {airport.code}
           </Text>
         </group>
       )}

@@ -1,6 +1,6 @@
 import {  useMemo, useState } from 'react'
 import { useAppStore, type RiskZone } from '../store/useAppStore'
-import { AIRPORTS, FLIGHTS, calculateRiskFromEnvironmentRisk, type Airport, type Flight } from '../data/flightData'
+import { AIRPORTS, FLIGHTS, calculateRiskFromEnvironmentRisk, type Airport, type Flight, getRiskColor } from '../data/flightData'
 import { PERSONS, TEAMS, getPersonById, getTeamById } from '../data/personData'
 import './Sidebar.css'
 
@@ -65,6 +65,8 @@ export function Sidebar() {
   
   // 本地状态：从tab进入时，默认展开所有机队
   const [isFromTab, setIsFromTab] = useState(false)
+  // 筛选部分折叠状态，默认折叠
+  const [isFilterCollapsed, setIsFilterCollapsed] = useState(true)
 
   // 处理风险区间切换
   const handleRiskZoneToggle = (zone: RiskZone) => {
@@ -221,12 +223,35 @@ export function Sidebar() {
     }
   }
 
+  // 获取风险值对应的背景颜色（半透明，符合项目风格）
+  // 使用与getRiskColor相同的颜色值，但降低透明度
+  const getRiskBackgroundColor = (riskZone: RiskZone) => {
+    switch (riskZone) {
+      case 'red': return 'rgba(255, 23, 68, 0.12)' // #ff1744 半透明，符合项目深色风格
+      case 'orange': return 'rgba(255, 111, 0, 0.12)' // #ff6f00 半透明
+      case 'yellow': return 'rgba(255, 193, 7, 0.12)' // #ffc107 半透明
+      case 'green': return 'rgba(76, 175, 80, 0.12)' // #4caf50 半透明
+      default: return 'rgba(30, 41, 59, 0.6)' // 默认背景色
+    }
+  }
+
+  // 获取风险值对应的hover背景颜色（更亮一些）
+  const getRiskHoverBackgroundColor = (riskZone: RiskZone) => {
+    switch (riskZone) {
+      case 'red': return 'rgba(255, 23, 68, 0.2)' // hover时更明显
+      case 'orange': return 'rgba(255, 111, 0, 0.2)'
+      case 'yellow': return 'rgba(255, 193, 7, 0.2)'
+      case 'green': return 'rgba(76, 175, 80, 0.2)'
+      default: return 'rgba(30, 41, 59, 0.8)' // 默认hover背景色
+    }
+  }
+
   return (
     <div className="sidebar">
       {/* 登录状态 */}
       <div className="sidebar-header">
         <div className="login-status">
-          登录状态: <span className="login-user">admin</span> <span className="login-role">(高级管理)</span>
+          <span className="login-user">admin</span> <span className="login-role">(高级管理)</span>
         </div>
       </div>
 
@@ -252,7 +277,7 @@ export function Sidebar() {
             setSidebarTab('person')
             setIsFromTab(true) // 从tab进入，默认展开所有机队
             setSelectedPersonId(null) // 清除选中的人员
-            setExpandedTeamIds(TEAMS.map(t => t.id)) // 展开所有机队
+            setExpandedTeamIds([]) // 默认折叠所有机队
           }}
         >
           <span className="tab-icon">👥</span>
@@ -272,49 +297,59 @@ export function Sidebar() {
         <span className="search-icon">▼</span>
       </div>
 
-      {/* 风险区间（仅airport tab显示） */}
+      {/* 风险区间（仅airport tab显示，可折叠） */}
       {sidebarTab === 'airport' && (
-        <div className="sidebar-risk-zones">
-          <div className="risk-zones-label">风险区间</div>
-          <div className="risk-zones-checkboxes">
-            <label className="risk-zone-checkbox">
-              <input
-                type="checkbox"
-                checked={riskZones.includes('red')}
-                onChange={() => handleRiskZoneToggle('red')}
-              />
-              <span className="risk-zone-color red"></span>
-              <span className="risk-zone-label">红色</span>
-            </label>
-            <label className="risk-zone-checkbox">
-              <input
-                type="checkbox"
-                checked={riskZones.includes('orange')}
-                onChange={() => handleRiskZoneToggle('orange')}
-              />
-              <span className="risk-zone-color orange"></span>
-              <span className="risk-zone-label">橙色</span>
-            </label>
-            <label className="risk-zone-checkbox">
-              <input
-                type="checkbox"
-                checked={riskZones.includes('yellow')}
-                onChange={() => handleRiskZoneToggle('yellow')}
-              />
-              <span className="risk-zone-color yellow"></span>
-              <span className="risk-zone-label">黄色</span>
-            </label>
-            <label className="risk-zone-checkbox">
-              <input
-                type="checkbox"
-                checked={riskZones.includes('green')}
-                onChange={() => handleRiskZoneToggle('green')}
-              />
-              <span className="risk-zone-color green"></span>
-              <span className="risk-zone-label">绿色</span>
-            </label>
+        <div className="sidebar-filter-section">
+          <div 
+            className="filter-section-header"
+            onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
+          >
+            <span className="filter-section-title">风险区间</span>
+            <span className={`filter-section-toggle ${isFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
           </div>
-          <div className="risk-zones-high-risk">最高环境风险值</div>
+          {!isFilterCollapsed && (
+            <div className="filter-section-content">
+              <div className="risk-zones-checkboxes">
+                <label className="risk-zone-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={riskZones.includes('red')}
+                    onChange={() => handleRiskZoneToggle('red')}
+                  />
+                  <span className="risk-zone-color red"></span>
+                  <span className="risk-zone-label">红色</span>
+                </label>
+                <label className="risk-zone-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={riskZones.includes('orange')}
+                    onChange={() => handleRiskZoneToggle('orange')}
+                  />
+                  <span className="risk-zone-color orange"></span>
+                  <span className="risk-zone-label">橙色</span>
+                </label>
+                <label className="risk-zone-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={riskZones.includes('yellow')}
+                    onChange={() => handleRiskZoneToggle('yellow')}
+                  />
+                  <span className="risk-zone-color yellow"></span>
+                  <span className="risk-zone-label">黄色</span>
+                </label>
+                <label className="risk-zone-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={riskZones.includes('green')}
+                    onChange={() => handleRiskZoneToggle('green')}
+                  />
+                  <span className="risk-zone-color green"></span>
+                  <span className="risk-zone-label">绿色</span>
+                </label>
+              </div>
+              <div className="risk-zones-high-risk">最高环境风险值</div>
+            </div>
+          )}
         </div>
       )}
 
@@ -349,36 +384,46 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* 状态筛选（仅airline tab显示，且未选中航线时显示） */}
+      {/* 状态筛选（仅airline tab显示，且未选中航线时显示，可折叠） */}
       {sidebarTab === 'airline' && !selectedFlightRouteId && (
-        <div className="sidebar-flight-statuses">
-          <div className="flight-statuses-label">状态</div>
-          <div className="flight-statuses-checkboxes">
-            <label className="flight-status-checkbox">
-              <input
-                type="checkbox"
-                checked={flightStatuses.includes('未起飞')}
-                onChange={() => handleFlightStatusToggle('未起飞')}
-              />
-              <span className="flight-status-label">未起飞</span>
-            </label>
-            <label className="flight-status-checkbox">
-              <input
-                type="checkbox"
-                checked={flightStatuses.includes('巡航中')}
-                onChange={() => handleFlightStatusToggle('巡航中')}
-              />
-              <span className="flight-status-label">巡航中</span>
-            </label>
-            <label className="flight-status-checkbox">
-              <input
-                type="checkbox"
-                checked={flightStatuses.includes('已落地')}
-                onChange={() => handleFlightStatusToggle('已落地')}
-              />
-              <span className="flight-status-label">已落地</span>
-            </label>
+        <div className="sidebar-filter-section">
+          <div 
+            className="filter-section-header"
+            onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
+          >
+            <span className="filter-section-title">状态</span>
+            <span className={`filter-section-toggle ${isFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
           </div>
+          {!isFilterCollapsed && (
+            <div className="filter-section-content">
+              <div className="flight-statuses-checkboxes">
+                <label className="flight-status-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={flightStatuses.includes('未起飞')}
+                    onChange={() => handleFlightStatusToggle('未起飞')}
+                  />
+                  <span className="flight-status-label">未起飞</span>
+                </label>
+                <label className="flight-status-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={flightStatuses.includes('巡航中')}
+                    onChange={() => handleFlightStatusToggle('巡航中')}
+                  />
+                  <span className="flight-status-label">巡航中</span>
+                </label>
+                <label className="flight-status-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={flightStatuses.includes('已落地')}
+                    onChange={() => handleFlightStatusToggle('已落地')}
+                  />
+                  <span className="flight-status-label">已落地</span>
+                </label>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -386,8 +431,26 @@ export function Sidebar() {
       <div className="sidebar-content">
         {sidebarTab === 'airport' && (
           <div className="sidebar-list">
-            {filteredAirports.map((airport) => (
-              <div key={airport.id} className="sidebar-item">
+            {filteredAirports.map((airport) => {
+              const riskBgColor = getRiskBackgroundColor(airport.riskZone)
+              const riskHoverBgColor = getRiskHoverBackgroundColor(airport.riskZone)
+              const riskBorderColor = getRiskValueColor(airport.riskZone) + '40' // 25%透明度的边框
+              
+              return (
+              <div 
+                key={airport.id} 
+                className="sidebar-item"
+                style={{ 
+                  background: riskBgColor,
+                  borderColor: riskBorderColor,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = riskHoverBgColor
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = riskBgColor
+                }}
+              >
                 <div className="item-left">
                   <div className="item-title">
                     {airport.nameZh} {airport.code}
@@ -413,7 +476,8 @@ export function Sidebar() {
                   </button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
         {sidebarTab === 'airline' && (
@@ -830,13 +894,32 @@ export function Sidebar() {
                         <div className="team-card-collapsed">
                           <div className="team-leader">
                             <span className="team-leader-label">分队长</span>
-                            <span className="team-leader-name">{team.leader.name}</span>
+                            <span 
+                              className="team-leader-name"
+                              style={{ 
+                                color: team.leader.riskValue !== undefined 
+                                  ? getRiskColor(team.leader.riskValue) 
+                                  : '#cbd5e1' 
+                              }}
+                            >
+                              {team.leader.name}
+                            </span>
                           </div>
                           <div className="team-members">
                             <span className="team-members-label">成员</span>
                             <div className="team-members-list">
                               {team.members.map((member, idx) => (
-                                <span key={idx} className="team-member-name">{member.name}</span>
+                                <span 
+                                  key={idx} 
+                                  className="team-member-name"
+                                  style={{ 
+                                    color: member.riskValue !== undefined 
+                                      ? getRiskColor(member.riskValue) 
+                                      : '#cbd5e1' 
+                                  }}
+                                >
+                                  {member.name}
+                                </span>
                               ))}
                             </div>
                           </div>
@@ -845,19 +928,21 @@ export function Sidebar() {
                       {/* 展开时详细展示每一位的PF技术等级和PF工号 */}
                       {isExpanded && (
                         <div className="team-card-content">
-                          <div className="team-leader-detail">
-                            <div className="team-leader-header">
-                              <span className="team-leader-label">分队长</span>
-                              <span className="team-leader-name">{team.leader.name}</span>
-                            </div>
-                            <div className="team-leader-info">
-                              <div className="team-member-detail-item">
-                                <span className="team-member-detail-label">PF技术等级</span>
-                                <span className="team-member-detail-value">{team.leader.pfTechnology}</span>
-                              </div>
-                              <div className="team-member-detail-item">
-                                <span className="team-member-detail-label">PF工号</span>
-                                <span className="team-member-detail-value">{team.leader.pfId}</span>
+                          <div className="team-members-detail">
+                            <span className="team-members-label">分队长</span>
+                            <div className="team-members-detail-list">
+                              <div className="team-member-detail-card">
+                                <div className="team-member-detail-name">{team.leader.name}</div>
+                                <div className="team-member-detail-info">
+                                  <div className="team-member-detail-item">
+                                    <span className="team-member-detail-label">PF技术等级</span>
+                                    <span className="team-member-detail-value">{team.leader.pfTechnology}</span>
+                                  </div>
+                                  <div className="team-member-detail-item">
+                                    <span className="team-member-detail-label">PF工号</span>
+                                    <span className="team-member-detail-value">{team.leader.pfId}</span>
+                                  </div>
+                                </div>
                               </div>
                             </div>
                           </div>

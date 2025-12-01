@@ -1,56 +1,242 @@
-import { useRef, useMemo, useEffect } from 'react';
+// WindLayer.tsx
+import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { latLonToCartesian } from '../utils/geo';
+import { latLonToCartesian } from '../utils/geo'; // 保持你现有的转换函数
 
-// 风场接口：传入经度 lon（-180..180）和纬度 lat（-90..90），返回 {u, v}（m/s）
-// 你可以把这个函数替换为真实的 GFS / ECMWF 插值函数
-function sampleField(lon: number, lat: number) {
-  // 一个示例合成场：赤道附近向东，南北半球有些摆动
-  const u = 8 * Math.cos((lat / 90) * Math.PI) * Math.cos((lon / 180) * Math.PI);
-  const v = 4 * Math.sin((lon / 180) * Math.PI) * Math.sin((lat / 90) * Math.PI);
-  return { u, v };
-}
+// ---- 配置 ----
+const DATA_URL = '/data/weather/current/current-wind-surface-level-gfs-1.0.json';
+// 提高默认粒子数量，让整体风场更加“饱满”
+const DEFAULT_PARTICLE_COUNT = 16000;
+const DEFAULT_TRAIL = 12;
+const DEFAULT_RADIUS = 1.6;
 
-type WindLayerProps = {
-  radius?: number;
-  particleCount?: number;
-  speedScale?: number; // 风速到角度/经纬移动的缩放（经验值）
-  trailLength?: number; // 拖尾长度（历史位置数量）
+// ---- 类型 ----
+type GribHeader = {
+  nx?: number; ny?: number;
+  lo1?: number; lo2?: number; la1?: number; la2?: number;
+  dx?: number; dy?: number;
+  numberPoints?: number;
+  shapeName?: string;
+  // 其它字段略
 };
 
-export function WindParticles({ 
-  radius = 1.6, 
-  particleCount = 6000, 
-  speedScale = 0.0012,
-  trailLength = 15 // 每个粒子保存15个历史位置
-}: WindLayerProps = {}) {
-  const pointsRef = useRef<THREE.Points>(null!);
-  const linesRef = useRef<THREE.LineSegments>(null!);
+type GribData = {
+  header: GribHeader;
+  data: number[];
+};
 
-  // 每个粒子记录：lon, lat, age
+// 表示可插值风场
+type WindField = {
+  interpolate: (lon: number, lat: number) => { u: number; v: number } | null;
+  earthRadiusMeters: number;
+};
+
+// ---- 帮助函数：把 GRIB2 JSON 转成可插值字段 ----
+function buildWindFieldFromGrib(gribArray: GribData[]): WindField | null {
+  if (!gribArray || gribArray.length < 2) return null;
+
+  // 找到 U 和 V 分量（parameterNumber 2/3 常见），但是我们这里假设上传数据第一是 U，第二是 V（或通过 header 判断）。
+  const uItem = gribArray[0];
+  const vItem = gribArray[1];
+
+  const uHeader = uItem.header;
+  const nx = uHeader.nx ?? 360;
+  const ny = uHeader.ny ?? 181;
+  const lon0 = uHeader.lo1 ?? 0;
+  const lat0 = uHeader.la1 ?? 90;
+  const lat2 = uHeader.la2 ?? -90;
+  const dx = uHeader.dx ?? 1;
+  const dy = uHeader.dy ?? (lat2 < lat0 ? -1 : 1);
+
+  // GRIB 给的地球半径信息通常在 shapeName 或者其他字段里，但我们使用常见值（NCEP 用 6371229）
+  const earthRadiusMeters = 6371229;
+
+  // data starts from la1 (通常为北纬90) -> 顺序为从北到南
+  const dataStartsFromNorth = (uHeader.la1 ?? 90) > (uHeader.la2 ?? -90);
+
+  // 计算 lon/lat 范围
+  const lonMin = lon0;
+  const latMax = Math.max(lat0, lat2);
+  const latMin = Math.min(lat0, lat2);
+
+  // 包装 index 与取值（支持经度环绕）
+  function idx(i: number, j: number) {
+    // i: 0..nx-1, j: 0..ny-1
+    const ii = ((i % nx) + nx) % nx;
+    const jj = Math.max(0, Math.min(ny - 1, j));
+    return jj * nx + ii;
+  }
+
+  function bilinear(grid: GribData, lon: number, lat: number) {
+    // 把 lon 规范为 [lonMin, lonMin+360)
+    let lambda = lon;
+    if (lambda < lonMin) lambda += 360;
+    if (lambda > lonMin + 360) lambda -= 360;
+
+    // x 索引（经度）
+    const x = (lambda - lonMin) / dx;
+    const i0 = Math.floor(x);
+    const fi = x - i0;
+
+    // y 索引（纬度）
+    // 注意数据可能从北到南
+    let yIndex;
+    if (dataStartsFromNorth) {
+      // latMax ... latMin
+      yIndex = (latMax - lat) / Math.abs(dy);
+    } else {
+      yIndex = (lat - latMin) / Math.abs(dy);
+    }
+    const j0 = Math.floor(yIndex);
+    const fj = yIndex - j0;
+
+    const i1 = i0 + 1;
+    const j1 = j0 + 1;
+
+    // 边界保护
+    const i0c = ((i0 % nx) + nx) % nx;
+    const i1c = ((i1 % nx) + nx) % nx;
+    const j0c = Math.max(0, Math.min(ny - 1, j0));
+    const j1c = Math.max(0, Math.min(ny - 1, j1));
+
+    const v00 = grid.data[idx(i0c, j0c)] ?? 0;
+    const v10 = grid.data[idx(i1c, j0c)] ?? 0;
+    const v01 = grid.data[idx(i0c, j1c)] ?? 0;
+    const v11 = grid.data[idx(i1c, j1c)] ?? 0;
+
+    const v0 = v00 * (1 - fi) + v10 * fi;
+    const v1 = v01 * (1 - fi) + v11 * fi;
+    const vv = v0 * (1 - fj) + v1 * fj;
+    return vv;
+  }
+
+  const field: WindField = {
+    earthRadiusMeters,
+    interpolate(lon: number, lat: number) {
+      // 检查范围
+      if (lat < Math.min(latMin - 1, -90) || lat > Math.max(latMax + 1, 90)) return null;
+      const u = bilinear(uItem, lon, lat);
+      const v = bilinear(vItem, lon, lat);
+      if (Number.isNaN(u) || Number.isNaN(v)) return null;
+      return { u, v };
+    }
+  };
+
+  return field;
+}
+
+// ---- RK4 积分器（在经纬坐标上推进粒子） ----
+// 输入：lon, lat (deg), dt (s), field.interpolate 返回 u(m/s)东向, v(m/s)北向
+function advectRK4(lon: number, lat: number, dt: number, field: WindField | null) {
+  if (!field) return { lon, lat };
+
+  const R = field.earthRadiusMeters;
+  const mPerDeg = Math.PI * R / 180.0; // 米/度
+
+  function velocityAt(lon_: number, lat_: number) {
+    const w = field?.interpolate(lon_, lat_);
+    if (!w) return { dlon: 0, dlat: 0 };
+    // 将 m/s 转成 deg/s
+    // dLat = v (m/s) / mPerDeg
+    // dLon = u (m/s) / (mPerDeg * cos(lat))
+    const latRad = lat_ * Math.PI / 180;
+    const dlat = w.v / mPerDeg;
+    const cosLat = Math.max(1e-6, Math.cos(latRad));
+    const dlon = w.u / (mPerDeg * cosLat);
+    return { dlon, dlat };
+  }
+
+  // RK4
+  const k1 = velocityAt(lon, lat);
+  const k2pos = { lon: lon + 0.5 * dt * k1.dlon, lat: lat + 0.5 * dt * k1.dlat };
+  const k2 = velocityAt(k2pos.lon, k2pos.lat);
+  const k3pos = { lon: lon + 0.5 * dt * k2.dlon, lat: lat + 0.5 * dt * k2.dlat };
+  const k3 = velocityAt(k3pos.lon, k3pos.lat);
+  const k4pos = { lon: lon + dt * k3.dlon, lat: lat + dt * k3.dlat };
+  const k4 = velocityAt(k4pos.lon, k4pos.lat);
+
+  const dlon = (k1.dlon + 2 * k2.dlon + 2 * k3.dlon + k4.dlon) / 6;
+  const dlat = (k1.dlat + 2 * k2.dlat + 2 * k3.dlat + k4.dlat) / 6;
+
+  let newLon = lon + dlon * dt;
+  let newLat = lat + dlat * dt;
+
+  // wrap lon
+  if (newLon < -180) newLon += 360;
+  if (newLon > 180) newLon -= 360;
+  // clamp lat a bit inside
+  if (newLat > 90) newLat = 90;
+  if (newLat < -90) newLat = -90;
+
+  return { lon: newLon, lat: newLat };
+}
+
+// ---- 主组件 ----
+export function WindLayer({
+  radius = DEFAULT_RADIUS,
+  particleCount = DEFAULT_PARTICLE_COUNT,
+  speedScale = 1.0, // 放大风速用的系数（默认 1）
+  trailLength = DEFAULT_TRAIL,
+}: {
+  radius?: number;
+  particleCount?: number;
+  speedScale?: number;
+  trailLength?: number;
+}) {
+  const pointsRef = useRef<THREE.Points | null>(null);
+  const trailRef = useRef<THREE.LineSegments | null>(null);
+  const geometryRef = useRef<THREE.BufferGeometry | null>(null);
+  const trailGeomRef = useRef<THREE.BufferGeometry | null>(null);
+
+  const [field, setField] = useState<WindField | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  // 加载风数据
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const resp = await fetch(DATA_URL);
+        if (!resp.ok) {
+          console.warn('Wind data load failed, use simulated fallback');
+          return;
+        }
+        const json = await resp.json() as GribData[];
+        if (cancelled) return;
+        const f = buildWindFieldFromGrib(json);
+        if (f) {
+          setField(f);
+          setLoaded(true);
+          console.log('[WindLayer] wind field built');
+        } else {
+          console.warn('[WindLayer] buildWindFieldFromGrib failed');
+        }
+      } catch (e) {
+        console.warn('[WindLayer] load error', e);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  // 粒子经纬与 age，存在内存中（非 state）
   const particles = useMemo(() => {
-    const arr: Float32Array = new Float32Array(particleCount * 3); // lon, lat, age
+    const arr = new Float32Array(particleCount * 3); // lon, lat, age
     for (let i = 0; i < particleCount; i++) {
-      const lon = (Math.random() * 360 - 180);
-      const lat = (Math.random() * 180 - 90);
-      const age = Math.random() * 1000;
-      arr[i * 3 + 0] = lon;
-      arr[i * 3 + 1] = lat;
-      arr[i * 3 + 2] = age;
+      arr[i * 3 + 0] = (Math.random() * 360 - 180); // lon
+      arr[i * 3 + 1] = (Math.random() * 180 - 90);  // lat
+      arr[i * 3 + 2] = Math.random() * 1000;        // age
     }
     return arr;
   }, [particleCount]);
 
-  // 用来给 GPU 绘制的坐标缓存
+  // 当前点在三维空间的位置 buffer（送给 THREE.Points）
   const positions = useMemo(() => new Float32Array(particleCount * 3), [particleCount]);
   const speeds = useMemo(() => new Float32Array(particleCount), [particleCount]);
 
-  // 拖尾历史位置：每个粒子保存 trailLength 个历史位置
-  // 格式：[particle0_pos0, particle0_pos1, ..., particle0_posN, particle1_pos0, ...]
+  // 拖尾历史（每个粒子 trailLength 个 vec3）
   const trailHistory = useRef<Float32Array[]>([]);
-  
-  // 初始化拖尾历史
   useEffect(() => {
     trailHistory.current = [];
     for (let i = 0; i < particleCount; i++) {
@@ -58,7 +244,6 @@ export function WindParticles({
       const lon = particles[i * 3 + 0];
       const lat = particles[i * 3 + 1];
       const p = latLonToCartesian(lat, lon, radius + 0.002);
-      // 初始化所有历史位置为当前位置
       for (let j = 0; j < trailLength; j++) {
         trail[j * 3 + 0] = p.x;
         trail[j * 3 + 1] = p.y;
@@ -66,176 +251,167 @@ export function WindParticles({
       }
       trailHistory.current.push(trail);
     }
-  }, [particleCount, particles, radius, trailLength]);
+  }, [particleCount, trailLength, radius, particles]);
 
-  // geometry refs
-  const geometryRef = useRef<THREE.BufferGeometry>(null);
-  const trailGeometryRef = useRef<THREE.BufferGeometry>(null);
+  // trail buffer arrays
+  const trailPositions = useMemo(() => new Float32Array(particleCount * (trailLength - 1) * 2 * 3), [particleCount, trailLength]);
+  const trailColors = useMemo(() => new Float32Array(particleCount * (trailLength - 1) * 2 * 3), [particleCount, trailLength]);
 
-  // 拖尾线条的顶点数据（每条拖尾需要 trailLength 个线段，每个线段2个顶点）
-  const trailPositions = useMemo(() => 
-    new Float32Array(particleCount * (trailLength - 1) * 2 * 3), 
-    [particleCount, trailLength]
-  );
-  const trailColors = useMemo(() => 
-    new Float32Array(particleCount * (trailLength - 1) * 2 * 3), 
-    [particleCount, trailLength]
-  );
-
-  // 初始化 positions
+  // 初始设置 geometry attribute
   useEffect(() => {
-    if (!geometryRef.current) return;
-    
+    if (!geometryRef.current) {
+      geometryRef.current = new THREE.BufferGeometry();
+    }
+    if (!trailGeomRef.current) {
+      trailGeomRef.current = new THREE.BufferGeometry();
+    }
+
+    // 初始化 positions（映射经纬 -> 三维）
     for (let i = 0; i < particleCount; i++) {
       const lon = particles[i * 3 + 0];
       const lat = particles[i * 3 + 1];
-      const p = latLonToCartesian(lat, lon, radius + 0.002); // 注意：latLonToCartesian 的参数顺序是 (lat, lon, radius)
+      const p = latLonToCartesian(lat, lon, radius + 0.002);
       positions[i * 3 + 0] = p.x;
       positions[i * 3 + 1] = p.y;
       positions[i * 3 + 2] = p.z;
       speeds[i] = 0;
     }
-    
     geometryRef.current.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geometryRef.current.setAttribute('aSpeed', new THREE.BufferAttribute(speeds, 1));
-    geometryRef.current.attributes.position.needsUpdate = true;
-  }, [particleCount, particles, positions, speeds, radius]);
 
-  // 初始化拖尾 geometry
-  useEffect(() => {
-    if (!trailGeometryRef.current) return;
-    
-    trailGeometryRef.current.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-    trailGeometryRef.current.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
-    trailGeometryRef.current.attributes.position.needsUpdate = true;
-  }, [trailPositions, trailColors]);
+    trailGeomRef.current.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+    trailGeomRef.current.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+  }, [particleCount, positions, speeds, trailPositions, trailColors, radius, particles]);
 
   // update loop
   useFrame((_state, delta) => {
-    if (!geometryRef.current || !trailGeometryRef.current) return;
-    
-    const posAttr = geometryRef.current.attributes.position as THREE.BufferAttribute;
-    const speedAttr = geometryRef.current.attributes.aSpeed as THREE.BufferAttribute;
-    const trailPosAttr = trailGeometryRef.current.attributes.position as THREE.BufferAttribute;
-    const trailColorAttr = trailGeometryRef.current.attributes.color as THREE.BufferAttribute;
+    if (!geometryRef.current || !trailGeomRef.current) return;
 
-    // 计算速度到颜色的映射函数
-    const speedToColor = (speed: number): [number, number, number] => {
-      if (speed < 2.0) return [0.15, 0.5, 0.8];
-      if (speed < 6.0) return [0.35, 0.7, 0.6];
-      if (speed < 10.0) return [0.9, 0.8, 0.3];
-      return [0.9, 0.35, 0.2];
-    };
+    const posAttr = geometryRef.current.getAttribute('position') as THREE.BufferAttribute;
+    const speedAttr = geometryRef.current.getAttribute('aSpeed') as THREE.BufferAttribute;
+    const trailPosAttr = trailGeomRef.current.getAttribute('position') as THREE.BufferAttribute;
+    const trailColorAttr = trailGeomRef.current.getAttribute('color') as THREE.BufferAttribute;
+
+    // 时间步：用 delta（s）乘以一个放大因子，使粒子移动在可视范围
+    // 这里让 speedScale 控制每秒的倍增（经验值），不要太大
+    const dt = delta * 15.0 * speedScale * 1500; // speedScale 可调（1 默认）
 
     for (let i = 0; i < particleCount; i++) {
-      let lon = particles[i * 3 + 0];
-      let lat = particles[i * 3 + 1];
+      const lon = particles[i * 3 + 0];
+      const lat = particles[i * 3 + 1];
       let age = particles[i * 3 + 2];
 
-      // 获取风速向量（u: 东向, v: 北向）
-      const w = sampleField(lon, lat);
+      // RK4 推进
+      const adv = advectRK4(lon, lat, dt, field);
+      // 若 field 为 null（未加载），advectRK4 会返回原坐标 -> fallback 使用简单合成风
+      let newLon = adv.lon;
+      let newLat = adv.lat;
 
-      // 将风场速度映射成经纬度变化量（经验值）
-      // u (m/s) -> dLon (deg) ; v (m/s) -> dLat (deg)
-      // 注意：经度角度变化需要除以 cos(lat) 的尺度因子
-      const dLat = w.v * speedScale * (180 / Math.PI);
-      const dLon = (w.u * speedScale * (180 / Math.PI)) / Math.max(0.0001, Math.cos((lat * Math.PI) / 180));
+      // 少量随机扰动，打破同步
+      newLon += (Math.random() - 0.5) * 0.02;
+      newLat += (Math.random() - 0.5) * 0.01;
 
-      lon += dLon * delta * 60; // delta*60 把秒尺度拉到每分钟级（可调）
-      lat += dLat * delta * 60;
       age += 1;
 
-      // 计算速度用于颜色映射
-      const spd = Math.sqrt(w.u * w.u + w.v * w.v);
+      // 重置策略：
+      // 1）超出范围
+      // 2）age 太大
+      // 3）进入涡心（局部风速几乎为 0） -> 立即“死亡重生”
+      let reset = false;
 
-      // 超出范围或寿命到则重置
-      let resetTrail = false;
-      if (lat > 90 || lat < -90 || lon > 180 || lon < -180 || age > 6000) {
-        lon = Math.random() * 360 - 180;
-        lat = Math.random() * 180 - 90;
-        age = 0;
-        resetTrail = true;
+      // 判断是否进入涡心：当前位置风速很小
+      let isInVortex = false;
+      if (field) {
+        const wLocal = field.interpolate(newLon, newLat);
+        if (wLocal) {
+          const speedLocal = Math.sqrt(wLocal.u * wLocal.u + wLocal.v * wLocal.v);
+          const VORTEX_SPEED_THRESHOLD = 0.5; // m/s 以下认为是涡心/停滞区
+          if (speedLocal < VORTEX_SPEED_THRESHOLD) {
+            isInVortex = true;
+          }
+        }
       }
 
-      particles[i * 3 + 0] = lon;
-      particles[i * 3 + 1] = lat;
+      // 将最大寿命从 9000 大幅降低到 1200，让粒子更频繁「死亡-重生」
+      const MAX_AGE = 1200;
+      if (
+        newLat > 90 ||
+        newLat < -90 ||
+        newLon > 180 ||
+        newLon < -180 ||
+        age > MAX_AGE ||
+        isInVortex
+      ) {
+        newLon = (Math.random() * 360 - 180);
+        newLat = (Math.random() * 180 - 90);
+        age = 0;
+        reset = true;
+      }
+
+      particles[i * 3 + 0] = newLon;
+      particles[i * 3 + 1] = newLat;
       particles[i * 3 + 2] = age;
 
-      // 计算新的 3D 位置
-      const newPos = latLonToCartesian(lat, lon, radius + 0.002); // 注意参数顺序
-      posAttr.array[i * 3 + 0] = newPos.x;
-      posAttr.array[i * 3 + 1] = newPos.y;
-      posAttr.array[i * 3 + 2] = newPos.z;
+      // 计算三维位置写回 buffer
+      const p3 = latLonToCartesian(newLat, newLon, radius + 0.002);
+      posAttr.array[i * 3 + 0] = p3.x;
+      posAttr.array[i * 3 + 1] = p3.y;
+      posAttr.array[i * 3 + 2] = p3.z;
 
-      // 速度作为属性，后面可用于 shader 映射颜色
+      // 速度值用于着色（从 field 直接取）
+      let spd = 0;
+      if (field) {
+        const w = field.interpolate(newLon, newLat);
+        if (w) spd = Math.sqrt(w.u * w.u + w.v * w.v);
+      }
       speedAttr.array[i] = spd;
 
-      // 更新拖尾历史
+      // 更新拖尾历史：将新位置放到 trail[0]，移位其余
       const trail = trailHistory.current[i];
-      
-      if (resetTrail) {
-        // 重置时，所有历史位置设为当前位置
-        for (let j = 0; j < trailLength; j++) {
-          trail[j * 3 + 0] = newPos.x;
-          trail[j * 3 + 1] = newPos.y;
-          trail[j * 3 + 2] = newPos.z;
+      if (!trail) continue;
+
+      if (reset) {
+        for (let t = 0; t < trailLength; t++) {
+          trail[t * 3 + 0] = p3.x;
+          trail[t * 3 + 1] = p3.y;
+          trail[t * 3 + 2] = p3.z;
         }
       } else {
-        // 将新位置添加到历史的最前面，移除最旧的位置
-        // 向后移动所有历史位置
-        for (let j = trailLength - 1; j > 0; j--) {
-          trail[j * 3 + 0] = trail[(j - 1) * 3 + 0];
-          trail[j * 3 + 1] = trail[(j - 1) * 3 + 1];
-          trail[j * 3 + 2] = trail[(j - 1) * 3 + 2];
+        for (let t = trailLength - 1; t > 0; t--) {
+          trail[t * 3 + 0] = trail[(t - 1) * 3 + 0];
+          trail[t * 3 + 1] = trail[(t - 1) * 3 + 1];
+          trail[t * 3 + 2] = trail[(t - 1) * 3 + 2];
         }
-        // 添加新位置
-        trail[0] = newPos.x;
-        trail[1] = newPos.y;
-        trail[2] = newPos.z;
+        trail[0] = p3.x;
+        trail[1] = p3.y;
+        trail[2] = p3.z;
       }
 
-      // 将拖尾历史转换为线段顶点
-      // 每条拖尾有 (trailLength - 1) 个线段，每个线段2个顶点
-      const trailBaseIndex = i * (trailLength - 1) * 2;
-      const [baseR, baseG, baseB] = speedToColor(spd);
+      // 把 trail 转为线段顶点（(trailLength-1) 段，每段2顶点）
+      const baseIdx = i * (trailLength - 1) * 2 * 3;
+      // 颜色渐隐（根据 speed）
+      const col = speedToColor(spd);
+      for (let t = 0; t < trailLength - 1; t++) {
+        const segIdx = baseIdx + t * 2 * 3;
+        // 起点
+        trailPosAttr.array[segIdx + 0] = trail[t * 3 + 0];
+        trailPosAttr.array[segIdx + 1] = trail[t * 3 + 1];
+        trailPosAttr.array[segIdx + 2] = trail[t * 3 + 2];
+        // 终点
+        trailPosAttr.array[segIdx + 3] = trail[(t + 1) * 3 + 0];
+        trailPosAttr.array[segIdx + 4] = trail[(t + 1) * 3 + 1];
+        trailPosAttr.array[segIdx + 5] = trail[(t + 1) * 3 + 2];
 
-      for (let j = 0; j < trailLength - 1; j++) {
-        const segmentIndex = trailBaseIndex + j * 2;
-        const t = j / (trailLength - 1); // 0 到 1，0 是最新，1 是最旧
-        
-        // 渐隐透明度：使用平滑的指数衰减
-        // 使用 smoothstep 和指数衰减组合，让拖尾更自然
-        const smoothT = t * t * (3.0 - 2.0 * t); // smoothstep 函数
-        const alpha = Math.max(0, Math.pow(1.0 - smoothT, 1.5)); // 指数衰减
-        
-        // 线段起点
-        trailPosAttr.array[segmentIndex * 3 + 0] = trail[j * 3 + 0];
-        trailPosAttr.array[segmentIndex * 3 + 1] = trail[j * 3 + 1];
-        trailPosAttr.array[segmentIndex * 3 + 2] = trail[j * 3 + 2];
-        
-        // 线段终点
-        trailPosAttr.array[(segmentIndex + 1) * 3 + 0] = trail[(j + 1) * 3 + 0];
-        trailPosAttr.array[(segmentIndex + 1) * 3 + 1] = trail[(j + 1) * 3 + 1];
-        trailPosAttr.array[(segmentIndex + 1) * 3 + 2] = trail[(j + 1) * 3 + 2];
-
-        // 设置颜色（带透明度，AdditiveBlending 模式下颜色值会被叠加）
-        const color = [baseR * alpha * 0.5, baseG * alpha * 0.5, baseB * alpha * 0.5];
-        
-        // 起点颜色
-        trailColorAttr.array[segmentIndex * 3 + 0] = color[0];
-        trailColorAttr.array[segmentIndex * 3 + 1] = color[1];
-        trailColorAttr.array[segmentIndex * 3 + 2] = color[2];
-        
-        // 终点颜色（稍微更透明）
-        const tNext = (j + 1) / (trailLength - 1);
-        const smoothTNext = tNext * tNext * (3.0 - 2.0 * tNext);
-        const alphaNext = Math.max(0, Math.pow(1.0 - smoothTNext, 1.5));
-        const colorNext = [baseR * alphaNext * 0.5, baseG * alphaNext * 0.5, baseB * alphaNext * 0.5];
-        trailColorAttr.array[(segmentIndex + 1) * 3 + 0] = colorNext[0];
-        trailColorAttr.array[(segmentIndex + 1) * 3 + 1] = colorNext[1];
-        trailColorAttr.array[(segmentIndex + 1) * 3 + 2] = colorNext[2];
+        const tNorm = t / (trailLength - 1);
+        const alpha = Math.pow(1 - tNorm, 1.5) * 0.9;
+        trailColorAttr.array[segIdx + 0] = col[0] * alpha;
+        trailColorAttr.array[segIdx + 1] = col[1] * alpha;
+        trailColorAttr.array[segIdx + 2] = col[2] * alpha;
+        trailColorAttr.array[segIdx + 3] = col[0] * alpha * 0.6;
+        trailColorAttr.array[segIdx + 4] = col[1] * alpha * 0.6;
+        trailColorAttr.array[segIdx + 5] = col[2] * alpha * 0.6;
       }
-    }
+    } // end loop particles
 
     posAttr.needsUpdate = true;
     speedAttr.needsUpdate = true;
@@ -243,14 +419,22 @@ export function WindParticles({
     trailColorAttr.needsUpdate = true;
   });
 
-  // Points material 使用 shader 来根据速度映射颜色（可定制）
-  const material = useMemo(() => {
-    const mat = new THREE.ShaderMaterial({
+  // 速度->颜色（可按需修改色谱）
+  function speedToColor(s: number): [number, number, number] {
+    if (s < 2) return [0.15, 0.5, 0.8];
+    if (s < 6) return [0.35, 0.7, 0.6];
+    if (s < 12) return [0.9, 0.8, 0.3];
+    return [0.9, 0.35, 0.2];
+  }
+
+  // materials
+  const pointMaterial = useMemo(() => {
+    return new THREE.ShaderMaterial({
       transparent: true,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
       uniforms: {
-        size: { value: 0.012 },
-        pointScale: { value: 300 },
+        size: { value: 0.01 },
       },
       vertexShader: `
         uniform float size;
@@ -258,58 +442,56 @@ export function WindParticles({
         varying float vSpeed;
         void main() {
           vSpeed = aSpeed;
-          vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-          gl_PointSize = size * (300.0 / -mvPosition.z);
-          gl_Position = projectionMatrix * mvPosition;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          gl_PointSize = size * (300.0 / -mv.z);
+          gl_Position = projectionMatrix * mv;
         }
       `,
       fragmentShader: `
         varying float vSpeed;
-        // 简单速度到色彩映射
         vec3 colorFor(float s) {
-          if (s < 2.0) return vec3(0.15, 0.5, 0.8);
-          if (s < 6.0) return vec3(0.35, 0.7, 0.6);
-          if (s < 10.0) return vec3(0.9, 0.8, 0.3);
-          return vec3(0.9, 0.35, 0.2);
+          if (s < 2.0) return vec3(0.15,0.5,0.8);
+          if (s < 6.0) return vec3(0.35,0.7,0.6);
+          if (s < 12.0) return vec3(0.9,0.8,0.3);
+          return vec3(0.9,0.35,0.2);
         }
         void main() {
-          float a = 1.0;
-          vec3 c = colorFor(vSpeed);
-          // 软圆点
           float r = length(gl_PointCoord - vec2(0.5));
           if (r > 0.5) discard;
           float alpha = 1.0 - smoothstep(0.0, 0.5, r);
+          vec3 c = colorFor(vSpeed);
           gl_FragColor = vec4(c, alpha * 0.9);
         }
-      `,
+      `
     });
-    return mat;
   }, []);
 
-  // 拖尾线条 material（使用顶点颜色，通过 RGB 值缩放实现透明度）
   const trailMaterial = useMemo(() => {
     return new THREE.LineBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 1,
-      linewidth: 1,
       depthWrite: false,
-      blending: THREE.AdditiveBlending, // 叠加混合模式，让拖尾更亮
+      blending: THREE.AdditiveBlending,
+      linewidth: 1,
     });
   }, []);
 
   return (
     <group>
-      {/* 拖尾线条 */}
-      <lineSegments ref={linesRef} frustumCulled={false} renderOrder={99}>
-        <bufferGeometry ref={trailGeometryRef} />
+      <lineSegments ref={trailRef} frustumCulled={false} renderOrder={99}>
+        <bufferGeometry ref={trailGeomRef} />
         <primitive object={trailMaterial} attach="material" />
       </lineSegments>
-      {/* 粒子点 */}
+
       <points ref={pointsRef} frustumCulled={false} renderOrder={100}>
         <bufferGeometry ref={geometryRef} />
-        <primitive object={material} attach="material" />
+        <primitive object={pointMaterial} attach="material" />
       </points>
+
+      {!loaded && (
+        // 可选：当未加载数据时渲染一个小提示（不会影响渲染）
+        <mesh visible={false} />
+      )}
     </group>
   );
 }

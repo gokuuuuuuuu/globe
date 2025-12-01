@@ -10,6 +10,7 @@ import {
 } from 'three'
 import { Text} from '@react-three/drei'
 import { useAppStore } from '../store/useAppStore'
+import { getMachineRiskColor } from '../data/flightData'
 
 // 顶点着色器
 const vertexShader = `
@@ -20,25 +21,33 @@ const vertexShader = `
   }
 `
 
-// 片元着色器 - 点线效果
+// 片元着色器 - 发光实线效果
 const fragmentShader = `
   uniform float uTime;
   uniform vec3 uColor;
   varying vec2 vUv;
 
   void main() {
-    float dotSpacing = 0.05;
-    float dotSize = 0.03;
+    // vUv.x 沿着管体路径 (0.0 -> 1.0)
+    // vUv.y 沿着管体圆周 (0.0 -> 1.0)
     
-    float pos = mod(vUv.x, dotSpacing);
-    
+    // 计算距离中心的距离（用于创建发光效果）
     float centerY = 0.5;
     float distFromCenter = abs(vUv.y - centerY);
-    float distFromDotCenter = length(vec2(pos - dotSpacing * 0.5, distFromCenter * 2.0));
     
-    float alpha = (1.0 - smoothstep(dotSize * 0.7, dotSize, distFromDotCenter)) * 0.9;
+    // 创建从中心到边缘的渐变效果
+    // 中心最亮，边缘逐渐变暗
+    float edgeFade = 1.0 - smoothstep(0.3, 0.5, distFromCenter);
     
-    vec3 finalColor = uColor;
+    // 添加轻微的脉冲效果
+    float pulse = 0.9 + 0.1 * sin(uTime * 2.0 + vUv.x * 10.0);
+    
+    // 计算最终透明度（中心不透明，边缘透明）
+    float alpha = edgeFade * pulse * 0.85;
+    
+    // 增强中心亮度（发光效果）
+    float glowIntensity = 1.0 + 0.5 * (1.0 - distFromCenter * 2.0);
+    vec3 finalColor = uColor * glowIntensity;
 
     gl_FragColor = vec4(finalColor, alpha);
   }
@@ -65,7 +74,6 @@ interface MapFlightPathProps extends FlightRouteInfo {
 // 飞机组件（2D版本）
 function MapFlightPlane({ 
   curve, 
-  color = '#4ff0ff',
   flightNumber,
   fromAirport,
   toAirport,
@@ -96,7 +104,7 @@ function MapFlightPlane({
   useFrame((_state, delta) => {
     if (!groupRef.current || !camera) return
 
-    const speed = 0.05
+    const speed = 0.01 // 飞行速度，非常慢（从0.05降低到0.01）
     progressRef.current += delta * speed
     
     if (progressRef.current >= 1) {
@@ -105,7 +113,8 @@ function MapFlightPlane({
 
     const t = progressRef.current
     const position = curve.getPoint(t)
-    groupRef.current.position.copy(position)
+    // 直接设置位置，确保飞机严格在航线上
+    groupRef.current.position.set(position.x, position.y, position.z)
 
     // 计算飞机朝向（沿着曲线切线方向）
     const tangent = curve.getTangent(t).normalize()
@@ -161,12 +170,12 @@ function MapFlightPlane({
       onPointerMove={handlePointerMove}
     >
       <Text
-        position={[0, 0, 0.02]}
-        fontSize={0.2}
-        color={color}
+        position={[0, 0, 0]}
+            fontSize={0.12}
+        color={getMachineRiskColor(machineRisk)}
         anchorX="center"
         anchorY="middle"
-        outlineWidth={0.015}
+        outlineWidth={0.01}
         outlineColor="#000000"
         renderOrder={1000}
       >
@@ -224,6 +233,13 @@ function MapFlightPath({
     uColor: { value: new Color(color) },
   }), [color])
 
+  // 更新时间uniform以实现动画效果
+  useFrame(() => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value += 0.01
+    }
+  })
+
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
     const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
@@ -267,7 +283,7 @@ function MapFlightPath({
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <tubeGeometry args={[curve, 64, 0.008, 8, false]} />
+        <tubeGeometry args={[curve, 64, 0.025, 16, false]} />
         <shaderMaterial
           ref={materialRef}
           vertexShader={vertexShader}

@@ -2,7 +2,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 400px;
+  width: 350px;
   height: 100vh;
   background: transparent;
   border-right: none;
@@ -153,6 +153,40 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.filter-section-header:hover {
+  opacity: 0.8;
+}
+
+.filter-section-toggle {
+  font-size: 0.7rem;
+  color: #64748b;
+  transition: transform 0.2s ease;
+  transform: rotate(0deg);
+  display: inline-block;
+}
+
+.filter-section-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.filter-section-content {
+  animation: slideDown 0.2s ease;
+  margin-top: 12px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 2000px;
+  }
 }
 
 .filter-section-title {
