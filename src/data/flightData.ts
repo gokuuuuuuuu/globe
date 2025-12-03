@@ -136,6 +136,26 @@ export const AIRPORTS: Airport[] = [
   { id: 'LHR', name: 'London Heathrow', nameZh: AIRPORT_NAMES_ZH['LHR'] || '伦敦・希思罗', code: 'LHR', lat: 51.4700, lon: -0.4543, color: getRiskColor(1.8), countryCode: 'GB', operatorCount: 10, flightCount: 678, environmentRisk: 1.8 }, // 极低风险（绿色）
 ]
 
+// 省份与机场的映射（仅针对当前示例中的中国机场）
+// key 使用与 GlobeView 中一致的形式：CN-省份中文名
+// 注意：这里只列出当前存在的示例机场，可根据需要继续扩展
+export const PROVINCE_AIRPORTS: Record<string, string[]> = {
+  // 北京市
+  'CN-北京市': ['PEK'],
+  // 上海市
+  'CN-上海市': ['PVG'],
+  // 广东省
+  'CN-广东省': ['CAN', 'SZX'],
+  // 四川省
+  'CN-四川省': ['CTU'],
+  // 山西省（五台山机场）
+  'CN-山西省': ['WTS'],
+  // 陕西省
+  'CN-陕西省': ['XIY'],
+  // 云南省
+  'CN-云南省': ['KMG'],
+}
+
 // 统一航班数据
 // 包含：3条国内航线 + 2条国外航线 + 2条国外到国外航线（绿色风险）
 export const FLIGHTS: Flight[] = [

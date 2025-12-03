@@ -259,12 +259,12 @@ function GlowingFlightPath({
     const dist = vStart.distanceTo(vEnd)
     const midLen = vMid.length()
     
-    // 越远的航线，拱起越高
+    // 越远的航线，拱起越高 - 降低外凸高度
     const heightOffset = radius * 0.5 + dist * 0.5 
     vMid.normalize().multiplyScalar(midLen + heightOffset)
     
-    // 重新调整控制点高度逻辑
-    const controlPoint = vMid.clone().normalize().multiplyScalar(radius * 1.5)
+    // 重新调整控制点高度逻辑 - 降低倍数以减少外凸
+    const controlPoint = vMid.clone().normalize().multiplyScalar(radius * 1.13)
     
     return new QuadraticBezierCurve3(vStart, controlPoint, vEnd)
   }, [start, end, radius])

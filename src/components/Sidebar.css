@@ -19,6 +19,10 @@
   padding: 12px 24px; /* 减少内边距从20px到12px */
   border-bottom: none;
   pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .login-status {
@@ -34,6 +38,55 @@
 .login-role {
   color: #94a3b8;
   font-size: 0.85rem;
+}
+
+.collapse-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.collapse-icon.collapse-clickable {
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s ease, transform 0.3s ease;
+}
+
+.collapse-icon.collapse-clickable:hover {
+  opacity: 1;
+}
+
+.collapse-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.sidebar-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  min-height: 0;
+}
+
+.sidebar-content-wrapper.collapsed {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sidebar-content-wrapper.collapsed .sidebar-tabs {
+  display: none;
+}
+
+.sidebar-content-wrapper.collapsed .sidebar-search {
+  display: none;
+}
+
+.sidebar-content-wrapper.collapsed .sidebar-content {
+  display: none;
 }
 
 .sidebar-tabs {
@@ -72,7 +125,9 @@
 }
 
 .tab-icon {
-  font-size: 0.9rem; /* 减小图标从1rem到0.9rem */
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
 }
 
 .tab-label {
@@ -513,10 +568,7 @@
   cursor: pointer;
 }
 
-.sidebar-flight-item:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.3);
-}
+/* hover效果现在通过内联样式动态设置，基于风险值 */
 
 .flight-item-header {
   display: flex;
@@ -1122,6 +1174,12 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.team-member-detail-card:hover {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 .team-member-detail-name {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
+import collapseIcon from '../assets/collapse.png'
 import './LeftToolbar.css'
 
 // 风险类型列表
@@ -33,49 +34,48 @@ export function LeftToolbar() {
     setFlightFilters,
     riskTypes,
     setRiskTypes,
+    autoRotate,
+    setAutoRotate,
   } = useAppStore()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
+  // 整个左侧sidebar收起状态
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   // 筛选部分折叠状态，默认折叠
   const [isFlightFilterCollapsed, setIsFlightFilterCollapsed] = useState(true)
   const [isRiskTypeFilterCollapsed, setIsRiskTypeFilterCollapsed] = useState(true)
 
-  // 地图切换处理（在globe和map之间切换）
-  const handleMapSwitch = () => {
+  // 视图切换处理（在globe、map、airport-stacks之间循环切换）
+  const handleViewSwitch = () => {
     if (view === 'globe') {
       setView('map')
     } else if (view === 'map') {
-      setView('globe')
-    } else {
-      // 如果当前是其他视图，切换到globe
-      setView('globe')
-    }
-  }
-
-  // 切换到机场风险柱状图
-  const handleAirportStacksSwitch = () => {
-    if (view === 'airport-stacks') {
-      setView('globe')
-    } else {
       setView('airport-stacks')
+    } else {
+      // airport-stacks 或其他视图，切换到globe
+      setView('globe')
     }
   }
 
-  // 获取地图图标
-  const getMapIcon = () => {
+  // 获取视图图标
+  const getViewIcon = () => {
     if (view === 'globe') {
       return '🌍' // 3D地图
     } else if (view === 'map') {
       return '🗺️' // 平面地图
+    } else if (view === 'airport-stacks') {
+      return '📊' // 风险柱状图
     }
     return '🌍'
   }
 
-  // 获取地图标题
-  const getMapTitle = () => {
+  // 获取视图标题
+  const getViewTitle = () => {
     if (view === 'globe') {
       return '切换到平面地图'
     } else if (view === 'map') {
+      return '切换到风险柱状图'
+    } else if (view === 'airport-stacks') {
       return '切换到3D地图'
     }
     return '切换到3D地图'
@@ -111,6 +111,19 @@ export function LeftToolbar() {
 
   return (
     <div className="left-toolbar">
+      {/* 收起按钮区域 - 始终显示 */}
+      <div className="toolbar-top-collapse-header">
+        <img 
+          src={collapseIcon} 
+          alt="collapse" 
+          className={`collapse-icon collapse-clickable ${isSidebarCollapsed ? 'rotated' : ''}`}
+          onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          title={isSidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
+        />
+      </div>
+
+      {/* 工具栏和内容区域 - 可收起 */}
+      <div className={`toolbar-content-wrapper ${isSidebarCollapsed ? 'collapsed' : ''}`}>
       {/* 可折叠工具栏 */}
       <div className={`toolbar-header ${isCollapsed ? 'collapsed' : ''}`}>
         {isCollapsed ? (
@@ -126,18 +139,11 @@ export function LeftToolbar() {
           <>
             <div className="toolbar-icons">
               <button
-                className={`toolbar-icon ${view === 'globe' || view === 'map' ? 'active' : ''}`}
-                onClick={handleMapSwitch}
-                title={getMapTitle()}
+                className={`toolbar-icon ${view === 'globe' || view === 'map' || view === 'airport-stacks' ? 'active' : ''}`}
+                onClick={handleViewSwitch}
+                title={getViewTitle()}
               >
-                {getMapIcon()}
-              </button>
-              <button
-                className={`toolbar-icon ${view === 'airport-stacks' ? 'active' : ''}`}
-                onClick={handleAirportStacksSwitch}
-                title={view === 'airport-stacks' ? '切换到3D地图' : '切换到机场风险柱状图'}
-              >
-                📊
+                {getViewIcon()}
               </button>
               <button
                 className={`toolbar-icon ${showLabels ? 'active' : ''}`}
@@ -160,6 +166,13 @@ export function LeftToolbar() {
               >
                 🌡️
               </button>
+              <button
+                className={`toolbar-icon ${autoRotate ? 'active' : ''}`}
+                onClick={() => setAutoRotate(!autoRotate)}
+                title={autoRotate ? '关闭地球自转' : '开启地球自转'}
+              >
+                🔄
+              </button>
             </div>
             <button
               className="toolbar-collapse-btn"
@@ -172,7 +185,7 @@ export function LeftToolbar() {
         )}
       </div>
 
-      {/* 筛选区域始终显示 */}
+      {/* 筛选区域 */}
       <div className="toolbar-content">
           {/* 航班信息筛选（可折叠） */}
           <div className="filter-section">
@@ -346,6 +359,8 @@ export function LeftToolbar() {
             )}
           </div>
         </div>
+      </div>
+      {/* 结束toolbar-content-wrapper */}
     </div>
   )
 }

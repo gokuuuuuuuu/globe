@@ -93,6 +93,9 @@ interface AppState {
   // 展开的机队ID列表（用于person tab）
   expandedTeamIds: string[]
   setExpandedTeamIds: (ids: string[]) => void
+  // 地球自动旋转控制
+  autoRotate: boolean
+  setAutoRotate: (enabled: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -166,6 +169,9 @@ export const useAppStore = create<AppState>((set) => ({
   // 展开的机队ID列表
   expandedTeamIds: [],
   setExpandedTeamIds: (ids) => set({ expandedTeamIds: ids }),
+  // 地球自动旋转控制（默认关闭）
+  autoRotate: false,
+  setAutoRotate: (enabled) => set({ autoRotate: enabled }),
 }))
 
 

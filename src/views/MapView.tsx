@@ -74,6 +74,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     tooltipPosition,
     viewingAirportId,
     selectedFlightRouteId,
+    showLabels,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
 
@@ -582,7 +583,7 @@ export function MapView({ world, atlas }: MapViewProps) {
             <MapFlightPaths routes={flightRoutes} />
           )}
           {/* 国家标签 - 只显示选中的国家、悬停的国家或主要国家 */}
-          {countryLabels
+          {showLabels && countryLabels
             .filter(({ key, iso }) => {
               // 只显示选中的国家、悬停的国家，或者主要大国
               const isSelected = iso && selectedCountry === iso
@@ -797,12 +798,12 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     finalPosition.z = 0.05 // 稍微抬高以便在地图上方显示
     groupRef.current.position.copy(finalPosition)
     
-    // 发光动画效果（2D地图上更柔和）
+    // 增强发光动画效果 - 提高基础亮度
     const time = Date.now() * 0.001
-    let intensity = isSelected ? 1.1 + Math.sin(time * 2) * 0.2 : 0.7 + Math.sin(time * 1.5) * 0.15
+    let intensity = isSelected ? 1.5 + Math.sin(time * 2) * 0.3 : 1.2 + Math.sin(time * 1.5) * 0.25
     
     if (isViewing) {
-      intensity = 1.5 + Math.sin(time * 3) * 0.3
+      intensity = 2.0 + Math.sin(time * 3) * 0.4
     }
     
     glowIntensityRef.current = intensity
@@ -815,14 +816,16 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
       pulse * getPulseParams.intensity
     )
     
-    // 更新材质颜色和透明度
+    // 增强发光效果 - 提高透明度和亮度
     if (materialRefs.current.outer) {
       materialRefs.current.outer.color.copy(currentColor)
-      materialRefs.current.outer.opacity = (isViewing ? 0.5 : isSelected ? 0.4 : 0.3) * intensity
+      // 大幅提高外层光晕的亮度和透明度
+      materialRefs.current.outer.opacity = (isViewing ? 0.8 : isSelected ? 0.7 : 0.6) * intensity
     }
     if (materialRefs.current.inner) {
       materialRefs.current.inner.color.copy(currentColor)
-      materialRefs.current.inner.opacity = (isViewing ? 1.0 : isSelected ? 0.95 : 0.85) * intensity
+      // 提高内层实心点的亮度
+      materialRefs.current.inner.opacity = (isViewing ? 1.0 : isSelected ? 1.0 : 1.0) * Math.min(intensity, 1.2)
     }
     
     if (isViewing && labelRef.current && camera) {
@@ -832,12 +835,28 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     }
   })
 
-  // 2D地图上的机场显示：使用扁平圆形
-  const size = isViewing ? 0.15 : isSelected ? 0.12 : 0.1 // 减小半径
-  const innerSize = isViewing ? 0.06 : isSelected ? 0.05 : 0.04 // 减小内层半径
+  // 2D地图上的机场显示：使用扁平圆形 - 增大尺寸以增强可见性
+  const size = isViewing ? 0.18 : isSelected ? 0.15 : 0.12 // 增大外层光晕半径
+  const innerSize = isViewing ? 0.07 : isSelected ? 0.06 : 0.05 // 增大内层半径
+  const glowSize = size * 1.5 // 添加更大的外层光晕
 
   return (
     <group ref={groupRef}>
+      {/* 最外层大光晕（增强发光效果） */}
+      <mesh 
+        position={[0, 0, -0.01]}
+        onPointerOver={handlePointerOver}
+        onPointerOut={handlePointerOut}
+        onPointerMove={handlePointerMove}
+      >
+        <circleGeometry args={[glowSize, 32]} />
+        <meshBasicMaterial
+          color={airport.color}
+          transparent
+          opacity={0.2}
+          side={DoubleSide}
+        />
+      </mesh>
       {/* 外层光晕（扁平圆形） */}
       <mesh 
         position={[0, 0, 0]}
@@ -850,7 +869,7 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
           ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
           color={airport.color}
           transparent
-          opacity={0.3}
+          opacity={0.6}
           side={DoubleSide}
         />
       </mesh>
@@ -861,17 +880,17 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
           ref={(ref) => { if (ref) materialRefs.current.inner = ref }}
           color={airport.color}
           transparent
-          opacity={0.85}
+          opacity={1.0}
           side={DoubleSide}
         />
       </mesh>
       {/* 中心白点 */}
       <mesh position={[0, 0, 0.02]}>
-        <circleGeometry args={[innerSize * 0.4, 8]} />
+        <circleGeometry args={[innerSize * 0.5, 8]} />
         <meshBasicMaterial
           color="#ffffff"
           transparent
-          opacity={0.95}
+          opacity={1.0}
           side={DoubleSide}
         />
       </mesh>

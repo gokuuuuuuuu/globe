@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
 import { Sidebar } from '../components/Sidebar'
+import { WindLegend, TemperatureLegend } from '../components/Legend'
 import { WindLayer } from './windLayer'
 import { TemperatureLayer } from './TemperatureLayer'
 
@@ -22,7 +23,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useAppStore } from '../store/useAppStore'
 import type { AtlasData, WorldData } from '../types'
 import { deriveIsoCode, latLonToCartesian } from '../utils/geo'
-import { AIRPORTS, FLIGHTS, getAirportByCode, getRiskColor } from '../data/flightData'
+import { AIRPORTS, FLIGHTS, PROVINCE_AIRPORTS, getAirportByCode, getRiskColor } from '../data/flightData'
 
 const GLOBE_RADIUS = 1.6
 
@@ -39,12 +40,14 @@ interface PolygonLine {
   id: string
   iso: string | null
   points: Vector3[]
+  key?: string // 省份的 key（如 CN-北京），用于省份级别的选中
 }
 
 interface PolygonFill {
   id: string
   iso: string | null
   geometry: BufferGeometry
+  key?: string // 省份的 key（如 CN-北京），用于省份级别的选中
 }
 
 interface LabelCandidate {
@@ -116,6 +119,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     selectedFlightRouteId,
     showWindLayer,
     showTemperatureLayer,
+    showLabels,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
   const globeGroupRef = useRef<Group>(null)
@@ -241,6 +245,9 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           ring.map(([lon, lat]) => latLonToCartesian(lat, lon, GLOBE_RADIUS + 0.003)),
         )
 
+        // 计算省份的 key（如果是中国省份）
+        const provinceKey = iso === 'CN' && featureName ? `CN-${featureName}` : undefined
+        
         cartesianRings.forEach((ring, ringIndex) => {
           if (ring.length < 2) return
           const isClosed = ring[0]?.equals(ring[ring.length - 1] ?? new Vector3())
@@ -249,6 +256,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             id: `${featureIndex}-${polygonIndex}-${ringIndex}`,
             iso,
             points,
+            key: provinceKey,
           })
         })
 
@@ -324,6 +332,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           id: `fill-${featureIndex}-${polygonIndex}`,
           iso,
           geometry,
+          key: provinceKey,
         })
       }
 
@@ -421,16 +430,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             const fromIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry)
             const toIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry)
             
-            // 计算升起后的位置，与机场圆点升起高度(0.15)保持一致
+            // 不再使用上升效果，直接使用原始位置
             const fromPos = fromAirportInstance.position.clone()
-            const fromElevated = fromIsSelected
-              ? fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
-              : fromPos
+            const fromElevated = fromPos
             
             const toPos = toAirportInstance.position.clone()
-            const toElevated = toIsSelected
-              ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
-              : toPos
+            const toElevated = toPos
             
             // 根据环境风险值设置航线颜色
             const routeColor = getRiskColor(flight.environmentRisk)
@@ -487,12 +492,9 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         const fromIsSelected = normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry
         const toIsSelected = normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry
         
-        const fromElevated = fromIsSelected
-          ? fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
-          : fromPos
-        const toElevated = toIsSelected
-          ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
-          : toPos
+        // 不再使用上升效果，直接使用原始位置
+        const fromElevated = fromPos
+        const toElevated = toPos
 
         // 根据环境风险值设置航线颜色
         const routeColor = getRiskColor(flight.environmentRisk)
@@ -519,9 +521,19 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       return routes
     }
     
-    // 情况3: 默认情况，显示所有航线
-    // 从统一航班数据中获取所有航班
+    // 情况3: 默认情况
+    // 根据是否选中国家/省份决定显示哪些航线：
+    // - 未选中国家/省份：显示所有航线
+    // - 选中国家：仅显示与该国家相关的航线（起飞或降落机场位于该国）
+    // - 选中省份（如 CN-北京市）：仅显示与该省份机场相关的航线
     const allFlights = FLIGHTS
+    const normalizedSelectedCountry = selectedCountry
+      ? (() => {
+          // 如果是中国省份 key（例如 CN-北京市），仍然需要知道对应国家（CN）
+          if (selectedCountry.startsWith('CN-')) return 'CN'
+          return normalizeCountryCode(selectedCountry)
+        })()
+      : null
     
     allFlights.forEach(flight => {
       const fromAirport = getAirportByCode(flight.fromAirport)
@@ -530,6 +542,29 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       // 如果机场不在列表中，跳过
       if (!fromAirport || !toAirport) return
       
+      // 如果有选中国家/省份，则只保留与该国家/省份相关的航线
+      if (normalizedSelectedCountry) {
+        const fromCountry = normalizeCountryCode(fromAirport.countryCode)
+        const toCountry = normalizeCountryCode(toAirport.countryCode)
+
+        // 先按国家过滤（必须至少一端在该国家）
+        if (fromCountry !== normalizedSelectedCountry && toCountry !== normalizedSelectedCountry) {
+          return
+        }
+
+        // 如果选中的是具体省份（如 CN-北京市），进一步按省份下的机场过滤
+        if (selectedCountry && selectedCountry.startsWith && selectedCountry.startsWith('CN-')) {
+          const provinceAirports = PROVINCE_AIRPORTS[selectedCountry] || []
+          const fromInProvince = provinceAirports.includes(fromAirport.code)
+          const toInProvince = provinceAirports.includes(toAirport.code)
+
+          // 起点和终点都不在该省份，则不显示这条航线
+          if (!fromInProvince && !toInProvince) {
+            return
+          }
+        }
+      }
+      
       // 查找对应的airportInstances（包含position）
       const fromAirportInstance = airportInstances.find(a => a.id === fromAirport.id)
       const toAirportInstance = airportInstances.find(a => a.id === toAirport.id)
@@ -537,20 +572,17 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       if (!fromAirportInstance || !toAirportInstance) return
       
       // 标准化国家代码（用于判断是否选中）
-      const normalizedSelectedCountry = selectedCountry ? normalizeCountryCode(selectedCountry) : null
-      const fromIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(fromAirport.countryCode) === normalizedSelectedCountry)
-      const toIsSelected = !!(normalizedSelectedCountry && normalizeCountryCode(toAirport.countryCode) === normalizedSelectedCountry)
+      const normalizedFromCountry = normalizeCountryCode(fromAirport.countryCode)
+      const normalizedToCountry = normalizeCountryCode(toAirport.countryCode)
+      const fromIsSelected = !!(normalizedSelectedCountry && normalizedFromCountry === normalizedSelectedCountry)
+      const toIsSelected = !!(normalizedSelectedCountry && normalizedToCountry === normalizedSelectedCountry)
       
-      // 计算升起后的位置，与板块升起高度(0.15)保持一致
+      // 不再使用上升效果，直接使用原始位置
       const fromPos = fromAirportInstance.position.clone()
-      const fromElevated = fromIsSelected
-        ? fromPos.clone().add(fromPos.clone().normalize().multiplyScalar(0.15))
-        : fromPos
+      const fromElevated = fromPos
       
       const toPos = toAirportInstance.position.clone()
-      const toElevated = toIsSelected 
-        ? toPos.clone().add(toPos.clone().normalize().multiplyScalar(0.15))
-        : toPos
+      const toElevated = toPos
 
       // 根据环境风险值设置航线颜色
       const routeColor = getRiskColor(flight.environmentRisk)
@@ -577,9 +609,10 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     return routes
   }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId])
 
-  const baseColor = new Color('#ffffff')
-  const hoverColor = new Color('#facc15')
-  const highlightColor = new Color('#f97316')
+  // 使用 useMemo 缓存颜色对象，避免每次渲染创建新对象
+  const baseColor = useMemo(() => new Color('#ffffff'), [])
+  const hoverColor = useMemo(() => new Color('#facc15'), [])
+  const highlightColor = useMemo(() => new Color('#f97316'), [])
 
   return (
     <div className="view-root">
@@ -678,12 +711,30 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           )}
         </div>
       )}
-      <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
+      {/* 图例组件 */}
+      <WindLegend visible={showWindLayer} />
+      <TemperatureLegend 
+        visible={showTemperatureLayer} 
+        minTemp={-40}
+        maxTemp={50}
+      />
+      <Canvas 
+        camera={{ position: [0, 0, 5], fov: 50 }}
+        performance={{ min: 0.5 }}
+        dpr={[1, 2]}
+        gl={{ 
+          antialias: true,
+          alpha: false,
+          powerPreference: "high-performance",
+          stencil: false,
+          depth: true
+        }}
+      >
         <color attach="background" args={['#000000']} />
         <Stars
           radius={300}
           depth={60}
-          count={5000}
+          count={2000}
           factor={4}
           saturation={0}
           fade
@@ -795,15 +846,32 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                <GlowingFlightPaths routes={flightRoutes} radius={GLOBE_RADIUS} />
             )}
             {/* 后期处理 - Bloom 泛光效果 */}
+            {/* 后期处理 - Bloom 泛光效果 - 降低强度以提升性能 */}
             <EffectComposer>
-              <Bloom luminanceThreshold={0.6} intensity={0.8} radius={0.4} mipmapBlur />
+              <Bloom luminanceThreshold={0.7} intensity={0.6} radius={0.3} mipmapBlur />
             </EffectComposer>
             
-            {fillPolygons.map(({ id, iso, geometry }) => {
-              const isSelected = !!(iso && selectedCountry === iso)
+            {fillPolygons.map(({ id, iso, geometry, key }) => {
+              // 支持省份级别的选中：如果 selectedCountry 是省份的 key，或者 selectedCountry 是 iso（非省份情况）
+              const isSelected = !!(iso && (
+                selectedCountry === iso || 
+                (key && selectedCountry === key)
+              ))
               const isHovered = !!(iso && hoveredCountry === iso)
               const handlers = createPointerHandlers(iso, () => {
-                if (iso) setSelectedCountry(iso)
+                // 如果是中国省份，必须先选中中国才能选中省份
+                if (key && iso === 'CN') {
+                  if (selectedCountry === 'CN') {
+                    // 已经选中中国，可以选中省份
+                    setSelectedCountry(key)
+                  } else {
+                    // 未选中中国，先选中中国
+                    setSelectedCountry('CN')
+                  }
+                } else if (iso) {
+                  // 非省份情况，直接选中
+                  setSelectedCountry(iso)
+                }
               })
               return (
                 <ElevatedPolygon
@@ -828,11 +896,29 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 />
               )
             })}
-            {linePolygons.map(({ id, iso, points }) => {
-              const isSelected = !!(iso && selectedCountry === iso)
+            {linePolygons.map(({ id, iso, points, key }) => {
+              // 支持省份级别的选中：如果 selectedCountry 是省份的 key，或者 selectedCountry 是 iso（非省份情况）
+              const isSelected = !!(iso && (
+                selectedCountry === iso || 
+                (key && selectedCountry === key)
+              ))
               const isHovered = !!(iso && hoveredCountry === iso)
+              
+              // 直接使用内联函数，createPointerHandlers 已经使用 useCallback 优化
               const handlers = createPointerHandlers(iso, () => {
-                if (iso) setSelectedCountry(iso)
+                // 如果是中国省份，必须先选中中国才能选中省份
+                if (key && iso === 'CN') {
+                  if (selectedCountry === 'CN') {
+                    // 已经选中中国，可以选中省份
+                    setSelectedCountry(key)
+                  } else {
+                    // 未选中中国，先选中中国
+                    setSelectedCountry('CN')
+                  }
+                } else if (iso) {
+                  // 非省份情况，直接选中
+                  setSelectedCountry(iso)
+                }
               })
               return (
                 <ElevatedLine
@@ -857,19 +943,32 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 />
               )
             })}
-            {countryLabels.map(({ key, iso, name, position }) => {
+            {showLabels && countryLabels.map(({ key, iso, name, position }) => {
               // 过滤逻辑：
-              // 1. 省份标签 (CN-xxx)：仅在选中中国时显示
+              // 1. 省份标签 (CN-xxx)：在选中中国或该省份时显示
               if (key.startsWith('CN-')) {
-                if (selectedCountry !== 'CN') return null
+                if (selectedCountry !== 'CN' && selectedCountry !== key) return null
               }
-              // 2. 中国国家标签 (CN)：仅在未选中中国时显示
+              // 2. 中国国家标签 (CN)：仅在未选中中国且未选中任何省份时显示
               if (key === 'CN') {
-                if (selectedCountry === 'CN') return null
+                if (selectedCountry === 'CN' || (selectedCountry && selectedCountry.startsWith('CN-'))) return null
               }
 
+              // 直接使用内联函数，createPointerHandlers 已经使用 useCallback 优化
               const handlers = createPointerHandlers(iso, () => {
-                if (iso) setSelectedCountry(iso)
+                // 如果是省份标签，必须先选中中国才能选中省份
+                if (key.startsWith('CN-')) {
+                  if (selectedCountry === 'CN') {
+                    // 已经选中中国，可以选中省份
+                    setSelectedCountry(key)
+                  } else {
+                    // 未选中中国，先选中中国
+                    setSelectedCountry('CN')
+                  }
+                } else if (iso) {
+                  // 非省份情况，直接选中
+                  setSelectedCountry(iso)
+                }
               })
               return (
                 <CountryLabelText
@@ -877,7 +976,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                   iso={iso}
                   name={name}
                   position={position}
-                  isSelected={!!(iso && selectedCountry === iso)}
+                  isSelected={!!(selectedCountry === key || (iso && selectedCountry === iso))}
                   isHovered={!!(iso && hoveredCountry === iso)}
                   onPointerDown={handlers.onPointerDown}
                   onPointerMove={handlers.onPointerMove}
@@ -950,7 +1049,6 @@ function ElevatedPolygon({
   const tempCentroidDir = useMemo(() => new Vector3(), [])
   const isVisibleRef = useRef(true)
   const [isVisible, setIsVisible] = useState(true)
-  const currentScale = useRef(1)
 
   const centroid = useMemo(() => {
     if (!geometry.boundingSphere) {
@@ -959,42 +1057,42 @@ function ElevatedPolygon({
     return geometry.boundingSphere?.center ?? new Vector3()
   }, [geometry])
 
-  const radius = useMemo(() => {
-    const pos = geometry.getAttribute('position')
-    if (pos.count > 0) {
-      return new Vector3(pos.getX(0), pos.getY(0), pos.getZ(0)).length()
-    }
-    return 1.4 // fallback to GLOBE_RADIUS - 0.2
-  }, [geometry])
-
+  // 使用计数器降低可见性检查频率（每3帧检查一次）
+  const frameCountRef = useRef(0)
   useFrame(() => {
     if (!groupRef.current) return
     
-    // 检查是否在视野内（面向相机）- 降低检查频率
-    const cameraDir = tempCameraDir.copy(camera.position).normalize()
-    const centroidDir = tempCentroidDir.copy(centroid).normalize()
-    const visible = cameraDir.dot(centroidDir) > 0.2
-    if (isVisibleRef.current !== visible) {
-      isVisibleRef.current = visible
-      setIsVisible(visible)
+    frameCountRef.current++
+    // 每3帧检查一次可见性，减少计算量
+    if (frameCountRef.current % 3 === 0) {
+      const cameraDir = tempCameraDir.copy(camera.position).normalize()
+      const centroidDir = tempCentroidDir.copy(centroid).normalize()
+      // 降低阈值，允许更多角度可见（从0.2改为-0.3，只有在背面很远时才隐藏）
+      const visible = cameraDir.dot(centroidDir) > -0.3
+      if (isVisibleRef.current !== visible) {
+        isVisibleRef.current = visible
+        setIsVisible(visible)
+        // 直接设置可见性，避免不必要的渲染
+        groupRef.current.visible = visible
+      }
     }
-    
-    // 使用缩放代替位移，避免多板块升起时出现裂缝
-    const targetHeight = isSelected ? 0.15 : 0
-    const targetScale = (radius + targetHeight) / radius
-    
-    currentScale.current += (targetScale - currentScale.current) * 0.1
-    groupRef.current.scale.setScalar(currentScale.current)
   })
 
-  const color = isSelected ? highlightColor : isHovered ? hoverColor : baseColor
-  const opacity = isSelected ? 0.7 : isHovered ? 0.4 : 0.15
+  const color = useMemo(() => 
+    isSelected ? highlightColor : isHovered ? hoverColor : baseColor,
+    [isSelected, isHovered, highlightColor, hoverColor, baseColor]
+  )
+  const opacity = useMemo(() => 
+    isSelected ? 0.7 : isHovered ? 0.4 : 0.15,
+    [isSelected, isHovered]
+  )
 
   return (
     <group ref={groupRef}>
       <mesh
         geometry={geometry}
         renderOrder={isSelected ? 10 : 0}
+        visible={isVisible}
         onPointerOver={(event) => {
           if (!isVisible) return
           event.stopPropagation()
@@ -1066,12 +1164,8 @@ function ElevatedLine({
   const groupRef = useRef<Group>(null)
   const tempCameraDir = useMemo(() => new Vector3(), [])
   const tempCentroidDir = useMemo(() => new Vector3(), [])
+  const isVisibleRef = useRef(true)
   const [isVisible, setIsVisible] = useState(true)
-  const currentScale = useRef(1)
-
-  const radius = useMemo(() => {
-    return points[0]?.length() ?? 1.603
-  }, [points])
 
   const centroid = useMemo(() => {
     const center = new Vector3()
@@ -1079,25 +1173,35 @@ function ElevatedLine({
     return center.divideScalar(points.length)
   }, [points])
 
+  // 使用计数器降低可见性检查频率（每3帧检查一次）
+  const frameCountRef = useRef(0)
   useFrame(() => {
     if (!groupRef.current) return
     
-    // 检查是否在视野内（面向相机）
-    const cameraDir = tempCameraDir.copy(camera.position).normalize()
-    const centroidDir = tempCentroidDir.copy(centroid).normalize()
-    const visible = cameraDir.dot(centroidDir) > 0.2
-    setIsVisible(visible)
-    
-    // 使用缩放代替位移，避免多板块升起时出现裂缝
-    const targetHeight = isSelected ? 0.15 : 0
-    const targetScale = (radius + targetHeight) / radius
-    
-    currentScale.current += (targetScale - currentScale.current) * 0.1
-    groupRef.current.scale.setScalar(currentScale.current)
+    frameCountRef.current++
+    // 每3帧检查一次可见性，减少计算量
+    if (frameCountRef.current % 3 === 0) {
+      const cameraDir = tempCameraDir.copy(camera.position).normalize()
+      const centroidDir = tempCentroidDir.copy(centroid).normalize()
+      // 降低阈值，允许更多角度可见（从0.2改为-0.3，只有在背面很远时才隐藏）
+      const visible = cameraDir.dot(centroidDir) > -0.3
+      if (isVisibleRef.current !== visible) {
+        isVisibleRef.current = visible
+        setIsVisible(visible)
+        // 直接设置可见性，避免不必要的渲染
+        groupRef.current.visible = visible
+      }
+    }
   })
 
-  const color = isSelected ? highlightColor : isHovered ? hoverColor : baseColor
-  const lineWidth = isSelected ? 1.8 : isHovered ? 1.2 : 0.7
+  const color = useMemo(() => 
+    isSelected ? highlightColor : isHovered ? hoverColor : baseColor,
+    [isSelected, isHovered, highlightColor, hoverColor, baseColor]
+  )
+  const lineWidth = useMemo(() => 
+    isSelected ? 1.8 : isHovered ? 1.2 : 0.7,
+    [isSelected, isHovered]
+  )
 
   return (
     <group ref={groupRef}>
@@ -1108,6 +1212,7 @@ function ElevatedLine({
         transparent
         opacity={isSelected ? 1 : 0.75}
         renderOrder={isSelected ? 11 : 1}
+        visible={isVisible}
         onPointerOver={(event) => {
           if (!isVisible) return
           event.stopPropagation()
@@ -1164,28 +1269,21 @@ function CountryLabelText({
   const groupRef = useRef<Group>(null)
   const tempCameraDir = useMemo(() => new Vector3(), [])
   const tempLabelDir = useMemo(() => new Vector3(), [])
-  const targetOffset = useMemo(() => new Vector3(), [])
-  const currentOffset = useMemo(() => new Vector3(), [])
   const [isVisible, setIsVisible] = useState(true)
 
   useFrame(() => {
     if (!groupRef.current) return
     const cameraDir = tempCameraDir.copy(camera.position).normalize()
     const labelDir = tempLabelDir.copy(position).normalize()
-    const visible = cameraDir.dot(labelDir) > 0.2
+    // 降低阈值，允许更多角度可见（从0.2改为-0.3，只有在背面很远时才隐藏）
+    const visible = cameraDir.dot(labelDir) > -0.3
     setIsVisible(visible)
     groupRef.current.visible = visible
 
     if (visible) {
       groupRef.current.lookAt(camera.position)
-
-      const target = isSelected ? 0.15 : 0
-      const normal = position.clone().normalize()
-      targetOffset.copy(normal).multiplyScalar(target)
-
-      currentOffset.lerp(targetOffset, 0.1)
-      const finalPosition = position.clone().add(currentOffset)
-      groupRef.current.position.copy(finalPosition)
+      // 不再使用上升效果，保持原始位置
+      groupRef.current.position.copy(position)
     }
   })
 
@@ -1259,10 +1357,19 @@ function GlobeRotator({
   selectedCountry,
   hoveredCountry,
 }: GlobeRotatorProps) {
-  const { viewingAirportId, viewingFlightRouteId, selectedFlightRouteId } = useAppStore()
+  const { viewingAirportId, viewingFlightRouteId, selectedFlightRouteId, autoRotate } = useAppStore()
   useFrame((_state, delta) => {
-    // 如果选中了国家、正在交互、悬停国家、查看机场或航线，则停止自转
-    if (globeGroupRef.current && !selectedCountry && !isInteractingRef.current && !hoveredCountry && !viewingAirportId && !viewingFlightRouteId && !selectedFlightRouteId) {
+    // 只有在 autoRotate 为 true 且没有其他条件阻止时才自转
+    if (
+      globeGroupRef.current && 
+      autoRotate &&
+      !selectedCountry && 
+      !isInteractingRef.current && 
+      !hoveredCountry && 
+      !viewingAirportId && 
+      !viewingFlightRouteId && 
+      !selectedFlightRouteId
+    ) {
       globeGroupRef.current.rotation.y += delta * 0.05
     }
   })
@@ -1334,7 +1441,10 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
   useEffect(() => {
     if (!selectedCountry || !isInitializedRef.current) return
 
-    const countryLabel = countryLabels.find((label) => label.iso === selectedCountry)
+    // 支持省份选中：如果是省份 key（如 CN-北京），使用 key 查找；否则使用 iso 查找
+    const countryLabel = countryLabels.find((label) => 
+      label.key === selectedCountry || label.iso === selectedCountry
+    )
     if (!countryLabel || !orbitControlsRef.current) return
 
     // 使用标签位置归一化后乘以地球半径，得到地球表面的点
@@ -1516,8 +1626,6 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
   const groupRef = useRef<Group>(null)
   const ringRef = useRef<Group>(null)
   const labelRef = useRef<Group>(null)
-  const targetOffset = useMemo(() => new Vector3(), [])
-  const currentOffset = useMemo(() => new Vector3(), [])
   const glowIntensityRef = useRef(1)
   const materialRefs = useRef<{ outer?: MeshBasicMaterial; middle?: MeshBasicMaterial; ring?: MeshBasicMaterial }>({})
   const { setHoveredAirport, setTooltipPosition, viewingAirportId } = useAppStore()
@@ -1578,22 +1686,16 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
 
   useFrame(() => {
     if (!groupRef.current) return
-    // 选中的机场上升
-    const target = isSelected ? 0.15 : 0
-    const normalVec = basePosition.clone().normalize()
-    targetOffset.copy(normalVec).multiplyScalar(target)
-    currentOffset.lerp(targetOffset, 0.1)
+    // 不再使用上升效果，保持原始位置
+    groupRef.current.position.copy(basePosition)
     
-    const finalPosition = basePosition.clone().add(currentOffset)
-    groupRef.current.position.copy(finalPosition)
-    
-    // 发光动画效果 - 使用 ref 直接更新材质，避免状态更新
+    // 增强发光动画效果 - 提高基础亮度
     const time = Date.now() * 0.001
-    let intensity = isSelected ? 1.0 + Math.sin(time * 3) * 0.2 : 0.6 + Math.sin(time * 2) * 0.15
+    let intensity = isSelected ? 1.4 + Math.sin(time * 3) * 0.3 : 1.0 + Math.sin(time * 2) * 0.25
     
     // 如果是正在查看的机场，增强效果
     if (isViewing) {
-      intensity = 1.5 + Math.sin(time * 4) * 0.3 // 适度的脉冲效果
+      intensity = 2.0 + Math.sin(time * 4) * 0.4 // 增强脉冲效果
     }
     
     glowIntensityRef.current = intensity
@@ -1606,14 +1708,16 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       pulse * getPulseParams.intensity
     )
     
-    // 更新材质颜色和透明度
+    // 增强材质颜色和透明度 - 提高发光亮度
     if (materialRefs.current.outer) {
       materialRefs.current.outer.color.copy(currentColor)
-      materialRefs.current.outer.opacity = (isViewing ? 0.5 : 0.3) * intensity
+      // 大幅提高外层光晕的亮度和透明度
+      materialRefs.current.outer.opacity = (isViewing ? 0.7 : isSelected ? 0.6 : 0.5) * intensity
     }
     if (materialRefs.current.middle) {
       materialRefs.current.middle.color.copy(currentColor)
-      materialRefs.current.middle.opacity = (isViewing ? 0.9 : 0.7) * intensity
+      // 提高中层光晕的亮度
+      materialRefs.current.middle.opacity = (isViewing ? 1.0 : isSelected ? 0.95 : 0.9) * Math.min(intensity, 1.3)
     }
     
     // 更新光环效果（如果正在查看）
@@ -1621,51 +1725,52 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       const ringScale = 1.0 + Math.sin(time * 3) * 0.3
       ringRef.current.scale.setScalar(ringScale)
       materialRefs.current.ring.color.copy(currentColor)
-      materialRefs.current.ring.opacity = 0.6 + Math.sin(time * 3) * 0.2
+      materialRefs.current.ring.opacity = 0.8 + Math.sin(time * 3) * 0.3
     }
     
     // 更新标签（如果正在查看）
     if (isViewing && labelRef.current) {
       labelRef.current.lookAt(camera.position)
-      const labelOffset = normalVec.clone().multiplyScalar(0.05)
-      labelRef.current.position.copy(finalPosition.clone().add(labelOffset))
+      const normalVec = basePosition.clone().normalize()
+      const labelOffset = normalVec.multiplyScalar(0.05)
+      labelRef.current.position.copy(basePosition.clone().add(labelOffset))
     }
   })
 
   return (
     <group ref={groupRef}>
-      {/* 最外层大光晕 */}
+      {/* 最外层大光晕 - 增强发光效果 */}
       <mesh 
         position={[0, 0, 0]}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <sphereGeometry args={[isViewing ? 0.018 : 0.012, 16, 16]} />
+        <sphereGeometry args={[isViewing ? 0.025 : isSelected ? 0.020 : 0.016, 16, 16]} />
         <meshBasicMaterial
           ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
           color={airport.color}
           transparent
-          opacity={0.3}
+          opacity={0.5}
         />
       </mesh>
-      {/* 中层光晕 */}
+      {/* 中层光晕 - 增强亮度 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[isViewing ? 0.012 : 0.008, 16, 16]} />
+        <sphereGeometry args={[isViewing ? 0.015 : isSelected ? 0.012 : 0.010, 16, 16]} />
         <meshBasicMaterial
           ref={(ref) => { if (ref) materialRefs.current.middle = ref }}
           color={airport.color}
           transparent
-          opacity={0.7}
+          opacity={0.9}
         />
       </mesh>
-      {/* 内层亮点 */}
+      {/* 内层亮点 - 增强亮度 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[isViewing ? 0.006 : 0.004, 8, 8]} />
+        <sphereGeometry args={[isViewing ? 0.008 : isSelected ? 0.006 : 0.005, 8, 8]} />
         <meshBasicMaterial
           color="#ffffff"
           transparent
-          opacity={0.95}
+          opacity={1.0}
         />
       </mesh>
       {/* 正在查看时的光环效果 */}

@@ -2,7 +2,7 @@
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { latLonToCartesian } from '../utils/geo'; // 保持你现有的转换函数
+import { latLonToCartesian } from '../utils/geo'; 
 
 // ---- 配置 ----
 const DATA_URL = '/data/weather/current/current-wind-surface-level-gfs-1.0.json';
@@ -489,7 +489,6 @@ export function WindLayer({
       </points>
 
       {!loaded && (
-        // 可选：当未加载数据时渲染一个小提示（不会影响渲染）
         <mesh visible={false} />
       )}
     </group>
