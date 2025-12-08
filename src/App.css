@@ -1,3 +1,8 @@
+/* 标题区域高度变量 */
+:root {
+  --title-height: 40px;
+}
+
 .app-root {
   display: flex;
   flex-direction: column;
@@ -153,24 +158,76 @@ header h1 {
   right: 0;
   z-index: 100;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  padding: 0;
+  pointer-events: none;
+  height: var(--title-height);
+}
+
+.canvas-title-overlay .title-image {
+  width: 100%;
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.title-content-wrapper {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
   align-items: flex-start;
-  padding: 24px;
+  padding: 20px 24px;
+  z-index: 2;
   pointer-events: none;
 }
 
-.canvas-title-overlay h1 {
-  margin: 0;
-  color: #f1f5f9;
-  font-size: 2rem;
-  font-weight: 600;
-  text-align: center;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  background: rgba(15, 23, 42, 0.3);
-  padding: 12px 24px;
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+.title-left-info {
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.current-time {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.data-update-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.refresh-icon {
+  width: 16px;
+  height: 16px;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.title-right-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #ffffff;
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.login-user {
+  font-weight: 500;
+}
+
+.login-role {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 /* 无航线提示 */

@@ -50,6 +50,12 @@ interface AppState {
   // 当前正在查看的机场（用于显示高亮效果）
   viewingAirportId: string | null
   setViewingAirportId: (id: string | null) => void
+  // 当前高亮的机场（用于卡片高亮显示）
+  highlightedAirportId: string | null
+  setHighlightedAirportId: (id: string | null) => void
+  // 当前高亮的航班（用于卡片高亮显示）
+  highlightedFlightRouteId: string | null
+  setHighlightedFlightRouteId: (id: string | null) => void
   // 工具栏状态
   showLabels: boolean
   setShowLabels: (show: boolean) => void
@@ -96,6 +102,9 @@ interface AppState {
   // 地球自动旋转控制
   autoRotate: boolean
   setAutoRotate: (enabled: boolean) => void
+  // 侧边栏收起状态
+  isSidebarCollapsed: boolean
+  setIsSidebarCollapsed: (collapsed: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -124,6 +133,12 @@ export const useAppStore = create<AppState>((set) => ({
   // 当前正在查看的机场
   viewingAirportId: null,
   setViewingAirportId: (id) => set({ viewingAirportId: id }),
+  // 当前高亮的机场（用于卡片高亮显示）
+  highlightedAirportId: null,
+  setHighlightedAirportId: (id) => set({ highlightedAirportId: id }),
+  // 当前高亮的航班（用于卡片高亮显示）
+  highlightedFlightRouteId: null,
+  setHighlightedFlightRouteId: (id) => set({ highlightedFlightRouteId: id }),
   // 工具栏状态
   showLabels: true,
   setShowLabels: (show) => set({ showLabels: show }),
@@ -172,6 +187,9 @@ export const useAppStore = create<AppState>((set) => ({
   // 地球自动旋转控制（默认关闭）
   autoRotate: false,
   setAutoRotate: (enabled) => set({ autoRotate: enabled }),
+  // 侧边栏收起状态（默认展开）
+  isSidebarCollapsed: false,
+  setIsSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
 }))
 
 

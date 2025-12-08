@@ -1,6 +1,22 @@
 import { useState } from 'react'
 import { useAppStore } from '../store/useAppStore'
 import collapseIcon from '../assets/collapse.png'
+import boxIcon from '../assets/box.png'
+import boxActiveIcon from '../assets/box_active.png'
+import icon3d from '../assets/3d.png'
+import icon2d from '../assets/2d.png'
+import iconBar from '../assets/bar.png'
+import iconLabel from '../assets/label.png'
+import iconWind from '../assets/wind.png'
+import iconTemperature from '../assets/temperature.png'
+import iconWrench from '../assets/wrench.png'
+import iconArrow from '../assets/collapse_tool.png'
+import iconRadar from '../assets/radar_icon.png'
+import iconArrowDown from '../assets/arrow_down.png'
+import iconInputArrow from '../assets/input_arrow.png'
+import iconReset from '../assets/reset.png'
+import iconInputHighlights from '../assets/input_ highlights.png'
+import iconRotation from '../assets/rotation.png'
 import './LeftToolbar.css'
 
 // 风险类型列表
@@ -34,13 +50,13 @@ export function LeftToolbar() {
     setFlightFilters,
     riskTypes,
     setRiskTypes,
+    isSidebarCollapsed,
+    setIsSidebarCollapsed,
     autoRotate,
     setAutoRotate,
   } = useAppStore()
 
   const [isCollapsed, setIsCollapsed] = useState(false)
-  // 整个左侧sidebar收起状态
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   // 筛选部分折叠状态，默认折叠
   const [isFlightFilterCollapsed, setIsFlightFilterCollapsed] = useState(true)
   const [isRiskTypeFilterCollapsed, setIsRiskTypeFilterCollapsed] = useState(true)
@@ -57,16 +73,16 @@ export function LeftToolbar() {
     }
   }
 
-  // 获取视图图标
+  // 获取视图图标 - 根据当前视图返回对应图标
   const getViewIcon = () => {
     if (view === 'globe') {
-      return '🌍' // 3D地图
+      return icon3d
     } else if (view === 'map') {
-      return '🗺️' // 平面地图
+      return icon2d
     } else if (view === 'airport-stacks') {
-      return '📊' // 风险柱状图
+      return iconBar
     }
-    return '🌍'
+    return icon3d
   }
 
   // 获取视图标题
@@ -111,8 +127,8 @@ export function LeftToolbar() {
 
   return (
     <div className="left-toolbar">
-      {/* 收起按钮区域 - 始终显示 */}
-      <div className="toolbar-top-collapse-header">
+      {/* 收起按钮 - 位于工具栏上方 */}
+      <div className="toolbar-collapse-header" style={{ padding: '12px 0px 0px 16px' }}>
         <img 
           src={collapseIcon} 
           alt="collapse" 
@@ -127,51 +143,61 @@ export function LeftToolbar() {
       {/* 可折叠工具栏 */}
       <div className={`toolbar-header ${isCollapsed ? 'collapsed' : ''}`}>
         {isCollapsed ? (
-          <button
-            className="toolbar-collapse-btn-collapsed"
-            onClick={() => setIsCollapsed(false)}
-            title="展开工具栏"
-          >
-            <span className="toolbar-wrench-icon">🔧</span>
-            <span className="toolbar-arrow-icon">▶</span>
-          </button>
+          <div className="toolbar-collapse-container">
+            <button
+              className="toolbar-collapse-btn-collapsed"
+              onClick={() => setIsCollapsed(false)}
+              title="展开工具栏"
+            >
+              <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+              <img src={iconWrench} alt="wrench" className="toolbar-wrench-icon" />
+            </button>
+            <button
+              className="toolbar-arrow-btn-collapsed"
+              onClick={() => setIsCollapsed(false)}
+              title="展开工具栏"
+            >
+              <img src={iconArrow} alt="arrow" className="toolbar-arrow-icon-collapsed" />
+            </button>
+          </div>
         ) : (
           <>
             <div className="toolbar-icons">
               <button
-                className={`toolbar-icon ${view === 'globe' || view === 'map' || view === 'airport-stacks' ? 'active' : ''}`}
+                className={`toolbar-icon-box ${view === 'globe' || view === 'map' || view === 'airport-stacks' ? 'active' : ''}`}
                 onClick={handleViewSwitch}
                 title={getViewTitle()}
               >
-                {getViewIcon()}
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={getViewIcon()} alt="3d" className="toolbar-icon-img" />
               </button>
               <button
-                className={`toolbar-icon ${showLabels ? 'active' : ''}`}
+                className={`toolbar-icon-box ${showLabels ? 'active' : ''}`}
                 onClick={() => setShowLabels(!showLabels)}
                 title={showLabels ? '隐藏标签' : '显示标签'}
               >
-                🏷️
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconLabel} alt="label" className="toolbar-icon-img" />
               </button>
               <button
-                className={`toolbar-icon ${showWindLayer ? 'active' : ''}`}
+                className={`toolbar-icon-box ${showWindLayer ? 'active' : ''}`}
                 onClick={() => setShowWindLayer(!showWindLayer)}
                 title={showWindLayer ? '隐藏风图层' : '显示风图层'}
               >
-                💨
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconWind} alt="wind" className="toolbar-icon-img" />
               </button>
               <button
-                className={`toolbar-icon ${showTemperatureLayer ? 'active' : ''}`}
+                className={`toolbar-icon-box ${showTemperatureLayer ? 'active' : ''}`}
                 onClick={() => setShowTemperatureLayer(!showTemperatureLayer)}
                 title={showTemperatureLayer ? '隐藏温度图层' : '显示温度图层'}
               >
-                🌡️
-              </button>
-              <button
-                className={`toolbar-icon ${autoRotate ? 'active' : ''}`}
-                onClick={() => setAutoRotate(!autoRotate)}
-                title={autoRotate ? '关闭地球自转' : '开启地球自转'}
-              >
-                🔄
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconTemperature} alt="temperature" className="toolbar-icon-img" />
               </button>
             </div>
             <button
@@ -179,7 +205,7 @@ export function LeftToolbar() {
               onClick={() => setIsCollapsed(true)}
               title="折叠工具栏"
             >
-              ◀
+              <img src={iconArrow} alt="arrow" className="toolbar-collapse-icon" />
             </button>
           </>
         )}
@@ -194,8 +220,11 @@ export function LeftToolbar() {
               onClick={() => setIsFlightFilterCollapsed(!isFlightFilterCollapsed)}
               style={{ cursor: 'pointer' }}
             >
-              <h3 className="filter-section-title">航班信息筛选</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="filter-section-title-wrapper">
+                <img src={iconRadar} alt="radar" className="filter-section-icon" />
+                <h3 className="filter-section-title">航班信息筛选</h3>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <button 
                   className="filter-reset-btn" 
                   onClick={(e) => {
@@ -203,9 +232,13 @@ export function LeftToolbar() {
                     handleResetFlightFilters()
                   }}
                 >
-                  重置
+                  <img src={iconReset} alt="reset" className="filter-reset-icon" />
                 </button>
-                <span className={`filter-section-toggle ${isFlightFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
+                <img 
+                  src={iconArrowDown} 
+                  alt="toggle" 
+                  className={`filter-section-toggle-icon ${isFlightFilterCollapsed ? 'collapsed' : ''}`}
+                />
               </div>
             </div>
             {!isFlightFilterCollapsed && (
@@ -214,6 +247,7 @@ export function LeftToolbar() {
               <div className="filter-input-group">
                 <label className="filter-label">航班号</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -221,12 +255,13 @@ export function LeftToolbar() {
                     value={flightFilters.flightNumber}
                     onChange={(e) => setFlightFilters({ flightNumber: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">机号</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -234,12 +269,13 @@ export function LeftToolbar() {
                     value={flightFilters.aircraftNumber}
                     onChange={(e) => setFlightFilters({ aircraftNumber: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">大机型</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -247,12 +283,13 @@ export function LeftToolbar() {
                     value={flightFilters.largeAircraftType}
                     onChange={(e) => setFlightFilters({ largeAircraftType: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">机型</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -260,12 +297,13 @@ export function LeftToolbar() {
                     value={flightFilters.aircraftType}
                     onChange={(e) => setFlightFilters({ aircraftType: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">PF技术</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -273,12 +311,13 @@ export function LeftToolbar() {
                     value={flightFilters.pfTechnology}
                     onChange={(e) => setFlightFilters({ pfTechnology: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">执飞单位</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -286,12 +325,13 @@ export function LeftToolbar() {
                     value={flightFilters.operatingUnit}
                     onChange={(e) => setFlightFilters({ operatingUnit: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">起飞机场</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -299,12 +339,13 @@ export function LeftToolbar() {
                     value={flightFilters.departureAirport}
                     onChange={(e) => setFlightFilters({ departureAirport: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
               <div className="filter-input-group">
                 <label className="filter-label">降落机场</label>
                 <div className="filter-input-wrapper">
+                  <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
                   <input
                     type="text"
                     className="filter-input"
@@ -312,7 +353,7 @@ export function LeftToolbar() {
                     value={flightFilters.arrivalAirport}
                     onChange={(e) => setFlightFilters({ arrivalAirport: e.target.value })}
                   />
-                  <span className="filter-input-arrow">▼</span>
+                  <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
                 </div>
               </div>
                 </div>
@@ -327,7 +368,10 @@ export function LeftToolbar() {
               onClick={() => setIsRiskTypeFilterCollapsed(!isRiskTypeFilterCollapsed)}
               style={{ cursor: 'pointer' }}
             >
-              <h3 className="filter-section-title">风险类型筛选</h3>
+              <div className="filter-section-title-wrapper">
+                <img src={iconRadar} alt="radar" className="filter-section-icon" />
+                <h3 className="filter-section-title">风险类型筛选</h3>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <button 
                   className="filter-reset-btn" 
@@ -336,9 +380,13 @@ export function LeftToolbar() {
                     handleResetRiskTypes()
                   }}
                 >
-                  重置
+                  <img src={iconReset} alt="reset" className="filter-reset-icon" />
                 </button>
-                <span className={`filter-section-toggle ${isRiskTypeFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
+                <img 
+                  src={iconArrowDown} 
+                  alt="toggle" 
+                  className={`filter-section-toggle-icon ${isRiskTypeFilterCollapsed ? 'collapsed' : ''}`}
+                />
               </div>
             </div>
             {!isRiskTypeFilterCollapsed && (
@@ -361,6 +409,21 @@ export function LeftToolbar() {
         </div>
       </div>
       {/* 结束toolbar-content-wrapper */}
+      
+      {/* 地球自转控制按钮 - 位于工具栏底部 */}
+      {view === 'globe' && (
+        <button
+          className="globe-rotation-btn"
+          onClick={() => setAutoRotate(!autoRotate)}
+          title={autoRotate ? '停止自转' : '开始自转'}
+        >
+          <img 
+            src={iconRotation} 
+            alt="rotation" 
+            className={`globe-rotation-icon ${autoRotate ? 'rotating' : ''}`}
+          />
+        </button>
+      )}
     </div>
   )
 }

@@ -1,9 +1,9 @@
 .left-toolbar {
   position: fixed;
-  top: 0;
+  top: var(--title-height, 100px);
   left: 0;
   width: 350px;
-  height: 100vh;
+  height: calc(100vh - var(--title-height, 100px));
   background: transparent;
   border-right: none;
   backdrop-filter: none;
@@ -13,6 +13,15 @@
   color: #e2e8f0;
   overflow: hidden;
   pointer-events: none;
+}
+
+.toolbar-collapse-header {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  background: transparent;
 }
 
 .toolbar-top-collapse-header {
@@ -49,8 +58,8 @@
 }
 
 .collapse-icon {
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   object-fit: contain;
   transition: transform 0.3s ease;
 }
@@ -73,7 +82,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 10px 16px;
   border-bottom: none;
   background: transparent;
   pointer-events: auto;
@@ -91,92 +100,166 @@
   flex: 1;
 }
 
-.toolbar-icon {
-  width: 40px;
-  height: 40px;
+.toolbar-icon-box {
+  position: relative;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 8px;
-  color: #cbd5e1;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 1.2rem;
   padding: 0;
 }
 
-.toolbar-icon:hover {
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(148, 163, 184, 0.3);
+.toolbar-box-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
-.toolbar-icon.active {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #f1f5f9;
+.toolbar-box-bg-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.toolbar-icon-box.active .toolbar-box-bg {
+  opacity: 0;
+}
+
+.toolbar-icon-box.active .toolbar-box-bg-active {
+  opacity: 1;
+}
+
+.toolbar-icon-img {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  z-index: 1;
+}
+
+.toolbar-icon-box:hover {
+  opacity: 0.8;
+}
+
+.toolbar-icon-box.active {
+  opacity: 1;
 }
 
 .toolbar-collapse-btn {
-  width: 32px;
-  height: 32px;
+  width: auto;
+  height: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 4px;
-  color: #cbd5e1;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.8rem;
   padding: 0;
 }
 
-.toolbar-collapse-btn:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.4);
+.toolbar-collapse-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
-.toolbar-collapse-btn-collapsed {
+.toolbar-collapse-btn:hover {
+  opacity: 0.8;
+}
+
+.toolbar-collapse-container {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 6px;
-  color: #cbd5e1;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 1rem;
 }
 
-.toolbar-collapse-btn-collapsed:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.4);
+.toolbar-collapse-btn-collapsed {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-collapse-btn-collapsed .toolbar-box-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
 }
 
 .toolbar-wrench-icon {
-  font-size: 1.2rem;
+  position: relative;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  z-index: 1;
 }
 
-.toolbar-arrow-icon {
-  font-size: 0.8rem;
+.toolbar-arrow-btn-collapsed {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.toolbar-arrow-btn-collapsed:hover {
+  opacity: 0.8;
+}
+
+.toolbar-arrow-icon-collapsed {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+  transform: rotate(180deg);
+  transition: transform 0.3s ease;
+}
+
+.toolbar-collapse-btn-collapsed:hover {
+  opacity: 0.8;
 }
 
 .toolbar-content {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  padding-bottom: 80px; /* 为底部自转按钮留出空间 */
   display: flex;
   flex-direction: column;
   gap: 24px;
   pointer-events: auto;
   direction: rtl; /* 将滚动条移到左边 */
   transition: all 0.3s ease;
-  max-height: calc(100vh - 80px);
 }
 
 .left-toolbar.sidebar-collapsed .toolbar-content {
@@ -208,36 +291,66 @@
 .filter-section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  overflow: hidden;
+  max-height: calc(100vh - var(--title-height, 100px) - 200px);
 }
 
 .filter-section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 12px 16px;
+  background: rgba(14, 17, 20, 0.8);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
   user-select: none;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .filter-section-header:hover {
-  opacity: 0.8;
+  background: rgba(14, 17, 20, 0.9);
 }
 
-.filter-section-toggle {
-  font-size: 0.7rem;
-  color: #64748b;
+.filter-section-toggle-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
   transition: transform 0.2s ease;
   transform: rotate(0deg);
-  display: inline-block;
+  flex-shrink: 0;
 }
 
-.filter-section-toggle.collapsed {
-  transform: rotate(-90deg);
+.filter-section-toggle-icon.collapsed {
+  transform: rotate(180deg);
 }
 
 .filter-section-content {
+  padding: 16px;
   animation: slideDown 0.2s ease;
-  margin-top: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.filter-section-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-section-content::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 3px;
+}
+
+.filter-section-content::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 3px;
+}
+
+.filter-section-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
 }
 
 @keyframes slideDown {
@@ -251,6 +364,19 @@
   }
 }
 
+.filter-section-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-section-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .filter-section-title {
   font-size: 1rem;
   font-weight: 600;
@@ -259,60 +385,111 @@
 }
 
 .filter-reset-btn {
-  padding: 6px 12px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 4px;
-  color: #cbd5e1;
-  font-size: 0.85rem;
+  padding: 0;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-reset-icon {
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
 }
 
 .filter-reset-btn:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.4);
+  opacity: 0.8;
 }
 
 .filter-inputs {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .filter-input-group {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
 }
 
 .filter-label {
   font-size: 0.85rem;
-  color: #cbd5e1;
+  color: #ffffff;
   font-weight: 500;
+  min-width: 80px;
+  flex-shrink: 0;
 }
 
 .filter-input-wrapper {
+  flex: 1;
   position: relative;
   display: flex;
   align-items: center;
 }
 
+.filter-input-highlights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.filter-input-wrapper:focus-within .filter-input-highlights {
+  opacity: 1;
+}
+
 .filter-input {
   width: 100%;
-  padding: 10px 32px 10px 12px;
+  padding: 8px 28px 8px 12px;
   background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 6px;
-  color: #f1f5f9;
-  font-size: 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 0.85rem;
   outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.filter-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .filter-input:focus {
-  border-color: rgba(59, 130, 246, 0.5);
-  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(59, 130, 246, 0.6);
+  background: transparent;
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.filter-input:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.filter-input-wrapper:focus-within .filter-input-arrow {
+  z-index: 2;
 }
 
 .filter-input::placeholder {
@@ -324,9 +501,11 @@
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
-  font-size: 0.7rem;
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
   pointer-events: none;
+  z-index: 1;
 }
 
 .risk-types-grid {
@@ -363,6 +542,50 @@
 .risk-type-label {
   font-size: 0.85rem;
   line-height: 1.4;
+}
+
+/* 地球自转控制按钮 - 位于工具栏底部 */
+.globe-rotation-btn {
+  position: absolute;
+  bottom: 20px;
+  left: 16px;
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  pointer-events: auto;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.globe-rotation-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.globe-rotation-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.globe-rotation-icon.rotating {
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 

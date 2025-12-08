@@ -8,6 +8,7 @@ import type { WorldData, AtlasData } from '../types'
 import { deriveIsoCode, latLonToPlane } from '../utils/geo'
 import { AIRPORTS, FLIGHTS, getAirportByCode, getRiskColor } from '../data/flightData'
 import { MapFlightPaths } from '../components/MapFlightPaths'
+import type { OrthographicCamera as OrthographicCameraImpl } from 'three'
 
 const MAP_SCALE = 6
 
@@ -634,6 +635,11 @@ export function MapView({ world, atlas }: MapViewProps) {
               )
             })}
         </Suspense>
+        <MapCameraController
+          selectedCountry={selectedCountry}
+          countryLabels={countryLabels}
+          orbitControlsRef={orbitControlsRef}
+        />
         <OrbitControls 
           ref={orbitControlsRef}
           enableRotate={false} 
@@ -990,6 +996,121 @@ function MapCountryLabel({
       </Text>
     </group>
   )
+}
+
+interface MapCameraControllerProps {
+  selectedCountry: string | null
+  countryLabels: CountryLabel[]
+  orbitControlsRef: React.MutableRefObject<OrbitControlsImpl | null>
+}
+
+function MapCameraController({ selectedCountry, countryLabels, orbitControlsRef }: MapCameraControllerProps) {
+  const { camera } = useThree()
+  const isInitializedRef = useRef(false)
+  const targetZoomRef = useRef<number | null>(null)
+  const targetLookAtRef = useRef<Vector3 | null>(null)
+  const isAnimatingRef = useRef(false)
+  const orthoCamera = camera as OrthographicCameraImpl
+
+  // 初始zoom值
+  const initialZoom = 60
+
+  // 初始化
+  useEffect(() => {
+    if (isInitializedRef.current) return
+    
+    const timer = setTimeout(() => {
+      if (orbitControlsRef.current) {
+        orbitControlsRef.current.target.set(0, 0, 0)
+        orbitControlsRef.current.update()
+      }
+      orthoCamera.zoom = initialZoom
+      orthoCamera.updateProjectionMatrix()
+      isInitializedRef.current = true
+    }, 100)
+    
+    return () => clearTimeout(timer)
+  }, [orthoCamera, orbitControlsRef])
+
+  // 当选择国家改变时，zoom in到对应国家位置
+  useEffect(() => {
+    if (!selectedCountry || !isInitializedRef.current) {
+      // 如果没有选中国家，恢复到初始状态
+      if (!selectedCountry && isInitializedRef.current) {
+        targetZoomRef.current = initialZoom
+        targetLookAtRef.current = new Vector3(0, 0, 0)
+        isAnimatingRef.current = true
+      }
+      return
+    }
+
+    // 查找选中国家的标签
+    const countryLabel = countryLabels.find((label) => 
+      label.key === selectedCountry || label.iso === selectedCountry
+    )
+    if (!countryLabel || !orbitControlsRef.current) return
+
+    // 使用标签位置作为目标点（在平面地图上，z=0）
+    const targetPoint = new Vector3(countryLabel.position.x, countryLabel.position.y, 0)
+    
+    // 设置目标zoom（放大）
+    targetZoomRef.current = 120 // 放大到2倍
+    targetLookAtRef.current = targetPoint.clone()
+    isAnimatingRef.current = true
+  }, [selectedCountry, countryLabels, orbitControlsRef])
+
+  // 监听用户交互，如果用户在操作，停止动画
+  useEffect(() => {
+    const controls = orbitControlsRef.current
+    if (!controls) return
+
+    const handleStart = () => {
+      if (isAnimatingRef.current) {
+        targetZoomRef.current = null
+        targetLookAtRef.current = null
+        isAnimatingRef.current = false
+      }
+    }
+
+    controls.addEventListener('start', handleStart)
+    return () => {
+      controls.removeEventListener('start', handleStart)
+    }
+  }, [orbitControlsRef])
+
+  // 平滑动画到目标位置和zoom
+  useFrame(() => {
+    if (!orbitControlsRef.current) return
+
+    if (targetZoomRef.current !== null && targetLookAtRef.current !== null && isAnimatingRef.current) {
+      const currentZoom = orthoCamera.zoom
+      const targetZoom = targetZoomRef.current
+      const targetLookAt = targetLookAtRef.current
+      const currentTarget = orbitControlsRef.current.target.clone()
+      
+      const zoomDistance = Math.abs(currentZoom - targetZoom)
+      const targetDistance = currentTarget.distanceTo(targetLookAt)
+
+      // 如果距离足够近，停止动画
+      if (zoomDistance < 0.1 && targetDistance < 0.01) {
+        orthoCamera.zoom = targetZoom
+        orthoCamera.updateProjectionMatrix()
+        orbitControlsRef.current.target.copy(targetLookAt)
+        orbitControlsRef.current.update()
+        targetZoomRef.current = null
+        targetLookAtRef.current = null
+        isAnimatingRef.current = false
+      } else {
+        // 平滑插值zoom和目标点
+        orthoCamera.zoom = currentZoom + (targetZoom - currentZoom) * 0.05
+        orthoCamera.updateProjectionMatrix()
+        orbitControlsRef.current.target.lerp(targetLookAt, 0.05)
+        orbitControlsRef.current.update()
+      }
+    }
+  })
+
+  return null
 }
 
 export default MapView

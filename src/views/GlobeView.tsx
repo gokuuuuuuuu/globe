@@ -7,6 +7,7 @@ import { Sidebar } from '../components/Sidebar'
 import { WindLegend, TemperatureLegend } from '../components/Legend'
 import { WindLayer } from './windLayer'
 import { TemperatureLayer } from './TemperatureLayer'
+import titleImage from '../assets/title.png'
 
 import {
   BufferGeometry,
@@ -124,6 +125,38 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
   const globeGroupRef = useRef<Group>(null)
   const isInteractingRef = useRef(false)
+  
+  // 当前时间状态
+  const [currentTime, setCurrentTime] = useState(() => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    const hours = String(now.getHours()).padStart(2, '0')
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}`
+  })
+  
+  // 定期更新时间
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      const hours = String(now.getHours()).padStart(2, '0')
+      const minutes = String(now.getMinutes()).padStart(2, '0')
+      setCurrentTime(`${year}-${month}-${day} ${hours}:${minutes}`)
+    }
+    
+    // 立即更新一次
+    updateTime()
+    
+    // 每分钟更新一次
+    const interval = setInterval(updateTime, 60000)
+    
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     const controls = orbitControlsRef.current
@@ -620,7 +653,33 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       <Sidebar />
       {/* 标题覆盖层 */}
       <div className="canvas-title-overlay">
-        <h1>航空预测风险可视化大屏</h1>
+        <img src={titleImage} alt="航空预测风险可视化大屏" className="title-image" />
+        <div className="title-content-wrapper">
+          <div className="title-left-info">
+            <div className="current-time">{currentTime}</div>
+            <div className="data-update-info">
+              <svg 
+                className="refresh-icon" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              <span>数据更新</span>
+            </div>
+          </div>
+          <div className="title-right-info">
+            <span style={{color:"#C4C4C4"}}>登录状态：</span>
+            <span className="login-user">admin</span>
+            <span className="login-role">(高级管理)</span>
+          </div>
+        </div>
       </div>
       {/* 无航线提示 */}
       {((viewingAirportId && flightRoutes.length === 0) || (selectedFlightRouteId && flightRoutes.length === 0)) && (

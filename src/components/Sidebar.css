@@ -1,9 +1,9 @@
 .sidebar {
   position: fixed;
-  top: 0;
+  top: var(--title-height, 100px);
   right: 0;
   width: 400px;
-  height: 100vh;
+  height: calc(100vh - var(--title-height, 100px));
   background: transparent;
   border-left: none;
   backdrop-filter: none;
@@ -16,12 +16,12 @@
 }
 
 .sidebar-header {
-  padding: 12px 24px; /* 减少内边距从20px到12px */
+  padding: 12px 24px 0 0; /* 减少内边距从20px到12px */
   border-bottom: none;
   pointer-events: auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
 }
 
@@ -98,40 +98,71 @@
 }
 
 .sidebar-tab {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 4px; /* 减少间距从6px到4px */
   padding: 8px 10px; /* 减少内边距从10px 12px到8px 10px */
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 6px; /* 稍微减小圆角 */
+  background: transparent;
+  border: none;
   color: #cbd5e1;
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 0.85rem; /* 减小字体从0.9rem到0.85rem */
 }
 
+.tab-box-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.tab-box-bg-active {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar-tab.active .tab-box-bg {
+  opacity: 0;
+}
+
+.sidebar-tab.active .tab-box-bg-active {
+  opacity: 1;
+}
+
 .sidebar-tab:hover {
-  background: rgba(30, 41, 59, 0.7);
-  border-color: rgba(148, 163, 184, 0.3);
+  opacity: 0.8;
 }
 
 .sidebar-tab.active {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
   color: #f1f5f9;
 }
 
 .tab-icon {
+  position: relative;
   width: 1rem;
   height: 1rem;
   object-fit: contain;
+  z-index: 1;
 }
 
 .tab-label {
+  position: relative;
   font-weight: 500;
+  z-index: 1;
 }
 
 .sidebar-search {
@@ -141,35 +172,81 @@
   pointer-events: auto;
 }
 
-.search-input {
-  width: 100%;
-  padding: 8px 28px 8px 10px; /* 减少内边距 */
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 6px;
-  color: #f1f5f9;
-  font-size: 0.85rem; /* 减小字体从0.9rem到0.85rem */
-  outline: none;
-  transition: all 0.2s ease;
+.filter-input-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.search-input:focus {
-  border-color: rgba(59, 130, 246, 0.5);
-  background: rgba(30, 41, 59, 0.8);
-}
-
-.search-input::placeholder {
-  color: #64748b;
-}
-
-.search-icon {
+.filter-input-highlights {
   position: absolute;
-  right: 32px; /* 调整位置 */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.filter-input-wrapper:focus-within .filter-input-highlights {
+  opacity: 1;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 8px 28px 8px 12px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 0.85rem;
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.filter-input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.filter-input:focus {
+  border-color: rgba(59, 130, 246, 0.6);
+  background: transparent;
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.filter-input:focus-visible {
+  outline: none;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.filter-input-wrapper:focus-within .filter-input-arrow {
+  z-index: 2;
+}
+
+.filter-input-arrow {
+  position: absolute;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
-  font-size: 0.75rem; /* 减小图标 */
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
   pointer-events: none;
+  z-index: 1;
 }
 
 /* 筛选部分（可折叠） */
@@ -296,6 +373,106 @@
   text-align: right;
 }
 
+/* 水平布局的风险区间样式 */
+.sidebar-risk-zones-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-bottom: none;
+  pointer-events: auto;
+}
+
+.sidebar-risk-zones-horizontal .risk-zones-label {
+  font-size: 0.85rem;
+  color: #ffffff;
+  white-space: nowrap;
+  margin-bottom: 0; /* 覆盖旧样式的margin-bottom */
+}
+
+.risk-zones-checkboxes-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.risk-zone-checkbox-horizontal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.risk-zone-checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 2px solid #64748b;
+  border-radius: 3px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.risk-zone-checkbox-input.red {
+  border-color: #ef4444;
+}
+
+.risk-zone-checkbox-input.orange {
+  border-color: #f97316;
+}
+
+.risk-zone-checkbox-input.yellow {
+  border-color: #eab308;
+}
+
+.risk-zone-checkbox-input.green {
+  border-color: #22c55e;
+}
+
+.risk-zone-checkbox-input:checked {
+  background: transparent;
+}
+
+.risk-zone-checkbox-input:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+  color: #64748b;
+}
+
+.risk-zone-checkbox-input.red:checked::after {
+  color: #ef4444;
+}
+
+.risk-zone-checkbox-input.orange:checked::after {
+  color: #f97316;
+}
+
+.risk-zone-checkbox-input.yellow:checked::after {
+  color: #eab308;
+}
+
+.risk-zone-checkbox-input.green:checked::after {
+  color: #22c55e;
+}
+
+.risk-zone-label-horizontal {
+  font-size: 0.85rem;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
@@ -348,6 +525,124 @@
   background: rgba(59, 130, 246, 0.15);
 }
 
+.sidebar-item.highlighted {
+  border-width: 2px !important;
+  position: relative;
+}
+
+.sidebar-item.highlighted::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 8px;
+  z-index: -1;
+  animation: highlightGlow 2s ease-in-out infinite;
+}
+
+@keyframes highlightGlow {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 红色风险区间高亮 */
+.sidebar-item.highlighted-red {
+  border-color: #ef4444 !important;
+  animation: highlightPulseRed 2s ease-in-out infinite;
+}
+
+.sidebar-item.highlighted-red::before {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
+}
+
+@keyframes highlightPulseRed {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.8), 
+                0 0 32px rgba(239, 68, 68, 0.5),
+                inset 0 0 12px rgba(239, 68, 68, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 1), 
+                0 0 40px rgba(239, 68, 68, 0.7),
+                inset 0 0 16px rgba(239, 68, 68, 0.25);
+  }
+}
+
+/* 橙色风险区间高亮 */
+.sidebar-item.highlighted-orange {
+  border-color: #f97316 !important;
+  animation: highlightPulseOrange 2s ease-in-out infinite;
+}
+
+.sidebar-item.highlighted-orange::before {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(249, 115, 22, 0.1));
+}
+
+@keyframes highlightPulseOrange {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.8), 
+                0 0 32px rgba(249, 115, 22, 0.5),
+                inset 0 0 12px rgba(249, 115, 22, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(249, 115, 22, 1), 
+                0 0 40px rgba(249, 115, 22, 0.7),
+                inset 0 0 16px rgba(249, 115, 22, 0.25);
+  }
+}
+
+/* 黄色风险区间高亮 */
+.sidebar-item.highlighted-yellow {
+  border-color: #eab308 !important;
+  animation: highlightPulseYellow 2s ease-in-out infinite;
+}
+
+.sidebar-item.highlighted-yellow::before {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.3), rgba(234, 179, 8, 0.1));
+}
+
+@keyframes highlightPulseYellow {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(234, 179, 8, 0.8), 
+                0 0 32px rgba(234, 179, 8, 0.5),
+                inset 0 0 12px rgba(234, 179, 8, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(234, 179, 8, 1), 
+                0 0 40px rgba(234, 179, 8, 0.7),
+                inset 0 0 16px rgba(234, 179, 8, 0.25);
+  }
+}
+
+/* 绿色风险区间高亮 */
+.sidebar-item.highlighted-green {
+  border-color: #22c55e !important;
+  animation: highlightPulseGreen 2s ease-in-out infinite;
+}
+
+.sidebar-item.highlighted-green::before {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
+}
+
+@keyframes highlightPulseGreen {
+  0%, 100% {
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.8), 
+                0 0 32px rgba(34, 197, 94, 0.5),
+                inset 0 0 12px rgba(34, 197, 94, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 1), 
+                0 0 40px rgba(34, 197, 94, 0.7),
+                inset 0 0 16px rgba(34, 197, 94, 0.25);
+  }
+}
+
 .item-left {
   flex: 1;
   display: flex;
@@ -387,27 +682,20 @@
 }
 
 .item-view-button {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 6px 12px;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
-  color: #93c5fd;
-  font-size: 0.85rem;
+  width: 60px;
+  height: 30px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: transparent;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease;
+  padding: 0;
 }
 
 .item-view-button:hover {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.5);
-  color: #dbeafe;
-}
-
-.view-icon {
-  font-size: 0.7rem;
+  opacity: 0.8;
 }
 
 .sidebar-empty {
@@ -419,8 +707,9 @@
 
 /* Airline tab 相关样式 */
 .sidebar-data-hint {
-  padding: 8px 24px;
+  padding: 0px 24px;
   font-size: 0.8rem;
+  text-align: end;
   color: #94a3b8;
   pointer-events: auto;
 }
@@ -456,37 +745,49 @@
 }
 
 .deselect-airport-btn {
-  padding: 4px 8px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 4px;
-  color: #cbd5e1;
-  font-size: 0.8rem;
+  padding: 4px;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .deselect-airport-btn:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.4);
+  opacity: 0.8;
+}
+
+.close-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .selected-airport-info {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   padding: 10px; /* 减少内边距从12px到10px */
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(30, 41, 59, 0.4);
+  border: 1px solid #929292;
   border-radius: 6px; /* 稍微减小圆角 */
   gap: 10px; /* 减少间距从12px到10px */
 }
 
-.selected-airport-info > div {
+.selected-airport-left {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.selected-airport-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .selected-airport-name {
@@ -502,21 +803,32 @@
   color: #94a3b8;
 }
 
+.selected-airport-risk-value {
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 40px;
+  text-align: right;
+}
+
 .selected-airport-view-btn {
-  padding: 6px 12px;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 6px;
-  color: #93c5fd;
-  font-size: 0.85rem;
+  padding: 4px;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .selected-airport-view-btn:hover {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.5);
-  color: #dbeafe;
+  opacity: 0.8;
+}
+
+.view-icon {
+  width: 60px;
+  height: 30px;
+  object-fit: contain;
 }
 
 .sidebar-flight-statuses {
@@ -566,54 +878,129 @@
   border-radius: 6px; /* 稍微减小圆角 */
   transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
 }
 
 /* hover效果现在通过内联样式动态设置，基于风险值 */
+
+/* 航班卡片高亮样式 */
+.sidebar-flight-item.highlighted {
+  border-width: 2px !important;
+  position: relative;
+}
+
+.sidebar-flight-item.highlighted::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 8px;
+  z-index: -1;
+  animation: highlightGlow 2s ease-in-out infinite;
+}
+
+/* 红色风险区间高亮 */
+.sidebar-flight-item.highlighted-red {
+  border-color: #ef4444 !important;
+  animation: highlightPulseRed 2s ease-in-out infinite;
+}
+
+.sidebar-flight-item.highlighted-red::before {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
+}
+
+/* 橙色风险区间高亮 */
+.sidebar-flight-item.highlighted-orange {
+  border-color: #f97316 !important;
+  animation: highlightPulseOrange 2s ease-in-out infinite;
+}
+
+.sidebar-flight-item.highlighted-orange::before {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(249, 115, 22, 0.1));
+}
+
+/* 黄色风险区间高亮 */
+.sidebar-flight-item.highlighted-yellow {
+  border-color: #eab308 !important;
+  animation: highlightPulseYellow 2s ease-in-out infinite;
+}
+
+.sidebar-flight-item.highlighted-yellow::before {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.3), rgba(234, 179, 8, 0.1));
+}
+
+/* 绿色风险区间高亮 */
+.sidebar-flight-item.highlighted-green {
+  border-color: #22c55e !important;
+  animation: highlightPulseGreen 2s ease-in-out infinite;
+}
+
+.sidebar-flight-item.highlighted-green::before {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
+}
 
 .flight-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8px; /* 减少间距从12px到8px */
+  position: relative;
+}
+
+.flight-status-badge-header {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
 }
 
 .flight-number {
   font-size: 0.95rem;
   font-weight: 500;
   color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.flight-airline-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .flight-view-button {
-  padding: 4px 8px;
-  background: rgba(59, 130, 246, 0.2);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 4px;
-  color: #93c5fd;
-  font-size: 0.8rem;
+  padding: 4px;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .flight-view-button:hover {
-  background: rgba(59, 130, 246, 0.3);
-  border-color: rgba(59, 130, 246, 0.5);
-  color: #dbeafe;
+  opacity: 0.8;
 }
 
 .flight-item-body {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 8px; /* 减少间距从12px到8px */
   gap: 10px; /* 减少间距从12px到10px */
 }
 
 .flight-departure,
 .flight-arrival {
-  flex: 1;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 80px;
 }
 
 .flight-time-info {
@@ -638,7 +1025,8 @@
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  min-width: 80px;
+  min-width: 120px;
+  flex: 1;
 }
 
 .flight-status-badge {
@@ -646,48 +1034,89 @@
   border-radius: 4px;
   font-size: 0.8rem;
   font-weight: 500;
-  color: #fff;
   white-space: nowrap;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .flight-route {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
-  background: rgba(30, 41, 59, 0.4);
-  border-radius: 4px;
+  padding: 8px 0;
   font-size: 0.8rem;
-  white-space: nowrap;
+  position: relative;
+  width: 100%;
+  min-width: 120px;
 }
 
-.flight-route-from,
+.flight-route-plane {
+  width: 80px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+.flight-route-airports {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  width: 100%;
+}
+
+.flight-route-from {
+  color: #cbd5e1;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  padding: 0 4px;
+  flex-shrink: 0;
+}
+
 .flight-route-to {
   color: #cbd5e1;
   font-weight: 500;
-}
-
-.flight-route-arrow {
-  color: #3b82f6;
-  font-weight: 600;
-  font-size: 0.9rem;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  padding: 0 4px;
+  flex-shrink: 0;
 }
 
 .flight-item-footer {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   padding-top: 8px; /* 减少间距从12px到8px */
   border-top: 1px solid rgba(148, 163, 184, 0.1);
 }
 
+.flight-risk-values {
+  display: flex;
+  gap: 12px;
+}
+
 .flight-risk-value {
-  font-size: 1.2rem;
+  font-size: 0.85rem;
   color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .flight-risk-value span {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
 
 /* 航线详情内容（在sidebar-content内） */
@@ -712,22 +1141,64 @@
 }
 
 .detail-deselect-btn {
-  padding: 4px 8px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  border-radius: 4px;
-  color: #cbd5e1;
-  font-size: 0.8rem;
+  padding: 4px;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .detail-deselect-btn:hover {
-  background: rgba(30, 41, 59, 0.8);
-  border-color: rgba(148, 163, 184, 0.4);
+  opacity: 0.8;
 }
 
-/* 基本信息 */
+/* 基本信息 - 外面大框 */
+.detail-basic-info-wrapper {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 基本信息 - 蓝色方块 */
+.detail-basic-info-box {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* 基本信息 - 上中下三部分 */
+.detail-basic-info-part {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 基本信息 - 虚线分隔 */
+.detail-basic-info-divider {
+  height: 1px;
+  background: repeating-linear-gradient(
+    to right,
+    rgba(148, 163, 184, 0.4) 0px,
+    rgba(148, 163, 184, 0.4) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+  margin: 12px 0;
+  border: none;
+  width: 100%;
+}
+
+/* 基本信息 - 兼容旧样式 */
 .detail-basic-info {
   background: rgba(30, 41, 59, 0.8);
   border: 1px solid rgba(148, 163, 184, 0.2);
@@ -736,6 +1207,9 @@
 }
 
 .detail-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.95rem;
   font-weight: 600;
   color: #f1f5f9;
@@ -744,15 +1218,31 @@
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
+.detail-section-title-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .detail-info-row {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   font-size: 0.85rem;
   color: #cbd5e1;
   line-height: 1.6;
   align-items: center;
+}
+
+/* 在蓝色方块内的 info-row 需要 margin-bottom */
+.detail-basic-info-box .detail-info-row {
+  margin-bottom: 12px;
+}
+
+.detail-basic-info-box .detail-info-row:last-child {
+  margin-bottom: 0;
 }
 
 .detail-info-item {
@@ -805,7 +1295,7 @@
 .detail-crew-member {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   padding: 8px 12px;
   background: rgba(30, 41, 59, 0.6);
   border-radius: 6px;
@@ -838,11 +1328,18 @@
   min-width: 60px;
 }
 
+.detail-crew-risk {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
 .detail-crew-role {
   font-size: 0.85rem;
   font-weight: 500;
   color: #cbd5e1;
   min-width: 40px;
+  margin-left: 8px;
 }
 
 .detail-crew-id {
@@ -850,6 +1347,7 @@
   font-weight: 500;
   color: #94a3b8;
   font-family: 'Courier New', monospace;
+  margin-left: 8px;
 }
 
 /* 信息小节（在基本信息内） */
@@ -859,11 +1357,60 @@
   border-top: 1px solid rgba(148, 163, 184, 0.1);
 }
 
+/* 风险值和预测风险 - 独立方块，使用 title_second.png 作为背景 */
+.detail-risk-section-box {
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+/* 确保背景图片上的内容可读 */
+.detail-risk-section-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 8px;
+  z-index: 0;
+}
+
+.detail-risk-section-box > * {
+  position: relative;
+  z-index: 1;
+}
+
 .detail-subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.85rem;
   font-weight: 600;
   color: #cbd5e1;
   margin-bottom: 12px;
+  padding-left: 10px;
+  background-image: url('../assets/title_second.png');
+  background-repeat: no-repeat;
+  background-position: bottom left;
+}
+
+/* 在风险值方块内的标题不需要额外的 margin-bottom */
+.detail-risk-section-box .detail-subsection-title {
+  margin-bottom: 12px;
+}
+
+.detail-subsection-title-icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 /* 内联风险值显示 */
@@ -871,6 +1418,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.detail-risk-values-inline:not(:last-of-type) {
+  margin-bottom: 12px;
+}
+
+.detail-risk-divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.2);
+  margin: 12px 0;
+  border: none;
 }
 
 .detail-risk-value-item {
@@ -906,6 +1464,12 @@
   border-radius: 6px;
   font-size: 0.85rem;
   font-weight: 500;
+  border: 1px solid;
+  transition: all 0.2s ease;
+}
+
+.detail-predicted-item-inline:hover {
+  opacity: 0.8;
 }
 
 /* 风险值 */
@@ -971,53 +1535,77 @@
 }
 
 .person-detail-card {
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  position: relative;
+  background-image: url('../assets/personBg1.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.person-detail-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.7) 100%);
+  pointer-events: none;
+}
+
+.person-detail-header {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.person-detail-icon {
-  font-size: 3rem;
-  opacity: 0.8;
-}
-
-.person-detail-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #f1f5f9;
-}
-
-.person-detail-info {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
-  width: 100%;
-}
-
-.person-detail-item {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 8px;
+  z-index: 1;
 }
 
-.person-detail-label {
-  font-size: 0.9rem;
+.person-detail-avatar {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.person-detail-avatar-img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
+.person-detail-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.person-detail-header-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f8fafc;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.person-detail-header-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+}
+
+.person-detail-meta-label {
+  color: #cbd5e1;
   font-weight: 600;
-  color: #94a3b8;
 }
 
-.person-detail-value {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #f1f5f9;
+.person-detail-meta-value {
+  font-weight: 700;
+  color: #f8fafc;
 }
 
 /* Team Card Styles */
@@ -1028,6 +1616,14 @@
   margin-bottom: 12px;
   overflow: hidden;
   transition: all 0.2s ease;
+}
+
+.team-card.team-card-selected {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-color: transparent;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
 }
 
 .team-card:hover {
@@ -1046,6 +1642,12 @@
 
 .team-card-header:hover {
   background-color: rgba(15, 23, 42, 0.5);
+}
+
+.team-card-icon-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 
 .team-card-icon {
@@ -1073,6 +1675,30 @@
   gap: 12px;
 }
 
+.team-summary-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #cbd5e1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.team-summary-label {
+  color: #94a3b8;
+  min-width: 60px;
+  font-weight: 600;
+}
+
+.team-summary-value {
+  flex: 1;
+}
+
+.team-summary-member {
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
 .team-card-content {
   padding: 0 16px 16px 16px;
   border-top: 1px solid rgba(148, 163, 184, 0.1);
@@ -1080,6 +1706,149 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.person-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.person-row:hover {
+  background: rgba(15, 23, 42, 0.85);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
+}
+
+.person-row-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.person-row-avatar-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.person-row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.person-row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.person-row-risk {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.person-row-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.person-row-meta-column {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.person-row-meta-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.person-row-meta-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.person-row-meta-label.spacer {
+  margin-left: 8px;
+}
+
+.person-row-meta-value {
+  font-weight: 600;
+  color: #f1f5f9;
+}
+
+/* Person Basic Info */
+.person-basic-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.person-basic-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.person-basic-title-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.person-basic-card {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(88, 133, 255, 0.3);
+  box-shadow: inset 0 0 10px rgba(88, 133, 255, 0.2);
+  border-radius: 10px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.person-basic-item {
+  display: flex;
+  gap: 6px;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.person-basic-label {
+  color: #cbd5e1;
+  font-weight: 700;
+  min-width: 108px;
+}
+
+.person-basic-value {
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.person-basic-risk {
+  text-shadow: 0 0 8px rgba(255, 159, 64, 0.6);
 }
 
 .team-leader {

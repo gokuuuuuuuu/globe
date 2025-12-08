@@ -162,21 +162,21 @@ export function TemperatureLayer({
   const maxTemp = propMaxTemp ?? (temperatureField?.maxTemp ?? 50);
 
   // 创建温度纹理
-  const temperatureTexture = useMemo(() => {
-    if (!temperatureField) return null;
+  // const temperatureTexture = useMemo(() => {
+  //   if (!temperatureField) return null;
 
-    // 从 GRIB 数据构建纹理
-    // 假设数据是 360x181 的网格
-    const nx = 360;
-    const ny = 181;
-    const size = nx * ny;
-    const data = new Float32Array(size * 4); // RGBA 纹理
+  //   // 从 GRIB 数据构建纹理
+  //   // 假设数据是 360x181 的网格
+  //   const nx = 360;
+  //   const ny = 181;
+  //   const size = nx * ny;
+  //   const data = new Float32Array(size * 4); // RGBA 纹理
 
-    // 我们需要从 temperatureField 获取原始数据
-    // 但由于我们已经有了插值函数，我们需要重新构建数据数组
-    // 更好的方法是直接从 GRIB JSON 构建纹理
-    return null; // 暂时返回 null，我们将在 shader 中使用 uniform 数组或纹理
-  }, [temperatureField]);
+  //   // 我们需要从 temperatureField 获取原始数据
+  //   // 但由于我们已经有了插值函数，我们需要重新构建数据数组
+  //   // 更好的方法是直接从 GRIB JSON 构建纹理
+  //   return null; // 暂时返回 null，我们将在 shader 中使用 uniform 数组或纹理
+  // }, [temperatureField]);
 
   // 创建温度数据纹理（从 GRIB 数据直接构建）
   const [temperatureDataTexture, setTemperatureDataTexture] = useState<THREE.DataTexture | null>(null);
@@ -434,7 +434,7 @@ export function TemperatureLayer({
   });
 
   // 温度计算函数（用于显示标签，使用真实数据）
-  const calculateTemperature = (lon: number, lat: number, _time: number): number => {
+  const calculateTemperature = (lon: number, lat: number): number => {
     if (!temperatureField) return 0;
     const temp = temperatureField.interpolate(lon, lat);
     return temp ?? 0;

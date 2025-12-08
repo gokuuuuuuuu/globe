@@ -1,4 +1,4 @@
-import {  useMemo, useState, useEffect, useRef } from 'react'
+import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { useAppStore, type RiskZone } from '../store/useAppStore'
 import { AIRPORTS, FLIGHTS, calculateRiskFromEnvironmentRisk, type Airport, type Flight, getRiskColor } from '../data/flightData'
 import { PERSONS, TEAMS, getPersonById, getTeamById } from '../data/personData'
@@ -6,6 +6,19 @@ import collapseIcon from '../assets/collapse.png'
 import airlineIcon from '../assets/airline.png'
 import airportIcon from '../assets/airport.png'
 import personIcon from '../assets/person.png'
+import rightBoxIcon from '../assets/rightBox.png'
+import rightBoxActiveIcon from '../assets/rightBox_active.png'
+import iconInputArrow from '../assets/input_arrow.png'
+import iconInputHighlights from '../assets/input_ highlights.png'
+import viewIcon from '../assets/view.png'
+import airLogoIcon from '../assets/airLogo.png'
+import planeIcon from '../assets/plane.png'
+import closeIcon from '../assets/close.png'
+import typeIcon from '../assets/type.png'
+import radarIcon from '../assets/radar_icon.png'
+import personCardBg from '../assets/personBg.png'
+import teamCardIcon from '../assets/team.png'
+import personRowIcon from '../assets/person_icon.png'
 import './Sidebar.css'
 
 // 扩展机场数据接口，添加风险值相关字段（用于Sidebar显示）
@@ -65,14 +78,16 @@ export function Sidebar() {
     setSelectedPersonId,
     expandedTeamIds,
     setExpandedTeamIds,
+    highlightedAirportId,
+    setHighlightedAirportId,
+    highlightedFlightRouteId,
+    setHighlightedFlightRouteId,
   } = useAppStore()
   
   // 本地状态：从tab进入时，默认展开所有机队
   const [isFromTab, setIsFromTab] = useState(false)
   // 整个sidebar内容收起状态
   const [isContentCollapsed, setIsContentCollapsed] = useState(false)
-  // 筛选部分折叠状态，默认折叠
-  const [isFilterCollapsed, setIsFilterCollapsed] = useState(true)
 
   // 处理风险区间切换
   const handleRiskZoneToggle = (zone: RiskZone) => {
@@ -104,11 +119,20 @@ export function Sidebar() {
     return filtered
   }, [searchQuery, riskZones])
 
-  // 处理View按钮点击（从airport进入airline）
+  // 处理View按钮点击（只触发镜头跟随，不进入下一级）
+  const handleViewButtonClick = (airport: AirportData, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation() // 阻止事件冒泡到卡片
+    }
+    setTargetAirportId(airport.id) // 只触发镜头跟随
+    setHighlightedAirportId(airport.id) // 设置高亮状态
+  }
+
+  // 处理卡片点击（进入下一级）
   const handleViewClick = (airport: AirportData) => {
-    setTargetAirportId(airport.id)
     setSelectedAirportForAirline(airport.id)
     setViewingAirportId(airport.id) // 设置正在查看的机场，用于在globe上显示该机场的所有航线
+    setHighlightedAirportId(null) // 清除高亮状态
     setSidebarTab('airline')
   }
 
@@ -133,12 +157,33 @@ export function Sidebar() {
     return MOCK_AIRPORTS.find(a => a.id === selectedAirportForAirline) || null
   }, [selectedAirportForAirline])
 
-  // 处理航线 View 按钮点击
+  // 处理航线 View 按钮点击（只触发镜头跟随，不进入下一级）
+  const handleFlightViewButtonClick = (flight: Flight, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation() // 阻止事件冒泡到卡片
+    }
+    
+    // 根据起降机场生成航线ID（格式：起飞机场-降落机场-航班ID，与GlobeView保持一致）
+    // 需要从机场代码映射到机场ID
+    const fromAirport = AIRPORTS.find(a => a.code === flight.fromAirport)
+    const toAirport = AIRPORTS.find(a => a.code === flight.toAirport)
+    
+    // 如果两个机场都在 AIRPORTS 中，则触发 zoom in
+    if (fromAirport && toAirport) {
+      // 使用与GlobeView相同的ID格式：${fromAirport.id}-${toAirport.id}-${flight.id}
+      const routeId = `${fromAirport.id}-${toAirport.id}-${flight.id}`
+      setTargetFlightRouteId(routeId) // 只触发镜头跟随
+      setHighlightedFlightRouteId(flight.id) // 设置高亮状态
+    }
+  }
+
+  // 处理航线卡片点击（进入下一级）
   const handleFlightViewClick = (flight: Flight) => {
     // 先设置选中的航班ID，用于显示详情面板
     setSelectedFlightRouteId(flight.id)
     // 清除viewingAirportId，确保只显示当前选中的航线
     setViewingAirportId(null)
+    setHighlightedFlightRouteId(null) // 清除高亮状态
     
     // 根据起降机场生成航线ID（格式：起飞机场-降落机场-航班ID，与GlobeView保持一致）
     // 需要从机场代码映射到机场ID
@@ -158,6 +203,7 @@ export function Sidebar() {
   const handleDeselectFlight = () => {
     setSelectedFlightRouteId(null)
     setTargetFlightRouteId(null)
+    setHighlightedFlightRouteId(null) // 清除高亮状态
     // 如果取消选中航线，但还有选中的机场，则恢复显示该机场的所有航线
     if (selectedAirportForAirline) {
       setViewingAirportId(selectedAirportForAirline)
@@ -275,13 +321,13 @@ export function Sidebar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, filteredTeams, sidebarTab, isFromTab])
 
-  // 获取状态按钮颜色
-  const getStatusColor = (status: string) => {
+  // 获取状态字体颜色
+  const getStatusTextColor = (status: string) => {
     switch (status) {
-      case '未起飞': return '#3b82f6' // 蓝色
-      case '巡航中': return '#22c55e' // 绿色
-      case '已落地': return '#94a3b8' // 灰色
-      default: return '#94a3b8'
+      case '未起飞': return '#AFD7FF'
+      case '巡航中': return '#B5C9FF'
+      case '已落地': return '#FFFFFF'
+      default: return '#FFFFFF'
     }
   }
 
@@ -343,13 +389,18 @@ export function Sidebar() {
     return 'rgba(76, 175, 80, 0.2)' // 低风险 - 绿色
   }
 
+  // 根据风险值数字获取风险区间（用于航班卡片高亮）
+  const getFlightRiskZone = (riskValue: number): RiskZone => {
+    if (riskValue >= 7) return 'red'
+    if (riskValue >= 5) return 'orange'
+    if (riskValue >= 2) return 'yellow'
+    return 'green'
+  }
+
   return (
     <div className="sidebar">
       {/* 登录状态 */}
       <div className="sidebar-header">
-        <div className="login-status">
-          <span className="login-user">admin</span> <span className="login-role">(高级管理)</span>
-        </div>
         <img 
           src={collapseIcon} 
           alt="collapse" 
@@ -365,15 +416,27 @@ export function Sidebar() {
       <div className="sidebar-tabs">
         <button
           className={`sidebar-tab ${sidebarTab === 'airport' ? 'active' : ''}`}
-          onClick={() => setSidebarTab('airport')}
+          onClick={() => {
+            setSidebarTab('airport')
+            setHighlightedAirportId(null) // 切换tab时清除高亮
+            setHighlightedFlightRouteId(null) // 切换tab时清除航班高亮
+          }}
         >
+          <img src={rightBoxIcon} alt="box" className="tab-box-bg" />
+          <img src={rightBoxActiveIcon} alt="box active" className="tab-box-bg-active" />
           <img src={airportIcon} alt="airport" className="tab-icon" />
           <span className="tab-label">Airport</span>
         </button>
         <button
           className={`sidebar-tab ${sidebarTab === 'airline' ? 'active' : ''}`}
-          onClick={() => setSidebarTab('airline')}
+          onClick={() => {
+            setSidebarTab('airline')
+            setHighlightedAirportId(null) // 切换tab时清除高亮
+            setHighlightedFlightRouteId(null) // 切换tab时清除航班高亮
+          }}
         >
+          <img src={rightBoxIcon} alt="box" className="tab-box-bg" />
+          <img src={rightBoxActiveIcon} alt="box active" className="tab-box-bg-active" />
           <img src={airlineIcon} alt="airline" className="tab-icon" />
           <span className="tab-label">Airline</span>
         </button>
@@ -384,79 +447,74 @@ export function Sidebar() {
             setIsFromTab(true) // 从tab进入，默认展开所有机队
             setSelectedPersonId(null) // 清除选中的人员
             setExpandedTeamIds([]) // 默认折叠所有机队
+            setHighlightedAirportId(null) // 切换tab时清除高亮
+            setHighlightedFlightRouteId(null) // 切换tab时清除航班高亮
           }}
         >
+          <img src={rightBoxIcon} alt="box" className="tab-box-bg" />
+          <img src={rightBoxActiveIcon} alt="box active" className="tab-box-bg-active" />
           <img src={personIcon} alt="person" className="tab-icon" />
           <span className="tab-label">Person</span>
         </button>
       </div>
 
       {/* 搜索框 */}
-      {/* 搜索框 */}
       <div className="sidebar-search">
-        <input
-          type="text"
-          className="search-input"
-          placeholder={`type to search ${sidebarTab}`}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
-        <span className="search-icon">▼</span>
+        <div className="filter-input-wrapper">
+          <img src={iconInputHighlights} alt="highlights" className="filter-input-highlights" />
+          <input
+            type="text"
+            className="filter-input"
+            placeholder={`type to search ${sidebarTab}`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <img src={iconInputArrow} alt="arrow" className="filter-input-arrow" />
+        </div>
       </div>
 
-      {/* 风险区间（仅airport tab显示，可折叠） */}
+      {/* 风险区间（仅airport tab显示） */}
       {sidebarTab === 'airport' && (
-        <div className="sidebar-filter-section">
-          <div 
-            className="filter-section-header"
-            onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
-          >
-            <span className="filter-section-title">风险区间</span>
-            <span className={`filter-section-toggle ${isFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
+        <div className="sidebar-risk-zones-horizontal">
+          <span className="risk-zones-label">风险区间:</span>
+          <div className="risk-zones-checkboxes-horizontal">
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={riskZones.includes('red')}
+                onChange={() => handleRiskZoneToggle('red')}
+                className="risk-zone-checkbox-input red"
+              />
+              <span className="risk-zone-label-horizontal">红色</span>
+            </label>
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={riskZones.includes('orange')}
+                onChange={() => handleRiskZoneToggle('orange')}
+                className="risk-zone-checkbox-input orange"
+              />
+              <span className="risk-zone-label-horizontal">橙色</span>
+            </label>
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={riskZones.includes('yellow')}
+                onChange={() => handleRiskZoneToggle('yellow')}
+                className="risk-zone-checkbox-input yellow"
+              />
+              <span className="risk-zone-label-horizontal">黄色</span>
+            </label>
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={riskZones.includes('green')}
+                onChange={() => handleRiskZoneToggle('green')}
+                className="risk-zone-checkbox-input green"
+              />
+              <span className="risk-zone-label-horizontal">绿色</span>
+            </label>
           </div>
-          {!isFilterCollapsed && (
-            <div className="filter-section-content">
-              <div className="risk-zones-checkboxes">
-                <label className="risk-zone-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={riskZones.includes('red')}
-                    onChange={() => handleRiskZoneToggle('red')}
-                  />
-                  <span className="risk-zone-color red"></span>
-                  <span className="risk-zone-label">红色</span>
-                </label>
-                <label className="risk-zone-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={riskZones.includes('orange')}
-                    onChange={() => handleRiskZoneToggle('orange')}
-                  />
-                  <span className="risk-zone-color orange"></span>
-                  <span className="risk-zone-label">橙色</span>
-                </label>
-                <label className="risk-zone-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={riskZones.includes('yellow')}
-                    onChange={() => handleRiskZoneToggle('yellow')}
-                  />
-                  <span className="risk-zone-color yellow"></span>
-                  <span className="risk-zone-label">黄色</span>
-                </label>
-                <label className="risk-zone-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={riskZones.includes('green')}
-                    onChange={() => handleRiskZoneToggle('green')}
-                  />
-                  <span className="risk-zone-color green"></span>
-                  <span className="risk-zone-label">绿色</span>
-                </label>
-              </div>
-              <div className="risk-zones-high-risk">最高环境风险值</div>
-            </div>
-          )}
         </div>
       )}
 
@@ -473,10 +531,11 @@ export function Sidebar() {
           <div className="selected-airport-header">
             <div className="selected-airport-title">当前选中:</div>
             <button className="deselect-airport-btn" onClick={handleDeselectAirport}>
-              取消选中
+              <img src={closeIcon} alt="close" className="close-icon" />
             </button>
           </div>
           <div className="selected-airport-info">
+            <div className="selected-airport-left">
             <div className="selected-airport-name">
               {selectedAirport.nameZh} {selectedAirport.code}
             </div>
@@ -484,53 +543,62 @@ export function Sidebar() {
               <span>执飞单位 {selectedAirport.operatorCount}</span>
               <span>航班 {selectedAirport.flightCount}</span>
             </div>
-            <button className="selected-airport-view-btn">
-              <span>View</span>
+            </div>
+            <div className="selected-airport-right">
+              <div 
+                className="selected-airport-risk-value"
+                style={{ color: getRiskValueColor(selectedAirport.riskZone) }}
+              >
+                {selectedAirport.riskValue}
+              </div>
+            <button 
+              className="selected-airport-view-btn"
+              onClick={() => {
+                if (selectedAirport) {
+                  setTargetAirportId(selectedAirport.id)
+                }
+              }}
+            >
+                <img src={viewIcon} alt="view" className="view-icon" />
             </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* 状态筛选（仅airline tab显示，且未选中航线时显示，可折叠） */}
+      {/* 状态筛选（仅airline tab显示，且未选中航线时显示） */}
       {sidebarTab === 'airline' && !selectedFlightRouteId && (
-        <div className="sidebar-filter-section">
-          <div 
-            className="filter-section-header"
-            onClick={() => setIsFilterCollapsed(!isFilterCollapsed)}
-          >
-            <span className="filter-section-title">状态</span>
-            <span className={`filter-section-toggle ${isFilterCollapsed ? 'collapsed' : ''}`}>▼</span>
+        <div className="sidebar-risk-zones-horizontal">
+          <span className="risk-zones-label">状态:</span>
+          <div className="risk-zones-checkboxes-horizontal">
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={flightStatuses.includes('未起飞')}
+                onChange={() => handleFlightStatusToggle('未起飞')}
+                className="risk-zone-checkbox-input"
+              />
+              <span className="risk-zone-label-horizontal">未起飞</span>
+            </label>
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={flightStatuses.includes('巡航中')}
+                onChange={() => handleFlightStatusToggle('巡航中')}
+                className="risk-zone-checkbox-input"
+              />
+              <span className="risk-zone-label-horizontal">巡航中</span>
+            </label>
+            <label className="risk-zone-checkbox-horizontal">
+              <input
+                type="checkbox"
+                checked={flightStatuses.includes('已落地')}
+                onChange={() => handleFlightStatusToggle('已落地')}
+                className="risk-zone-checkbox-input"
+              />
+              <span className="risk-zone-label-horizontal">已落地</span>
+            </label>
           </div>
-          {!isFilterCollapsed && (
-            <div className="filter-section-content">
-              <div className="flight-statuses-checkboxes">
-                <label className="flight-status-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={flightStatuses.includes('未起飞')}
-                    onChange={() => handleFlightStatusToggle('未起飞')}
-                  />
-                  <span className="flight-status-label">未起飞</span>
-                </label>
-                <label className="flight-status-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={flightStatuses.includes('巡航中')}
-                    onChange={() => handleFlightStatusToggle('巡航中')}
-                  />
-                  <span className="flight-status-label">巡航中</span>
-                </label>
-                <label className="flight-status-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={flightStatuses.includes('已落地')}
-                    onChange={() => handleFlightStatusToggle('已落地')}
-                  />
-                  <span className="flight-status-label">已落地</span>
-                </label>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -542,15 +610,18 @@ export function Sidebar() {
               const riskBgColor = getRiskBackgroundColor(airport.riskZone)
               const riskHoverBgColor = getRiskHoverBackgroundColor(airport.riskZone)
               const riskBorderColor = getRiskValueColor(airport.riskZone) + '40' // 25%透明度的边框
+              const isHighlighted = highlightedAirportId === airport.id
               
               return (
               <div 
                 key={airport.id} 
-                className="sidebar-item"
+                className={`sidebar-item ${isHighlighted ? `highlighted highlighted-${airport.riskZone}` : ''}`}
                 style={{ 
                   background: riskBgColor,
                   borderColor: riskBorderColor,
+                  cursor: 'pointer',
                 }}
+                onClick={() => handleViewClick(airport)}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.background = riskHoverBgColor
                 }}
@@ -576,11 +647,9 @@ export function Sidebar() {
                   </div>
                   <button
                     className="item-view-button"
-                    onClick={() => handleViewClick(airport)}
-                  >
-                    <span className="view-icon">▶</span>
-                    <span>View</span>
-                  </button>
+                    onClick={(e) => handleViewButtonClick(airport, e)}
+                    style={{ backgroundImage: `url(${viewIcon})` }}
+                  />
                 </div>
               </div>
               )
@@ -596,7 +665,7 @@ export function Sidebar() {
                 <div className="detail-selected-header">
                   <div className="detail-selected-title">当前选中:</div>
                   <button className="detail-deselect-btn" onClick={handleDeselectFlight}>
-                    取消选中
+                    <img src={closeIcon} alt="close" className="close-icon" />
                   </button>
                 </div>
                 {/* 当前选中航线卡片 - 使用与列表一致的样式 */}
@@ -622,188 +691,238 @@ export function Sidebar() {
                       }}
                     >
                       <div className="flight-item-header">
-                        <div className="flight-number">{selectedFlight.flightNumber}</div>
-                        <button className="flight-view-button">
-                          <span>View</span>
-                        </button>
+                        <div className="flight-number">
+                          <img src={airLogoIcon} alt="airline logo" className="flight-airline-logo" />
+                          {selectedFlight.flightNumber}
+                        </div>
+                        <div 
+                          className="flight-status-badge flight-status-badge-header" 
+                          style={{ 
+                            backgroundImage: `url(${typeIcon})`,
+                            color: getStatusTextColor(selectedFlight.status)
+                          }}
+                        >
+                          {selectedFlight.status}
+                        </div>
                       </div>
                       <div className="flight-item-body">
                         <div className="flight-departure">
                           <div className="flight-time-info">
                             <span className="flight-time-label">预飞 {selectedFlight.scheduledDeparture}</span>
-                            <span className="flight-time-value">计飞 {selectedFlight.estimatedDeparture} {selectedFlight.fromAirportZh}</span>
+                            <span className="flight-time-value">计飞 {selectedFlight.estimatedDeparture}</span>
                           </div>
                         </div>
                         <div className="flight-status-section">
-                          <div className="flight-status-badge" style={{ backgroundColor: getStatusColor(selectedFlight.status) }}>
-                            {selectedFlight.status}
-                          </div>
-                          {(selectedFlight.status === '巡航中' || selectedFlight.status === '未起飞') && (
                             <div className="flight-route">
+                              <img src={planeIcon} alt="plane" className="flight-route-plane" />
+                              <div className="flight-route-airports">
                               <span className="flight-route-from">{selectedFlight.fromAirportZh}</span>
-                              <span className="flight-route-arrow">→</span>
                               <span className="flight-route-to">{selectedFlight.toAirportZh}</span>
                             </div>
-                          )}
+                            </div>
                         </div>
                         <div className="flight-arrival">
                           <div className="flight-time-info">
                             <span className="flight-time-label">{selectedFlight.scheduledArrival} 预到</span>
-                            <span className="flight-time-value">{selectedFlight.estimatedArrival} 计到 {selectedFlight.toAirportZh}</span>
+                            <span className="flight-time-value">{selectedFlight.estimatedArrival} 计到</span>
                           </div>
                         </div>
                       </div>
                       <div className="flight-item-footer">
+                        <div className="flight-risk-values">
                         <span className="flight-risk-value">
-                          人 <span style={{ color: getRiskValueColorFromNumber(selectedFlight.humanRisk) }}>{selectedFlight.humanRisk.toFixed(1)}</span>
+                            人<span style={{ color: getRiskValueColorFromNumber(selectedFlight.humanRisk) }}>{selectedFlight.humanRisk.toFixed(1)}</span>
                         </span>
                         <span className="flight-risk-value">
-                          机 <span style={{ color: getRiskValueColorFromNumber(selectedFlight.machineRisk) }}>{selectedFlight.machineRisk.toFixed(1)}</span>
+                            机<span style={{ color: getRiskValueColorFromNumber(selectedFlight.machineRisk) }}>{selectedFlight.machineRisk.toFixed(1)}</span>
                         </span>
                         <span className="flight-risk-value">
-                          环 <span style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>{selectedFlight.environmentRisk.toFixed(1)}</span>
+                            环<span style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>{selectedFlight.environmentRisk.toFixed(1)}</span>
                         </span>
+                        </div>
+                        <button 
+                          className="flight-view-button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleFlightViewButtonClick(selectedFlight, e)
+                          }}
+                        >
+                          <img src={viewIcon} alt="view" className="view-icon" />
+                        </button>
                       </div>
                     </div>
                   )
                 })()}
 
                 {/* 基本信息 */}
-                <div className="detail-basic-info">
-                  <div className="detail-section-title">基本信息</div>
+                <div className="detail-basic-info-wrapper">
+                  <div className="detail-section-title">
+                    <img src={radarIcon} alt="radar" className="detail-section-title-icon" />
+                    <span>基本信息</span>
+                  </div>
                   
-                  {/* 机号、大机型、机型 */}
-                  <div className="detail-info-row">
-                    {selectedFlight.aircraftNumber && (
-                      <div className="detail-info-item">
-                        <span className="detail-info-label">机号</span>
-                        <span className="detail-info-value">{selectedFlight.aircraftNumber}</span>
+                  {/* 蓝色方块 - 基本信息内容 */}
+                  <div className="detail-basic-info-box">
+                    {/* 上部分 */}
+                    <div className="detail-basic-info-part">
+                      {/* 机号、大机型、机型 */}
+                      <div className="detail-info-row">
+                        {selectedFlight.aircraftNumber && (
+                          <div className="detail-info-item">
+                            <span className="detail-info-label">机号</span>
+                            <span className="detail-info-value">{selectedFlight.aircraftNumber}</span>
+                          </div>
+                        )}
+                        {selectedFlight.largeAircraftType && (
+                          <div className="detail-info-item">
+                            <span className="detail-info-label">大机型</span>
+                            <span className="detail-info-value">{selectedFlight.largeAircraftType}</span>
+                          </div>
+                        )}
+                        {selectedFlight.aircraftType && (
+                          <div className="detail-info-item">
+                            <span className="detail-info-label">机型</span>
+                            <span className="detail-info-value">{selectedFlight.aircraftType}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {selectedFlight.largeAircraftType && (
-                      <div className="detail-info-item">
-                        <span className="detail-info-label">大机型</span>
-                        <span className="detail-info-value">{selectedFlight.largeAircraftType}</span>
-                      </div>
-                    )}
-                    {selectedFlight.aircraftType && (
-                      <div className="detail-info-item">
-                        <span className="detail-info-label">机型</span>
-                        <span className="detail-info-value">{selectedFlight.aircraftType}</span>
-                      </div>
-                    )}
-                  </div>
 
-                  {/* PF工号、PF技术、执飞单位 */}
-                  <div className="detail-info-row">
-                    {(() => {
-                      // 从crewMembers中获取PF人员信息（通常是第一个成员，role为'Tb'）
-                      const pfMember = selectedFlight.crewMembers?.find(m => m.role === 'Tb') || selectedFlight.crewMembers?.[0]
-                      const pfPerson = pfMember ? getPersonById(pfMember.personId) : null
-                      
-                      // 优先使用person数据中的信息，如果没有则使用航班数据中的
-                      const pfId = pfPerson?.pfId || selectedFlight.pfId
-                      const pfTechnology = pfPerson?.pfTechnology || selectedFlight.pfTechnology
-                      
-                      return (
-                        <>
-                          {pfId && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">PF工号</span>
-                              <span className="detail-info-value">{pfId}</span>
-                            </div>
-                          )}
-                          {pfTechnology && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">PF技术</span>
-                              <span className="detail-info-value">{pfTechnology}</span>
-                            </div>
-                          )}
-                          {selectedFlight.operatingUnit && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">执飞单位</span>
-                              <span className="detail-info-value">{selectedFlight.operatingUnit}</span>
-                            </div>
-                          )}
-                        </>
-                      )
-                    })()}
-                  </div>
-
-                  {/* 机组成员 - 列展示 */}
-                  {selectedFlight.crewMembers && selectedFlight.crewMembers.length > 0 && (
-                    <div className="detail-info-row detail-crew-row">
-                      <span className="detail-info-label detail-crew-title">机组成员</span>
-                      <div className="detail-crew-list">
-                        {selectedFlight.crewMembers.map((member, idx) => {
-                          // 从person数据中获取完整的人员信息
-                          const person = getPersonById(member.personId)
-                          if (!person) return null
+                      {/* PF工号、PF技术、执飞单位 */}
+                      <div className="detail-info-row">
+                        {(() => {
+                          // 从crewMembers中获取PF人员信息（通常是第一个成员，role为'Tb'）
+                          const pfMember = selectedFlight.crewMembers?.find(m => m.role === 'Tb') || selectedFlight.crewMembers?.[0]
+                          const pfPerson = pfMember ? getPersonById(pfMember.personId) : null
+                          
+                          // 优先使用person数据中的信息，如果没有则使用航班数据中的
+                          const pfId = pfPerson?.pfId || selectedFlight.pfId
+                          const pfTechnology = pfPerson?.pfTechnology || selectedFlight.pfTechnology
                           
                           return (
-                            <div 
-                              key={idx} 
-                              className={`detail-crew-member ${idx === 1 ? 'detail-crew-highlight' : ''} detail-crew-clickable`}
-                              onClick={() => {
-                                // 跳转到person tab
-                                setSidebarTab('person')
-                                setIsFromTab(false) // 从人员点击进入，不是从tab进入
-                                
-                                // 找到该人员所属的机队并展开
-                                if (person.teamId) {
-                                  const team = getTeamById(person.teamId)
-                                  if (team) {
-                                    // 展开该人员所属的机队
-                                    setExpandedTeamIds([team.id])
-                                    // 不选中人员，显示机队信息
-                                    setSelectedPersonId(null)
-                                  } else {
-                                    // 如果找不到机队，则选中该人员
-                                    setSelectedPersonId(person.id)
-                                    setExpandedTeamIds([])
-                                  }
-                                } else {
-                                  // 如果人员没有teamId，则选中该人员
-                                  setSelectedPersonId(person.id)
-                                  setExpandedTeamIds([])
-                                }
-                              }}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              <span className="detail-crew-name">{person.name}</span>
-                              <span className="detail-crew-role">{member.role}</span>
-                              <span className="detail-crew-id">{person.pfId}</span>
-                            </div>
+                            <>
+                              {pfId && (
+                                <div className="detail-info-item">
+                                  <span className="detail-info-label">PF工号</span>
+                                  <span className="detail-info-value">{pfId}</span>
+                                </div>
+                              )}
+                              {pfTechnology && (
+                                <div className="detail-info-item">
+                                  <span className="detail-info-label">PF技术</span>
+                                  <span className="detail-info-value">{pfTechnology}</span>
+                                </div>
+                              )}
+                              {selectedFlight.operatingUnit && (
+                                <div className="detail-info-item">
+                                  <span className="detail-info-label">执飞单位</span>
+                                  <span className="detail-info-value">{selectedFlight.operatingUnit}</span>
+                                </div>
+                              )}
+                            </>
                           )
-                        })}
+                        })()}
                       </div>
                     </div>
-                  )}
 
-                  {/* 放行签派员 */}
-                  {selectedFlight.dispatcher && (
-                    <div className="detail-info-row">
-                      <div className="detail-info-item">
-                        <span className="detail-info-label">放行签派员</span>
-                        <span className="detail-info-value">{selectedFlight.dispatcher}</span>
-                      </div>
+                    {/* 虚线分隔 */}
+                    <div className="detail-basic-info-divider"></div>
+
+                    {/* 中部分 - 机组成员 */}
+                    <div className="detail-basic-info-part">
+                      {selectedFlight.crewMembers && selectedFlight.crewMembers.length > 0 && (
+                        <div className="detail-info-row detail-crew-row">
+                          <span className="detail-info-label detail-crew-title">机组成员</span>
+                          <div className="detail-crew-list">
+                            {selectedFlight.crewMembers.map((member, idx) => {
+                              // 从person数据中获取完整的人员信息
+                              const person = getPersonById(member.personId)
+                              if (!person) return null
+                              
+                              return (
+                                <div 
+                                  key={idx} 
+                                  className={`detail-crew-member ${idx === 1 ? 'detail-crew-highlight' : ''} detail-crew-clickable`}
+                                  onClick={() => {
+                                    // 跳转到person tab
+                                    setSidebarTab('person')
+                                    setIsFromTab(false) // 从人员点击进入，不是从tab进入
+                                    
+                                    // 找到该人员所属的机队并展开
+                                    if (person.teamId) {
+                                      const team = getTeamById(person.teamId)
+                                      if (team) {
+                                        // 展开该人员所属的机队
+                                        setExpandedTeamIds([team.id])
+                                        // 不选中人员，显示机队信息
+                                        setSelectedPersonId(null)
+                                      } else {
+                                        // 如果找不到机队，则选中该人员
+                                        setSelectedPersonId(person.id)
+                                        setExpandedTeamIds([])
+                                      }
+                                    } else {
+                                      // 如果人员没有teamId，则选中该人员
+                                      setSelectedPersonId(person.id)
+                                      setExpandedTeamIds([])
+                                    }
+                                  }}
+                                  style={{ cursor: 'pointer' }}
+                                >
+                                  <span className="detail-crew-name">{person.name}</span>
+                                  {person.riskValue !== undefined && (
+                                    <span 
+                                      className="detail-crew-risk"
+                                      style={{ color: getRiskValueColorFromNumber(person.riskValue) }}
+                                    >
+                                      ({person.riskValue.toFixed(1)})
+                                    </span>
+                                  )}
+                                  <span className="detail-crew-role">{member.role}</span>
+                                  <span className="detail-crew-id">{person.pfId}</span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  {/* 备降机场 */}
-                  {selectedFlight.alternateAirport && (
-                    <div className="detail-info-row">
-                      <div className="detail-info-item">
-                        <span className="detail-info-label">备降机场</span>
-                        <span className="detail-info-value">{selectedFlight.alternateAirport}</span>
-                      </div>
+                    {/* 虚线分隔 */}
+                    {(selectedFlight.dispatcher || selectedFlight.alternateAirport) && (
+                      <div className="detail-basic-info-divider"></div>
+                    )}
+
+                    {/* 下部分 */}
+                    <div className="detail-basic-info-part">
+                      {/* 放行签派员 */}
+                      {selectedFlight.dispatcher && (
+                        <div className="detail-info-row">
+                          <div className="detail-info-item">
+                            <span className="detail-info-label">放行签派员</span>
+                            <span className="detail-info-value">{selectedFlight.dispatcher}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 备降机场 */}
+                      {selectedFlight.alternateAirport && (
+                        <div className="detail-info-row">
+                          <div className="detail-info-item">
+                            <span className="detail-info-label">备降机场</span>
+                            <span className="detail-info-value">{selectedFlight.alternateAirport}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
 
-                  {/* 风险值 */}
-                  <div className="detail-info-section">
-                    <div className="detail-subsection-title">风险值</div>
+                  {/* 风险值 - 独立方块 */}
+                  <div className="detail-risk-section-box">
+                    <div className="detail-subsection-title">
+                      <span>风险值</span>
+                    </div>
                     <div className="detail-risk-values-inline">
+                      {/* 第一行：人、机、环、滑出 */}
                       <div className="detail-risk-value-item">
                         <span className="detail-risk-label">人</span>
                         <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.humanRisk) }}>
@@ -823,46 +942,55 @@ export function Sidebar() {
                         </span>
                       </div>
                       {selectedFlight.riskValues && (
-                        <>
-                          <div className="detail-risk-value-item">
-                            <span className="detail-risk-label">滑出</span>
-                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiOut) }}>
-                              {selectedFlight.riskValues.taxiOut.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="detail-risk-value-item">
-                            <span className="detail-risk-label">起飞</span>
-                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.takeoff) }}>
-                              {selectedFlight.riskValues.takeoff.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="detail-risk-value-item">
-                            <span className="detail-risk-label">巡航</span>
-                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.cruise) }}>
-                              {selectedFlight.riskValues.cruise.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="detail-risk-value-item">
-                            <span className="detail-risk-label">着陆</span>
-                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.landing) }}>
-                              {selectedFlight.riskValues.landing.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="detail-risk-value-item">
-                            <span className="detail-risk-label">滑入</span>
-                            <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiIn) }}>
-                              {selectedFlight.riskValues.taxiIn.toFixed(2)}
-                            </span>
-                          </div>
-                        </>
+                        <div className="detail-risk-value-item">
+                          <span className="detail-risk-label">滑出</span>
+                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiOut) }}>
+                            {selectedFlight.riskValues.taxiOut.toFixed(2)}
+                          </span>
+                        </div>
                       )}
                     </div>
+                    {/* 分隔线 */}
+                    {selectedFlight.riskValues && (
+                      <div className="detail-risk-divider"></div>
+                    )}
+                    {/* 第二行：起飞、巡航、着陆、滑入 */}
+                    {selectedFlight.riskValues && (
+                      <div className="detail-risk-values-inline">
+                        <div className="detail-risk-value-item">
+                          <span className="detail-risk-label">起飞</span>
+                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.takeoff) }}>
+                            {selectedFlight.riskValues.takeoff.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="detail-risk-value-item">
+                          <span className="detail-risk-label">巡航</span>
+                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.cruise) }}>
+                            {selectedFlight.riskValues.cruise.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="detail-risk-value-item">
+                          <span className="detail-risk-label">着陆</span>
+                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.landing) }}>
+                            {selectedFlight.riskValues.landing.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="detail-risk-value-item">
+                          <span className="detail-risk-label">滑入</span>
+                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiIn) }}>
+                            {selectedFlight.riskValues.taxiIn.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  {/* 预测风险 - 根据左侧sidebar的风险类型筛选显示 */}
+                  {/* 预测风险 - 独立方块 */}
                   {selectedFlight.predictedRisks && selectedFlight.predictedRisks.length > 0 && (
-                    <div className="detail-info-section">
-                      <div className="detail-subsection-title">预测风险</div>
+                    <div className="detail-risk-section-box">
+                      <div className="detail-subsection-title">
+                        <span>预测风险</span>
+                      </div>
                       <div className="detail-predicted-risks-inline">
                         {selectedFlight.predictedRisks
                           .filter((risk) => {
@@ -870,17 +998,21 @@ export function Sidebar() {
                             if (riskTypes.length === 0) return true
                             return riskTypes.includes(risk.type)
                           })
-                          .map((risk, idx) => (
-                            <div 
-                              key={idx} 
-                              className="detail-predicted-item-inline"
-                              style={{ 
-                                color: risk.severity === 'red' ? '#ef4444' : risk.severity === 'orange' ? '#f97316' : '#eab308'
-                              }}
-                            >
-                              {risk.type}
-                            </div>
-                          ))}
+                          .map((risk, idx) => {
+                            const riskColor = risk.severity === 'red' ? '#ef4444' : risk.severity === 'orange' ? '#f97316' : '#eab308'
+                            return (
+                              <div 
+                                key={idx} 
+                                className="detail-predicted-item-inline"
+                                style={{ 
+                                  color: riskColor,
+                                  borderColor: riskColor
+                                }}
+                              >
+                                {risk.type}
+                              </div>
+                            )
+                          })}
                       </div>
                     </div>
                   )}
@@ -898,15 +1030,19 @@ export function Sidebar() {
                     const riskBgColor = getFlightRiskBackgroundColor(maxRisk)
                     const riskHoverBgColor = getFlightRiskHoverBackgroundColor(maxRisk)
                     const riskBorderColor = getRiskValueColorFromNumber(maxRisk) + '40' // 25%透明度的边框
+                    const riskZone = getFlightRiskZone(maxRisk)
+                    const isHighlighted = highlightedFlightRouteId === flight.id
                     
                     return (
                       <div 
                         key={flight.id} 
-                        className="sidebar-flight-item"
+                        className={`sidebar-flight-item ${isHighlighted ? `highlighted highlighted-${riskZone}` : ''}`}
                         style={{ 
                           background: riskBgColor,
                           borderColor: riskBorderColor,
+                          cursor: 'pointer',
                         }}
+                        onClick={() => handleFlightViewClick(flight)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = riskHoverBgColor
                         }}
@@ -915,16 +1051,19 @@ export function Sidebar() {
                         }}
                       >
                         <div className="flight-item-header">
-                          <div className="flight-number">{flight.flightNumber}</div>
-                          <button 
-                            className="flight-view-button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleFlightViewClick(flight)
+                          <div className="flight-number">
+                            <img src={airLogoIcon} alt="airline logo" className="flight-airline-logo" />
+                            {flight.flightNumber}
+                          </div>
+                          <div 
+                            className="flight-status-badge flight-status-badge-header" 
+                            style={{ 
+                              backgroundImage: `url(${typeIcon})`,
+                              color: getStatusTextColor(flight.status)
                             }}
                           >
-                            <span>View</span>
-                          </button>
+                            {flight.status}
+                          </div>
                         </div>
                         <div className="flight-item-body">
                           <div className="flight-departure">
@@ -934,16 +1073,13 @@ export function Sidebar() {
                             </div>
                           </div>
                           <div className="flight-status-section">
-                            <div className="flight-status-badge" style={{ backgroundColor: getStatusColor(flight.status) }}>
-                              {flight.status}
-                            </div>
-                            {(flight.status === '巡航中' || flight.status === '未起飞') && (
                               <div className="flight-route">
+                              <img src={planeIcon} alt="plane" className="flight-route-plane" />
+                              <div className="flight-route-airports">
                                 <span className="flight-route-from">{flight.fromAirportZh}</span>
-                                <span className="flight-route-arrow">→</span>
                                 <span className="flight-route-to">{flight.toAirportZh}</span>
                               </div>
-                            )}
+                            </div>
                           </div>
                           <div className="flight-arrival">
                             <div className="flight-time-info">
@@ -953,15 +1089,23 @@ export function Sidebar() {
                           </div>
                         </div>
                         <div className="flight-item-footer">
+                          <div className="flight-risk-values">
                           <span className="flight-risk-value">
-                            人 <span style={{ color: getRiskValueColorFromNumber(flight.humanRisk) }}>{flight.humanRisk.toFixed(1)}</span>
+                              人<span style={{ color: getRiskValueColorFromNumber(flight.humanRisk) }}>{flight.humanRisk.toFixed(1)}</span>
                           </span>
                           <span className="flight-risk-value">
-                            机 <span style={{ color: getRiskValueColorFromNumber(flight.machineRisk) }}>{flight.machineRisk.toFixed(1)}</span>
+                              机<span style={{ color: getRiskValueColorFromNumber(flight.machineRisk) }}>{flight.machineRisk.toFixed(1)}</span>
                           </span>
                           <span className="flight-risk-value">
-                            环 <span style={{ color: getRiskValueColorFromNumber(flight.environmentRisk) }}>{flight.environmentRisk.toFixed(1)}</span>
+                              环<span style={{ color: getRiskValueColorFromNumber(flight.environmentRisk) }}>{flight.environmentRisk.toFixed(1)}</span>
                           </span>
+                          </div>
+                          <button 
+                            className="flight-view-button"
+                            onClick={(e) => handleFlightViewButtonClick(flight, e)}
+                          >
+                            <img src={viewIcon} alt="view" className="view-icon" />
+                          </button>
                         </div>
                       </div>
                     )
@@ -991,6 +1135,7 @@ export function Sidebar() {
                     }}
                   >
                     取消选中
+                    <img src={closeIcon} alt="close" className="close-icon" />
                   </button>
                 </div>
                 {(() => {
@@ -1000,86 +1145,80 @@ export function Sidebar() {
                   return (
                     <>
                       <div className="person-detail-card">
-                        <div className="person-detail-icon">👤</div>
-                        <div className="person-detail-name">{person.name}</div>
-                        <div className="person-detail-info">
-                          <div className="person-detail-item">
-                            <span className="person-detail-label">PF工号</span>
-                            <span className="person-detail-value">{person.pfId}</span>
+                        <div className="person-detail-card-overlay" />
+                        <div className="person-detail-header">
+                          <div className="person-detail-avatar">
+                            <img src={personRowIcon} alt="person" className="person-detail-avatar-img" />
                           </div>
-                          <div className="person-detail-item">
-                            <span className="person-detail-label">PF技术等级</span>
-                            <span className="person-detail-value">{person.pfTechnology}</span>
+                          <div className="person-detail-header-info">
+                            <div className="person-detail-header-name">{person.name}</div>
+                            <div className="person-detail-header-meta">
+                              <span className="person-detail-meta-label">PF工号:</span>
+                              <span className="person-detail-meta-value">{person.pfId}</span>
+                            </div>
+                            <div className="person-detail-header-meta">
+                              <span className="person-detail-meta-label">PF技术等级:</span>
+                              <span className="person-detail-meta-value">{person.pfTechnology}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
                       
                       {/* 基本信息 */}
-                      <div className="detail-basic-info">
-                        <div className="detail-section-title">基本信息</div>
-                        
-                        <div className="detail-info-row">
-                          {person.age !== undefined && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">年龄</span>
-                              <span className="detail-info-value">{person.age}岁</span>
-                            </div>
-                          )}
-                          {person.flightYears !== undefined && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">飞行年限</span>
-                              <span className="detail-info-value">{person.flightYears}年</span>
-                            </div>
-                          )}
+                      <div className="person-basic-info">
+                        <div className="person-basic-title">
+                          <img src={radarIcon} alt="radar" className="person-basic-title-icon" />
+                          <span>基本信息</span>
                         </div>
-                        
-                        <div className="detail-info-row">
-                          {person.totalFlightHours !== undefined && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">总飞行时长</span>
-                              <span className="detail-info-value">{person.totalFlightHours.toLocaleString()}小时</span>
-                            </div>
-                          )}
-                          {person.recent90DaysFlightHours !== undefined && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">近90天飞行时长</span>
-                              <span className="detail-info-value">{person.recent90DaysFlightHours}小时</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="detail-info-row">
-                          {person.certifiedAircraftTypes && person.certifiedAircraftTypes.length > 0 && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">已认证机型</span>
-                              <span className="detail-info-value">{person.certifiedAircraftTypes.join('/')}</span>
-                            </div>
-                          )}
-                          {person.currentAircraftType && (
-                            <div className="detail-info-item">
-                              <span className="detail-info-label">当前执飞机型</span>
-                              <span className="detail-info-value">{person.currentAircraftType}</span>
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* 风险值评估 */}
-                        {person.riskValue !== undefined && (
-                          <div className="detail-info-section">
-                            <div className="detail-subsection-title">风险值评估</div>
-                            <div className="detail-risk-values-inline">
-                              <div className="detail-risk-value-item">
-                                <span className="detail-risk-label">风险值</span>
-                                <span 
-                                  className="detail-risk-number" 
-                                  style={{ color: getRiskValueColorFromNumber(person.riskValue) }}
-                                >
-                                  {person.riskValue.toFixed(1)}
-                                </span>
-                              </div>
-                            </div>
+                        <div className="person-basic-card">
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">年龄:</span>
+                            <span className="person-basic-value">
+                              {person.age !== undefined ? `${person.age}岁` : '--'}
+                            </span>
                           </div>
-                        )}
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">飞行年限:</span>
+                            <span className="person-basic-value">
+                              {person.flightYears !== undefined ? `${person.flightYears}年` : '--'}
+                            </span>
+                          </div>
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">总飞行时长:</span>
+                            <span className="person-basic-value">
+                              {person.totalFlightHours !== undefined ? `${person.totalFlightHours.toLocaleString()}小时` : '--'}
+                            </span>
+                          </div>
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">近90天飞行时长:</span>
+                            <span className="person-basic-value">
+                              {person.recent90DaysFlightHours !== undefined ? `${person.recent90DaysFlightHours}小时` : '--'}
+                            </span>
+                          </div>
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">已认证机型:</span>
+                            <span className="person-basic-value">
+                              {person.certifiedAircraftTypes && person.certifiedAircraftTypes.length > 0
+                                ? person.certifiedAircraftTypes.join('/')
+                                : '--'}
+                            </span>
+                          </div>
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">当前执飞机型:</span>
+                            <span className="person-basic-value">
+                              {person.currentAircraftType || '--'}
+                            </span>
+                          </div>
+                          <div className="person-basic-item">
+                            <span className="person-basic-label">风险值评估:</span>
+                            <span 
+                              className="person-basic-value person-basic-risk"
+                              style={{ color: person.riskValue !== undefined ? getRiskValueColorFromNumber(person.riskValue) : '#f97316' }}
+                            >
+                              {person.riskValue !== undefined ? person.riskValue.toFixed(1) : '--'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </>
                   )
@@ -1097,7 +1236,11 @@ export function Sidebar() {
                   filteredTeams.map(team => {
                   const isExpanded = expandedTeamIds.includes(team.id)
                   return (
-                    <div key={team.id} className="team-card">
+                    <div 
+                      key={team.id} 
+                      className={`team-card ${isExpanded ? 'team-card-selected' : ''}`}
+                      style={isExpanded ? { backgroundImage: `url(${personCardBg})` } : {}}
+                    >
                       <div 
                         className="team-card-header"
                         onClick={() => {
@@ -1108,127 +1251,117 @@ export function Sidebar() {
                           }
                         }}
                       >
-                        <div className="team-card-icon">👥</div>
+                        <img src={teamCardIcon} alt="team" className="team-card-icon-img" />
                         <div className="team-card-name">{team.name}</div>
                         <div className="team-card-toggle">{isExpanded ? '▼' : '▶'}</div>
                       </div>
-                      {/* 折叠时显示分队长和成员 */}
+
+                      {/* 折叠时的概要信息 */}
                       {!isExpanded && (
                         <div className="team-card-collapsed">
-                          <div className="team-leader">
-                            <span className="team-leader-label">分队长</span>
+                          <div className="team-summary-row">
+                            <span className="team-summary-label">分队长</span>
                             <span 
-                              className="team-leader-name"
-                              style={{ 
-                                color: team.leader.riskValue !== undefined 
-                                  ? getRiskColor(team.leader.riskValue) 
-                                  : '#cbd5e1' 
-                              }}
+                              className="team-summary-value"
+                              style={{ color: team.leader.riskValue !== undefined ? getRiskColor(team.leader.riskValue) : '#cbd5e1' }}
                             >
                               {team.leader.name}
                             </span>
                           </div>
-                          <div className="team-members">
-                            <span className="team-members-label">成员</span>
-                            <div className="team-members-list">
+                          <div className="team-summary-row">
+                            <span className="team-summary-label">成员</span>
+                            <span className="team-summary-value">
                               {team.members.map((member, idx) => (
                                 <span 
-                                  key={idx} 
-                                  className="team-member-name"
-                                  style={{ 
-                                    color: member.riskValue !== undefined 
-                                      ? getRiskColor(member.riskValue) 
-                                      : '#cbd5e1' 
-                                  }}
+                                  key={idx}
+                                  className="team-summary-member"
+                                  style={{ color: member.riskValue !== undefined ? getRiskColor(member.riskValue) : '#cbd5e1' }}
                                 >
-                                  {member.name}
+                                  {member.name}{idx !== team.members.length - 1 ? '、' : ''}
                                 </span>
                               ))}
-                            </div>
+                            </span>
                           </div>
                         </div>
                       )}
-                      {/* 展开时详细展示每一位的PF技术等级和PF工号 */}
+
+                      {/* 展开后的人员列表 */}
                       {isExpanded && (
                         <div className="team-card-content">
-                          <div className="team-members-detail">
-                            <span className="team-members-label">分队长</span>
-                            <div className="team-members-detail-list">
-                              {(() => {
-                                const leaderPerson = getPersonById(team.leader.id) || team.leader
-                                return (
-                                  <div 
-                                    className="team-member-detail-card"
-                                    onClick={() => {
-                                      setSelectedPersonId(team.leader.id)
-                                      setIsFromTab(false)
-                                    }}
-                                    style={{ cursor: 'pointer' }}
+                          {/* 分队长 */}
+                          <div 
+                            className="person-row"
+                            onClick={() => {
+                              setSelectedPersonId(team.leader.id)
+                              setIsFromTab(false)
+                            }}
+                          >
+                            <div className="person-row-avatar">
+                              <img src={personRowIcon} alt="person" className="person-row-avatar-img" />
+                            </div>
+                            <div className="person-row-main">
+                              <div className="person-row-name">
+                                <span className="person-row-name-text">{team.leader.name}</span>
+                                {team.leader.riskValue !== undefined && (
+                                  <span 
+                                    className="person-row-risk"
+                                    style={{ color: getRiskColor(team.leader.riskValue) }}
                                   >
-                                    <div className="team-member-detail-name">
-                                      {leaderPerson.name}
-                                      {leaderPerson.riskValue !== undefined && (
-                                        <span
-                                          className="team-member-risk"
-                                          style={{ color: getRiskColor(leaderPerson.riskValue) }}
-                                        >
-                                          {' '}({leaderPerson.riskValue.toFixed(1)})
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="team-member-detail-info">
-                                      <div className="team-member-detail-item">
-                                        <span className="team-member-detail-label">PF技术等级</span>
-                                        <span className="team-member-detail-value">{leaderPerson.pfTechnology}</span>
-                                      </div>
-                                      <div className="team-member-detail-item">
-                                        <span className="team-member-detail-label">PF工号</span>
-                                        <span className="team-member-detail-value">{leaderPerson.pfId}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                )
-                              })()}
+                                    ({team.leader.riskValue.toFixed(1)})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="person-row-meta person-row-meta-column">
+                                <div className="person-row-meta-line">
+                                  <span className="person-row-meta-label">PF技术等级:</span>
+                                  <span className="person-row-meta-value">{team.leader.pfTechnology}</span>
+                                </div>
+                                <div className="person-row-meta-line">
+                                  <span className="person-row-meta-label">PF:</span>
+                                  <span className="person-row-meta-value">{team.leader.pfId}</span>
+                                </div>
+                              </div>
                             </div>
                           </div>
-                          <div className="team-members-detail">
-                            <span className="team-members-label">成员</span>
-                            <div className="team-members-detail-list">
-                              {team.members.map((member, idx) => (
-                                <div 
-                                  key={idx} 
-                                  className="team-member-detail-card"
-                                  onClick={() => {
-                                    setSelectedPersonId(member.id)
-                                    setIsFromTab(false)
-                                  }}
-                                  style={{ cursor: 'pointer' }}
-                                >
-                                  <div className="team-member-detail-name">
-                                    {member.name}
-                                    {member.riskValue !== undefined && (
-                                      <span
-                                        className="team-member-risk"
-                                        style={{ color: getRiskColor(member.riskValue) }}
-                                      >
-                                        {' '}({member.riskValue.toFixed(1)})
-                                      </span>
-                                    )}
+
+                          {/* 成员列表 */}
+                          {team.members.map((member, idx) => (
+                            <div 
+                              key={idx} 
+                              className="person-row"
+                              onClick={() => {
+                                setSelectedPersonId(member.id)
+                                setIsFromTab(false)
+                              }}
+                            >
+                              <div className="person-row-avatar">
+                                <img src={personRowIcon} alt="person" className="person-row-avatar-img" />
+                              </div>
+                              <div className="person-row-main">
+                                <div className="person-row-name">
+                                  <span className="person-row-name-text">{member.name}</span>
+                                  {member.riskValue !== undefined && (
+                                    <span 
+                                      className="person-row-risk"
+                                      style={{ color: getRiskColor(member.riskValue) }}
+                                    >
+                                      ({member.riskValue.toFixed(1)})
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="person-row-meta person-row-meta-column">
+                                  <div className="person-row-meta-line">
+                                    <span className="person-row-meta-label">PF技术等级:</span>
+                                    <span className="person-row-meta-value">{member.pfTechnology}</span>
                                   </div>
-                                  <div className="team-member-detail-info">
-                                    <div className="team-member-detail-item">
-                                      <span className="team-member-detail-label">PF技术等级</span>
-                                      <span className="team-member-detail-value">{member.pfTechnology}</span>
-                                    </div>
-                                    <div className="team-member-detail-item">
-                                      <span className="team-member-detail-label">PF工号</span>
-                                      <span className="team-member-detail-value">{member.pfId}</span>
-                                    </div>
+                                  <div className="person-row-meta-line">
+                                    <span className="person-row-meta-label">PF:</span>
+                                    <span className="person-row-meta-value">{member.pfId}</span>
                                   </div>
                                 </div>
-                              ))}
+                              </div>
                             </div>
-                          </div>
+                          ))}
                         </div>
                       )}
                     </div>
