@@ -842,8 +842,8 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
   })
 
   // 2D地图上的机场显示：使用扁平圆形 - 增大尺寸以增强可见性
-  const size = isViewing ? 0.18 : isSelected ? 0.15 : 0.12 // 增大外层光晕半径
-  const innerSize = isViewing ? 0.07 : isSelected ? 0.06 : 0.05 // 增大内层半径
+  const size = isViewing ? 0.12 : isSelected ? 0.10 : 0.08 // 缩小外层光晕半径
+  const innerSize = isViewing ? 0.05 : isSelected ? 0.04 : 0.03 // 缩小内层半径
   const glowSize = size * 1.5 // 添加更大的外层光晕
 
   return (

@@ -6,11 +6,11 @@ import {
   QuadraticBezierCurve3,
   ShaderMaterial,
   Vector3,
-  Group,
+  // Group, // 已隐藏飞机图标，暂时不需要
 } from 'three'
-import { Text} from '@react-three/drei'
+// import { Text} from '@react-three/drei' // 已隐藏飞机图标，暂时不需要
 import { useAppStore } from '../store/useAppStore'
-import { getMachineRiskColor } from '../data/flightData'
+// import { getMachineRiskColor } from '../data/flightData' // 已隐藏飞机图标，暂时不需要
 
 // 顶点着色器
 const vertexShader = `
@@ -72,7 +72,8 @@ interface MapFlightPathProps extends FlightRouteInfo {
 }
 
 // 飞机组件（2D版本）
-function MapFlightPlane({ 
+// 飞机图标组件 - 已隐藏
+/* function MapFlightPlane({ 
   curve, 
   flightNumber,
   fromAirport,
@@ -183,7 +184,7 @@ function MapFlightPlane({
       </Text>
     </group>
   )
-}
+} */
 
 function MapFlightPath({ 
   start, 
@@ -283,7 +284,7 @@ function MapFlightPath({
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <tubeGeometry args={[curve, 64, 0.025, 16, false]} />
+        <tubeGeometry args={[curve, 64, 0.012, 16, false]} />
         <shaderMaterial
           ref={materialRef}
           vertexShader={vertexShader}
@@ -294,8 +295,8 @@ function MapFlightPath({
           depthWrite={false}
         />
       </mesh>
-      {/* 飞机 */}
-      <MapFlightPlane
+      {/* 飞机 - 已隐藏 */}
+      {/* <MapFlightPlane
         curve={curve}
         color={color}
         flightNumber={flightNumber}
@@ -307,7 +308,7 @@ function MapFlightPath({
         humanRisk={humanRisk}
         machineRisk={machineRisk}
         environmentRisk={environmentRisk}
-      />
+      /> */}
     </group>
   )
 }

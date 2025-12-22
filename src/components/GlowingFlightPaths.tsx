@@ -6,11 +6,11 @@ import {
   QuadraticBezierCurve3,
   ShaderMaterial,
   Vector3,
-  Group,
+  // Group, // 已隐藏飞机图标，暂时不需要
 } from 'three'
-import { Text } from '@react-three/drei'
+// import { Text } from '@react-three/drei' // 已隐藏飞机图标，暂时不需要
 import { useAppStore } from '../store/useAppStore'
-import { getMachineRiskColor } from '../data/flightData'
+// import { getMachineRiskColor } from '../data/flightData' // 已隐藏飞机图标，暂时不需要
 
 // 顶点着色器
 const vertexShader = `
@@ -73,7 +73,8 @@ interface GlowingFlightPathProps extends FlightRouteInfo {
 }
 
 // 飞机组件
-function FlightPlane({ 
+// 飞机图标组件 - 已隐藏
+/* function FlightPlane({ 
   curve, 
   flightNumber,
   fromAirport,
@@ -203,29 +204,29 @@ function FlightPlane({
     setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
   }, [setTooltipPosition])
 
-  return (
-    <group 
-      ref={groupRef}
-      onPointerOver={handlePointerOver}
-      onPointerOut={handlePointerOut}
-      onPointerMove={handlePointerMove}
-    >
-      {/* 飞机图标 - 使用 Text 组件显示飞机 emoji，颜色根据机的风险值 */}
-      <Text
-        position={[0, 0, 0]}
-        fontSize={0.02}
-        color={getMachineRiskColor(machineRisk)}
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.002}
-        outlineColor="#000000"
-        renderOrder={1000}
-      >
-        ✈️
-      </Text>
-    </group>
-  )
-}
+  return null
+  // return (
+  //   <group 
+  //     ref={groupRef}
+  //     onPointerOver={handlePointerOver}
+  //     onPointerOut={handlePointerOut}
+  //     onPointerMove={handlePointerMove}
+  //   >
+  //     <Text
+  //       position={[0, 0, 0]}
+  //       fontSize={0.02}
+  //       color={getMachineRiskColor(machineRisk)}
+  //       anchorX="center"
+  //       anchorY="middle"
+  //       outlineWidth={0.002}
+  //       outlineColor="#000000"
+  //       renderOrder={1000}
+  //     >
+  //       ✈️
+  //     </Text>
+  //   </group>
+  // )
+} */
 
 function GlowingFlightPath({ 
   start, 
@@ -326,7 +327,7 @@ function GlowingFlightPath({
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <tubeGeometry args={[curve, 64, 0.002, 16, false]} />
+        <tubeGeometry args={[curve, 64, 0.001, 16, false]} />
         <shaderMaterial
           ref={materialRef}
           vertexShader={vertexShader}
@@ -337,8 +338,8 @@ function GlowingFlightPath({
           depthWrite={false}
         />
       </mesh>
-      {/* 飞机 */}
-      <FlightPlane
+      {/* 飞机 - 已隐藏 */}
+      {/* <FlightPlane
         curve={curve}
         color={color}
         flightNumber={flightNumber}
@@ -350,7 +351,7 @@ function GlowingFlightPath({
         humanRisk={humanRisk}
         machineRisk={machineRisk}
         environmentRisk={environmentRisk}
-      />
+      /> */}
     </group>
   )
 }

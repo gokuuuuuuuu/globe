@@ -1805,7 +1805,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <sphereGeometry args={[isViewing ? 0.025 : isSelected ? 0.020 : 0.016, 16, 16]} />
+        <sphereGeometry args={[isViewing ? 0.016 : isSelected ? 0.013 : 0.010, 16, 16]} />
         <meshBasicMaterial
           ref={(ref) => { if (ref) materialRefs.current.outer = ref }}
           color={airport.color}
@@ -1815,7 +1815,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       </mesh>
       {/* 中层光晕 - 增强亮度 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[isViewing ? 0.015 : isSelected ? 0.012 : 0.010, 16, 16]} />
+        <sphereGeometry args={[isViewing ? 0.010 : isSelected ? 0.008 : 0.006, 16, 16]} />
         <meshBasicMaterial
           ref={(ref) => { if (ref) materialRefs.current.middle = ref }}
           color={airport.color}
@@ -1825,7 +1825,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       </mesh>
       {/* 内层亮点 - 增强亮度 */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[isViewing ? 0.008 : isSelected ? 0.006 : 0.005, 8, 8]} />
+        <sphereGeometry args={[isViewing ? 0.005 : isSelected ? 0.004 : 0.003, 8, 8]} />
         <meshBasicMaterial
           color="#ffffff"
           transparent
@@ -1836,7 +1836,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       {isViewing && (
         <group ref={ringRef}>
           <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[0.015, 0.025, 32]} />
+            <ringGeometry args={[0.010, 0.016, 32]} />
             <meshBasicMaterial
               ref={(ref) => { if (ref) materialRefs.current.ring = ref }}
               color={airport.color}
