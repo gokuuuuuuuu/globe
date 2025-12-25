@@ -4,9 +4,13 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
 import { Sidebar } from '../components/Sidebar'
-import { WindLegend, TemperatureLegend } from '../components/Legend'
+import { WindLegend, TemperatureLegend, PrecipitationLegend, FogLegend, MoistureLegend, LightningLegend } from '../components/Legend'
 import { WindLayer } from './windLayer'
 import { TemperatureLayer } from './TemperatureLayer'
+import { PrecipitationLayer } from './PrecipitationLayer'
+import { FogLayer } from './FogLayer'
+import { MoistureLayer } from './MoistureLayer'
+import { LightningLayer } from './LightningLayer'
 import titleImage from '../assets/title.png'
 
 import {
@@ -120,8 +124,39 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     selectedFlightRouteId,
     showWindLayer,
     showTemperatureLayer,
+    showPrecipitationLayer,
+    showFogLayer,
+    showMoistureLayer,
+    showLightningLayer,
     showLabels,
+    showPreferencesMenu,
+    setShowPreferencesMenu,
+    airportCodeFormat,
+    setAirportCodeFormat,
   } = useAppStore()
+  const preferencesMenuRef = useRef<HTMLDivElement>(null)
+  const loginStatusRef = useRef<HTMLDivElement>(null)
+  
+  // 点击外部关闭菜单
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        preferencesMenuRef.current &&
+        !preferencesMenuRef.current.contains(event.target as Node) &&
+        loginStatusRef.current &&
+        !loginStatusRef.current.contains(event.target as Node)
+      ) {
+        setShowPreferencesMenu(false)
+      }
+    }
+    
+    if (showPreferencesMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [showPreferencesMenu, setShowPreferencesMenu])
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
   const globeGroupRef = useRef<Group>(null)
   const isInteractingRef = useRef(false)
@@ -674,10 +709,54 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
               <span>数据更新</span>
             </div>
           </div>
-          <div className="title-right-info">
-            <span style={{color:"#C4C4C4"}}>登录状态：</span>
-            <span className="login-user">admin</span>
-            <span className="login-role">(高级管理)</span>
+          <div className="title-right-info" ref={loginStatusRef}>
+            <div 
+              className="login-status-clickable"
+              onClick={() => setShowPreferencesMenu(!showPreferencesMenu)}
+            >
+              <span style={{color:"#C4C4C4"}}>登录状态：</span>
+              <span className="login-user">admin</span>
+              <span className="login-role">(高级管理)</span>
+            </div>
+            {/* 偏好设置菜单 */}
+            {showPreferencesMenu && (
+              <div 
+                className="preferences-menu" 
+                ref={preferencesMenuRef}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                <div className="preferences-menu-title">偏好设置</div>
+                <div className="preferences-menu-section">
+                  <div className="preferences-menu-section-title">机场编码</div>
+                  <div className="preferences-menu-options">
+                    <label className="preferences-menu-option">
+                      <input
+                        type="radio"
+                        name="airportCode"
+                        value="three"
+                        checked={airportCodeFormat === 'three'}
+                        onChange={() => setAirportCodeFormat('three')}
+                      />
+                      <span>三字码</span>
+                    </label>
+                    <label className="preferences-menu-option">
+                      <input
+                        type="radio"
+                        name="airportCode"
+                        value="four"
+                        checked={airportCodeFormat === 'four'}
+                        onChange={() => setAirportCodeFormat('four')}
+                      />
+                      <span>四字码</span>
+                    </label>
+                  </div>
+                </div>
+                <div className="preferences-menu-footer">
+                  <span className="preferences-menu-logout">退出登录</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -777,6 +856,10 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         minTemp={-40}
         maxTemp={50}
       />
+      <PrecipitationLegend visible={showPrecipitationLayer} />
+      <FogLegend visible={showFogLayer} />
+      <MoistureLegend visible={showMoistureLayer} />
+      <LightningLegend visible={showLightningLayer} />
       <Canvas 
         camera={{ position: [0, 0, 5], fov: 50 }}
         performance={{ min: 0.5 }}
@@ -883,6 +966,32 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 maxTemp={50}
                 opacity={0.75}
                 showTemperatureLabels={false}
+              />
+            )}
+            {/* 降水图层 */}
+            {showPrecipitationLayer && (
+              <PrecipitationLayer 
+                radius={GLOBE_RADIUS}
+                opacity={0.75}
+              />
+            )}
+            {showFogLayer && (
+              <FogLayer 
+                radius={GLOBE_RADIUS + 0.01}
+                opacity={0.75}
+              />
+            )}
+            {showMoistureLayer && (
+              <MoistureLayer 
+                radius={GLOBE_RADIUS + 0.01}
+                particleCount={20000}
+                trailLength={15}
+                speedScale={2.5}
+              />
+            )}
+            {showLightningLayer && (
+              <LightningLayer 
+                radius={GLOBE_RADIUS + 0.01}
               />
             )}
             <group>

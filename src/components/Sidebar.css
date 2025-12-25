@@ -9,7 +9,7 @@
   backdrop-filter: none;
   display: flex;
   flex-direction: column;
-  z-index: 200;
+  z-index: 2;
   overflow: hidden;
   color: #e2e8f0;
   pointer-events: none;
@@ -477,7 +477,7 @@
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 24px; /* 减少内边距从16px到12px */
+  padding: 0px 24px 12px 24px; /* 减少内边距从16px到12px */
   pointer-events: auto;
 }
 

@@ -1,5 +1,5 @@
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { useMemo, useRef, useCallback } from 'react'
+import { useMemo, useRef, useCallback, useEffect } from 'react'
 import {
   Color,
   DoubleSide,
@@ -70,6 +70,8 @@ interface GlowingFlightPathProps extends FlightRouteInfo {
   end: Vector3
   radius: number
   color?: string
+  materialRefs?: React.MutableRefObject<Map<string, ShaderMaterial>>
+  routeId?: string
 }
 
 // 飞机组件
@@ -241,11 +243,23 @@ function GlowingFlightPath({
   scheduledArrival,
   humanRisk,
   machineRisk,
-  environmentRisk
+  environmentRisk,
+  materialRefs,
+  routeId
 }: GlowingFlightPathProps) {
   const materialRef = useRef<ShaderMaterial>(null)
   const { gl } = useThree()
   const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
+  
+  // 清理材质引用
+  useEffect(() => {
+    if (!materialRefs || !routeId) return
+    const refsMap = materialRefs.current
+    return () => {
+      refsMap.delete(routeId)
+    }
+  }, [materialRefs, routeId])
+  
   
   // 创建曲线几何
   const curve = useMemo(() => {
@@ -270,18 +284,13 @@ function GlowingFlightPath({
     return new QuadraticBezierCurve3(vStart, controlPoint, vEnd)
   }, [start, end, radius])
 
-  // 颜色 uniform
+  // 颜色 uniform - 使用共享的时间值（在父组件中统一更新）
   const uniforms = useMemo(() => ({
     uTime: { value: 0 },
     uColor: { value: new Color(color) },
   }), [color])
 
-  // 更新时间uniform以实现动画效果
-  useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value += 0.01
-    }
-  })
+  // 移除单独的 useFrame，改为在父组件中统一更新
 
   // 交互事件处理
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
@@ -327,9 +336,17 @@ function GlowingFlightPath({
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <tubeGeometry args={[curve, 64, 0.001, 16, false]} />
+        <tubeGeometry args={[curve, 32, 0.001, 8, false]} />
         <shaderMaterial
-          ref={materialRef}
+          ref={(ref) => {
+            if (ref) {
+              materialRef.current = ref
+              // 立即添加到共享 Map
+              if (materialRefs && routeId) {
+                materialRefs.current.set(routeId, ref)
+              }
+            }
+          }}
           vertexShader={vertexShader}
           fragmentShader={fragmentShader}
           uniforms={uniforms}
@@ -370,6 +387,19 @@ interface GlowingFlightPathsProps {
 
 export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) {
   const { viewingFlightRouteId } = useAppStore()
+  const materialRefs = useRef<Map<string, ShaderMaterial>>(new Map())
+  const sharedTime = useRef(0)
+  
+  // 统一更新所有航线的动画时间
+  useFrame((_state, delta) => {
+    sharedTime.current += delta * 0.5
+    // 批量更新所有材质的 uniform
+    materialRefs.current.forEach((material) => {
+      if (material && material.uniforms) {
+        material.uniforms.uTime.value = sharedTime.current
+      }
+    })
+  })
   
   return (
     <group>
@@ -395,6 +425,8 @@ export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) 
             humanRisk={route.humanRisk}
             machineRisk={route.machineRisk}
             environmentRisk={route.environmentRisk}
+            materialRefs={materialRefs}
+            routeId={route.id}
           />
         )
       })}

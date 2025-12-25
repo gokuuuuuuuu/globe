@@ -164,3 +164,249 @@ export function TemperatureLegend({ visible, minTemp = -40, maxTemp = 50 }: Temp
   )
 }
 
+interface PrecipitationLegendProps {
+  visible: boolean
+}
+
+export function PrecipitationLegend({ visible }: PrecipitationLegendProps) {
+  const { ref, handleMouseDown, style } = useDraggableLegend(!visible)
+
+  if (!visible) return null
+
+  // 降水类型（与 PrecipitationLayer 着色器中的颜色对应）
+  const precipitationTypes = [
+    { 
+      type: '雨', 
+      color: 'rgb(31, 97, 217)', // vec3(0.12, 0.38, 0.85) 转换为 0-255
+      description: '降雨',
+    },
+    { 
+      type: '雪', 
+      color: 'rgb(235, 242, 255)', // vec3(0.92, 0.95, 1.0) 转换为 0-255
+      description: '降雪',
+    },
+    { 
+      type: '冻雨', 
+      color: 'rgb(191, 115, 230)', // vec3(0.75, 0.45, 0.9) 转换为 0-255
+      description: '冻雨',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="legend-container precipitation-legend" style={style}>
+      <div className="legend-header" onMouseDown={handleMouseDown}>
+        <span className="legend-icon">🌧️</span>
+        <span className="legend-title">降水图例</span>
+        <span className="legend-drag-hint">
+          <span className="legend-drag-icon">⋮⋮</span>
+          拖拽
+        </span>
+      </div>
+      <div className="legend-content">
+        {precipitationTypes.map((item, index) => (
+          <div key={index} className="legend-item">
+            <div 
+              className="legend-color-bar" 
+              style={{ backgroundColor: item.color }}
+            />
+            <div className="legend-label-group">
+              <span className="legend-value">{item.type}</span>
+              <span className="legend-description">{item.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="legend-footer">
+        <span className="legend-unit">根据温度自动区分降水类型</span>
+      </div>
+    </div>
+  )
+}
+
+interface FogLegendProps {
+  visible: boolean
+}
+
+export function FogLegend({ visible }: FogLegendProps) {
+  const { ref, handleMouseDown, style } = useDraggableLegend(!visible)
+
+  if (!visible) return null
+
+  // 雾的类型（根据露点差判定）
+  const fogTypes = [
+    { 
+      type: '浓雾', 
+      condition: '≤ 0.5°C',
+      color: 'rgba(242, 242, 247, 0.95)', // 白色/灰白色，高不透明度
+      description: '露点差 ≤ 0.5°C',
+    },
+    { 
+      type: '薄雾', 
+      condition: '0.5 ~ 2°C',
+      color: 'rgba(242, 242, 247, 0.6)', // 白色/灰白色，中等不透明度
+      description: '露点差 0.5 ~ 2°C',
+    },
+    { 
+      type: '无雾', 
+      condition: '> 2°C',
+      color: 'transparent',
+      description: '露点差 > 2°C',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="legend-container fog-legend" style={style}>
+      <div className="legend-header" onMouseDown={handleMouseDown}>
+        <span className="legend-icon">🌫️</span>
+        <span className="legend-title">雾图层图例</span>
+        <span className="legend-drag-hint">
+          <span className="legend-drag-icon">⋮⋮</span>
+          拖拽
+        </span>
+      </div>
+      <div className="legend-content">
+        {fogTypes.map((item, index) => (
+          <div key={index} className="legend-item">
+            <div 
+              className="legend-color-bar" 
+              style={{ 
+                backgroundColor: item.color,
+                border: item.color === 'transparent' ? '1px solid rgba(200, 200, 200, 0.5)' : 'none'
+              }}
+            />
+            <div className="legend-label-group">
+              <span className="legend-value">{item.type}</span>
+              <span className="legend-description">{item.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+    </div>
+  )
+}
+
+interface MoistureLegendProps {
+  visible: boolean
+}
+
+export function MoistureLegend({ visible }: MoistureLegendProps) {
+  const { ref, handleMouseDown, style } = useDraggableLegend(!visible)
+
+  if (!visible) return null
+
+  // 水汽通量强度等级
+  const moistureLevels = [
+    { 
+      intensity: '低', 
+      color: 'rgb(26, 77, 153)', // 深蓝
+      description: '速度 × 湿度 < 10',
+    },
+    { 
+      intensity: '中', 
+      color: 'rgb(51, 128, 204)', // 蓝色
+      description: '速度 × 湿度 10-20',
+    },
+    { 
+      intensity: '高', 
+      color: 'rgb(77, 179, 230)', // 浅蓝
+      description: '速度 × 湿度 20-40',
+    },
+    { 
+      intensity: '极高', 
+      color: 'rgb(128, 230, 255)', // 亮青
+      description: '速度 × 湿度 > 40',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="legend-container moisture-legend" style={style}>
+      <div className="legend-header" onMouseDown={handleMouseDown}>
+        <span className="legend-icon">💧</span>
+        <span className="legend-title">水汽通量图例</span>
+        <span className="legend-drag-hint">
+          <span className="legend-drag-icon">⋮⋮</span>
+          拖拽
+        </span>
+      </div>
+      <div className="legend-content">
+        {moistureLevels.map((level, index) => (
+          <div key={index} className="legend-item">
+            <div 
+              className="legend-color-bar" 
+              style={{ backgroundColor: level.color }}
+            />
+            <div className="legend-label-group">
+              <span className="legend-value">{level.intensity}</span>
+              <span className="legend-description">{level.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+   
+    </div>
+  )
+}
+
+interface LightningLegendProps {
+  visible: boolean
+}
+
+export function LightningLegend({ visible }: LightningLegendProps) {
+  const { ref, handleMouseDown, style } = useDraggableLegend(!visible)
+
+  if (!visible) return null
+
+  // 雷电强度等级
+  const lightningLevels = [
+    { 
+      intensity: '低', 
+      color: 'rgb(255, 230, 77)', // 黄色
+      description: '概率 0.4-0.6',
+    },
+    { 
+      intensity: '中', 
+      color: 'rgb(255, 243, 128)', // 亮黄
+      description: '概率 0.6-0.8',
+    },
+    { 
+      intensity: '高', 
+      color: 'rgb(255, 255, 179)', // 淡黄
+      description: '概率 0.8-0.9',
+    },
+    { 
+      intensity: '极高', 
+      color: 'rgb(255, 255, 255)', // 白色
+      description: '概率 > 0.9',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="legend-container lightning-legend" style={style}>
+      <div className="legend-header" onMouseDown={handleMouseDown}>
+        <span className="legend-icon">⚡</span>
+        <span className="legend-title">雷电图层图例</span>
+        <span className="legend-drag-hint">
+          <span className="legend-drag-icon">⋮⋮</span>
+          拖拽
+        </span>
+      </div>
+      <div className="legend-content">
+        {lightningLevels.map((level, index) => (
+          <div key={index} className="legend-item">
+            <div 
+              className="legend-color-bar" 
+              style={{ backgroundColor: level.color }}
+            />
+            <div className="legend-label-group">
+              <span className="legend-value">{level.intensity}</span>
+              <span className="legend-description">{level.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+    </div>
+  )
+}
+

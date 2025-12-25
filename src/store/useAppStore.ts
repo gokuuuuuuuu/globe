@@ -63,6 +63,14 @@ interface AppState {
   setShowWindLayer: (show: boolean) => void
   showTemperatureLayer: boolean
   setShowTemperatureLayer: (show: boolean) => void
+  showPrecipitationLayer: boolean
+  setShowPrecipitationLayer: (show: boolean) => void
+  showFogLayer: boolean
+  setShowFogLayer: (show: boolean) => void
+  showMoistureLayer: boolean
+  setShowMoistureLayer: (show: boolean) => void
+  showLightningLayer: boolean
+  setShowLightningLayer: (show: boolean) => void
   // 航班筛选条件
   flightFilters: {
     flightNumber: string
@@ -105,6 +113,12 @@ interface AppState {
   // 侧边栏收起状态
   isSidebarCollapsed: boolean
   setIsSidebarCollapsed: (collapsed: boolean) => void
+  // 偏好设置
+  airportCodeFormat: 'three' | 'four' // 机场编码格式：三字码或四字码
+  setAirportCodeFormat: (format: 'three' | 'four') => void
+  // 偏好设置菜单显示状态
+  showPreferencesMenu: boolean
+  setShowPreferencesMenu: (show: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -146,6 +160,14 @@ export const useAppStore = create<AppState>((set) => ({
   setShowWindLayer: (show) => set({ showWindLayer: show }),
   showTemperatureLayer: false,
   setShowTemperatureLayer: (show) => set({ showTemperatureLayer: show }),
+  showPrecipitationLayer: false,
+  setShowPrecipitationLayer: (show) => set({ showPrecipitationLayer: show }),
+  showFogLayer: false,
+  setShowFogLayer: (show) => set({ showFogLayer: show }),
+  showMoistureLayer: false,
+  setShowMoistureLayer: (show) => set({ showMoistureLayer: show }),
+  showLightningLayer: false,
+  setShowLightningLayer: (show) => set({ showLightningLayer: show }),
   // 航班筛选条件
   flightFilters: {
     flightNumber: '',
@@ -190,6 +212,12 @@ export const useAppStore = create<AppState>((set) => ({
   // 侧边栏收起状态（默认展开）
   isSidebarCollapsed: false,
   setIsSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+  // 偏好设置（默认四字码）
+  airportCodeFormat: 'four',
+  setAirportCodeFormat: (format) => set({ airportCodeFormat: format }),
+  // 偏好设置菜单显示状态
+  showPreferencesMenu: false,
+  setShowPreferencesMenu: (show) => set({ showPreferencesMenu: show }),
 }))
 
 

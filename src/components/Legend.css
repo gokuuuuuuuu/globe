@@ -151,6 +151,18 @@
   bottom: 140px;
 }
 
+.precipitation-legend {
+  /* 默认比温度图例稍高，避免完全重叠；拖拽后用户可自由调整 */
+  bottom: 260px;
+}
+
+.legend-condition {
+  font-size: 10px;
+  color: #64748b;
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .legend-container {

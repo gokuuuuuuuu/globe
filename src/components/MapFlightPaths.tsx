@@ -1,5 +1,5 @@
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { useMemo, useRef, useCallback } from 'react'
+import { useMemo, useRef, useCallback, useEffect } from 'react'
 import {
   Color,
   DoubleSide,
@@ -69,6 +69,8 @@ interface MapFlightPathProps extends FlightRouteInfo {
   start: Vector3
   end: Vector3
   color?: string
+  materialRefs?: React.MutableRefObject<Map<string, ShaderMaterial>>
+  routeId?: string
 }
 
 // 飞机组件（2D版本）
@@ -198,11 +200,22 @@ function MapFlightPath({
   scheduledArrival,
   humanRisk,
   machineRisk,
-  environmentRisk
+  environmentRisk,
+  materialRefs,
+  routeId
 }: MapFlightPathProps) {
   const materialRef = useRef<ShaderMaterial>(null)
   const { gl } = useThree()
   const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
+  
+  // 清理材质引用
+  useEffect(() => {
+    if (!materialRefs || !routeId) return
+    const refsMap = materialRefs.current
+    return () => {
+      refsMap.delete(routeId)
+    }
+  }, [materialRefs, routeId])
   
   // 创建2D曲线（使用简单的直线或轻微曲线）
   const curve = useMemo(() => {
@@ -234,12 +247,7 @@ function MapFlightPath({
     uColor: { value: new Color(color) },
   }), [color])
 
-  // 更新时间uniform以实现动画效果
-  useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uTime.value += 0.01
-    }
-  })
+  // 移除单独的 useFrame，改为在父组件中统一更新
 
   const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
@@ -284,9 +292,17 @@ function MapFlightPath({
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
       >
-        <tubeGeometry args={[curve, 64, 0.012, 16, false]} />
+        <tubeGeometry args={[curve, 32, 0.012, 8, false]} />
         <shaderMaterial
-          ref={materialRef}
+          ref={(ref) => {
+            if (ref) {
+              materialRef.current = ref
+              // 立即添加到共享 Map
+              if (materialRefs && routeId) {
+                materialRefs.current.set(routeId, ref)
+              }
+            }
+          }}
           vertexShader={vertexShader}
           fragmentShader={fragmentShader}
           uniforms={uniforms}
@@ -326,6 +342,19 @@ interface MapFlightPathsProps {
 
 export function MapFlightPaths({ routes }: MapFlightPathsProps) {
   const { viewingFlightRouteId } = useAppStore()
+  const materialRefs = useRef<Map<string, ShaderMaterial>>(new Map())
+  const sharedTime = useRef(0)
+  
+  // 统一更新所有航线的动画时间
+  useFrame((_state, delta) => {
+    sharedTime.current += delta * 0.5
+    // 批量更新所有材质的 uniform
+    materialRefs.current.forEach((material) => {
+      if (material && material.uniforms) {
+        material.uniforms.uTime.value = sharedTime.current
+      }
+    })
+  })
   
   return (
     <group>
@@ -348,6 +377,8 @@ export function MapFlightPaths({ routes }: MapFlightPathsProps) {
             humanRisk={route.humanRisk}
             machineRisk={route.machineRisk}
             environmentRisk={route.environmentRisk}
+            materialRefs={materialRefs}
+            routeId={route.id}
           />
         )
       })}

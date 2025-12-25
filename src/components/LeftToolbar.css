@@ -97,8 +97,11 @@
 
 .toolbar-icons {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   flex: 1;
+  width: 100%;
+  max-width: calc(5 * 50px + 4 * 8px); /* 5个图标 + 4个gap */
 }
 
 .toolbar-icon-box {

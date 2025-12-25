@@ -102,9 +102,21 @@ function buildTemperatureFieldFromGrib(gribArray: GribData[]): TemperatureField 
 
   // 计算温度范围（开尔文转摄氏度）
   const kelvinToCelsius = (k: number) => k - 273.15;
-  const allTemps = tempItem.data.map(kelvinToCelsius).filter(t => !isNaN(t));
-  const minTemp = Math.min(...allTemps);
-  const maxTemp = Math.max(...allTemps);
+  // 使用 reduce 避免调用栈溢出（当数据量很大时，Math.min/max(...array) 会失败）
+  let minTemp = Infinity;
+  let maxTemp = -Infinity;
+  for (let i = 0; i < tempItem.data.length; i++) {
+    const tempC = kelvinToCelsius(tempItem.data[i]);
+    if (!isNaN(tempC)) {
+      if (tempC < minTemp) minTemp = tempC;
+      if (tempC > maxTemp) maxTemp = tempC;
+    }
+  }
+  // 如果所有值都是 NaN，使用默认值
+  if (!isFinite(minTemp) || !isFinite(maxTemp)) {
+    minTemp = -40;
+    maxTemp = 50;
+  }
 
   const field: TemperatureField = {
     minTemp,

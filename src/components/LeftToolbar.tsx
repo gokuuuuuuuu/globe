@@ -9,6 +9,10 @@ import iconBar from '../assets/bar.png'
 import iconLabel from '../assets/label.png'
 import iconWind from '../assets/wind.png'
 import iconTemperature from '../assets/temperature.png'
+import iconPrecipitation from '../assets/precipitation.png'
+import iconFog from '../assets/fog.png'
+import iconMoisture from '../assets/moisture.png'
+import iconLightning from '../assets/lightning.png'
 import iconWrench from '../assets/wrench.png'
 import iconArrow from '../assets/collapse_tool.png'
 import iconRadar from '../assets/radar_icon.png'
@@ -22,18 +26,16 @@ import './LeftToolbar.css'
 // 风险类型列表
 const RISK_TYPES = [
   '冲偏出跑道',
-  '地面损伤',
-  '跑道外接地',
-  '空中冲突',
-  '擦机尾',
-  '空中失控',
-  '擦发动机',
-  '空中损伤',
-  '擦翼尖',
   '可控飞行撞地',
+  '跑道入侵',
+  '飞行失控',
+  '空中相撞',
+  '重要系统故障',
+  '鸟击',
   '重着陆',
-  '其他',
   '不稳定进近',
+  '擦机尾',
+  '其他',
 ]
 
 export function LeftToolbar() {
@@ -46,6 +48,14 @@ export function LeftToolbar() {
     setShowWindLayer,
     showTemperatureLayer,
     setShowTemperatureLayer,
+    showPrecipitationLayer,
+    setShowPrecipitationLayer,
+    showFogLayer,
+    setShowFogLayer,
+    showMoistureLayer,
+    setShowMoistureLayer,
+    showLightningLayer,
+    setShowLightningLayer,
     flightFilters,
     setFlightFilters,
     riskTypes,
@@ -198,6 +208,42 @@ export function LeftToolbar() {
                 <img src={boxIcon} alt="box" className="toolbar-box-bg" />
                 <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
                 <img src={iconTemperature} alt="temperature" className="toolbar-icon-img" />
+              </button>
+              <button
+                className={`toolbar-icon-box ${showPrecipitationLayer ? 'active' : ''}`}
+                onClick={() => setShowPrecipitationLayer(!showPrecipitationLayer)}
+                title={showPrecipitationLayer ? '隐藏降水图层' : '显示降水图层'}
+              >
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconPrecipitation} alt="precipitation" className="toolbar-icon-img" />
+              </button>
+              <button
+                className={`toolbar-icon-box ${showFogLayer ? 'active' : ''}`}
+                onClick={() => setShowFogLayer(!showFogLayer)}
+                title={showFogLayer ? '隐藏雾图层' : '显示雾图层'}
+              >
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconFog} alt="fog" className="toolbar-icon-img" />
+              </button>
+              <button
+                className={`toolbar-icon-box ${showMoistureLayer ? 'active' : ''}`}
+                onClick={() => setShowMoistureLayer(!showMoistureLayer)}
+                title={showMoistureLayer ? '隐藏水汽通量图层' : '显示水汽通量图层'}
+              >
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconMoisture} alt="moisture" className="toolbar-icon-img" />
+              </button>
+              <button
+                className={`toolbar-icon-box ${showLightningLayer ? 'active' : ''}`}
+                onClick={() => setShowLightningLayer(!showLightningLayer)}
+                title={showLightningLayer ? '隐藏雷电图层' : '显示雷电图层'}
+              >
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconLightning} alt="lightning" className="toolbar-icon-img" />
               </button>
             </div>
             <button
