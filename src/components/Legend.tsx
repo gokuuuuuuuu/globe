@@ -410,3 +410,151 @@ export function LightningLegend({ visible }: LightningLegendProps) {
   )
 }
 
+interface CATLegendProps {
+  visible: boolean
+}
+
+export function CATLegend({ visible }: CATLegendProps) {
+  const { ref, handleMouseDown, style } = useDraggableLegend(!visible)
+
+  if (!visible) return null
+
+  // 颠簸强度等级（与 CATLayer 着色器中的颜色对应）
+  const catLevels = [
+    { 
+      intensity: '无颠簸', 
+      color: 'rgb(0, 153, 51)', // 绿色
+      description: '指数 0.0-0.17',
+    },
+    { 
+      intensity: '轻微', 
+      color: 'rgb(77, 179, 77)', // 浅绿
+      description: '指数 0.17-0.33',
+    },
+    { 
+      intensity: '轻度', 
+      color: 'rgb(153, 204, 51)', // 黄绿
+      description: '指数 0.33-0.5',
+    },
+    { 
+      intensity: '中度', 
+      color: 'rgb(230, 204, 26)', // 黄色
+      description: '指数 0.5-0.67',
+    },
+    { 
+      intensity: '中强', 
+      color: 'rgb(242, 153, 26)', // 橙黄
+      description: '指数 0.67-0.83',
+    },
+    { 
+      intensity: '强', 
+      color: 'rgb(230, 77, 26)', // 橙色
+      description: '指数 0.83-0.92',
+    },
+    { 
+      intensity: '极强', 
+      color: 'rgb(204, 26, 26)', // 红色
+      description: '指数 > 0.92',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="legend-container cat-legend" style={style}>
+      <div className="legend-header" onMouseDown={handleMouseDown}>
+        <span className="legend-icon">🌪️</span>
+        <span className="legend-title">颠簸区图例</span>
+        <span className="legend-drag-hint">
+          <span className="legend-drag-icon">⋮⋮</span>
+          拖拽
+        </span>
+      </div>
+      <div className="legend-content">
+        {catLevels.map((level, index) => (
+          <div key={index} className="legend-item">
+            <div 
+              className="legend-color-bar" 
+              style={{ backgroundColor: level.color }}
+            />
+            <div className="legend-label-group">
+              <span className="legend-value">{level.intensity}</span>
+              <span className="legend-description">{level.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="legend-footer">
+        <span className="legend-unit">基于风切变、垂直扰动和温度稳定度计算</span>
+      </div>
+    </div>
+  )
+}
+
+interface VisibilityLegendProps {
+  visible: boolean
+}
+
+export function VisibilityLegend({ visible }: VisibilityLegendProps) {
+  const { ref, handleMouseDown, style } = useDraggableLegend(!visible)
+
+  if (!visible) return null
+
+  // 能见度风险等级（与 VisibilityLayer 着色器中的颜色对应）
+  const visibilityLevels = [
+    { 
+      risk: '良好', 
+      color: 'rgb(51, 153, 153)', // 青色 (0.2, 0.6, 0.6)
+      description: '指数 0.0-0.4',
+    },
+    { 
+      risk: '一般', 
+      color: 'rgb(128, 191, 191)', // 浅青色
+      description: '指数 0.4-0.6',
+    },
+    { 
+      risk: '较差', 
+      color: 'rgb(179, 217, 217)', // 更浅青色
+      description: '指数 0.6-0.75',
+    },
+    { 
+      risk: '差', 
+      color: 'rgb(217, 230, 230)', // 灰白色
+      description: '指数 0.75-0.9',
+    },
+    { 
+      risk: '很差', 
+      color: 'rgb(230, 230, 230)', // 白色 (0.9, 0.9, 0.9)
+      description: '指数 > 0.9',
+    },
+  ]
+
+  return (
+    <div ref={ref} className="legend-container visibility-legend" style={style}>
+      <div className="legend-header" onMouseDown={handleMouseDown}>
+        <span className="legend-icon">👁️</span>
+        <span className="legend-title">能见度图例</span>
+        <span className="legend-drag-hint">
+          <span className="legend-drag-icon">⋮⋮</span>
+          拖拽
+        </span>
+      </div>
+      <div className="legend-content">
+        {visibilityLevels.map((level, index) => (
+          <div key={index} className="legend-item">
+            <div 
+              className="legend-color-bar" 
+              style={{ backgroundColor: level.color }}
+            />
+            <div className="legend-label-group">
+              <span className="legend-value">{level.risk}</span>
+              <span className="legend-description">{level.description}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="legend-footer">
+        <span className="legend-unit">基于饱和因子、湿度和风速计算</span>
+      </div>
+    </div>
+  )
+}
+

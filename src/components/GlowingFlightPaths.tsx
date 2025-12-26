@@ -63,6 +63,7 @@ interface FlightRouteInfo {
   humanRisk: number
   machineRisk: number
   environmentRisk: number
+  riskLevel?: string // 风险等级（文字：高风险、中风险、低风险）
 }
 
 interface GlowingFlightPathProps extends FlightRouteInfo {
@@ -185,6 +186,7 @@ interface GlowingFlightPathProps extends FlightRouteInfo {
       humanRisk,
       machineRisk,
       environmentRisk,
+      riskLevel,
     })
     if (gl.domElement) {
       gl.domElement.style.cursor = 'pointer'
@@ -244,12 +246,13 @@ function GlowingFlightPath({
   humanRisk,
   machineRisk,
   environmentRisk,
+  riskLevel,
   materialRefs,
   routeId
 }: GlowingFlightPathProps) {
   const materialRef = useRef<ShaderMaterial>(null)
   const { gl } = useThree()
-  const { setHoveredFlightRoute, setTooltipPosition } = useAppStore()
+  const { setHoveredFlightRoute, setTooltipPosition, setSelectedFlightRouteId, setSidebarTab } = useAppStore()
   
   // 清理材质引用
   useEffect(() => {
@@ -307,11 +310,12 @@ function GlowingFlightPath({
       humanRisk,
       machineRisk,
       environmentRisk,
+      riskLevel,
     })
     if (gl.domElement) {
       gl.domElement.style.cursor = 'pointer'
     }
-  }, [flightNumber, fromAirport, toAirport, status, scheduledDeparture, scheduledArrival, humanRisk, machineRisk, environmentRisk, setHoveredFlightRoute, setTooltipPosition, gl])
+  }, [flightNumber, fromAirport, toAirport, status, scheduledDeparture, scheduledArrival, humanRisk, machineRisk, environmentRisk, riskLevel, setHoveredFlightRoute, setTooltipPosition, gl])
 
   const handlePointerOut = useCallback((event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
@@ -328,6 +332,22 @@ function GlowingFlightPath({
     setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
   }, [setTooltipPosition])
 
+  // 处理航线点击
+  const handlePointerDown = useCallback((event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    // 根据 routeId 找到对应的航班
+    if (routeId) {
+      // routeId 格式是 `${fromAirport.id}-${toAirport.id}-${flight.id}`
+      // 提取航班ID（最后一个部分）
+      const parts = routeId.split('-')
+      if (parts.length >= 3) {
+        const flightId = parts.slice(2).join('-') // 处理航班ID可能包含'-'的情况
+        setSelectedFlightRouteId(flightId)
+        setSidebarTab('airline') // 切换到航线标签页
+      }
+    }
+  }, [routeId, setSelectedFlightRouteId, setSidebarTab])
+
   return (
     <group>
       {/* 虚线航线 */}
@@ -335,6 +355,7 @@ function GlowingFlightPath({
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerDown}
       >
         <tubeGeometry args={[curve, 32, 0.001, 8, false]} />
         <shaderMaterial
@@ -425,6 +446,7 @@ export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) 
             humanRisk={route.humanRisk}
             machineRisk={route.machineRisk}
             environmentRisk={route.environmentRisk}
+            riskLevel={route.riskLevel}
             materialRefs={materialRefs}
             routeId={route.id}
           />

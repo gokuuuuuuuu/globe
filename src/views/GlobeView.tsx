@@ -4,13 +4,15 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
 import { Sidebar } from '../components/Sidebar'
-import { WindLegend, TemperatureLegend, PrecipitationLegend, FogLegend, MoistureLegend, LightningLegend } from '../components/Legend'
+import { WindLegend, TemperatureLegend, PrecipitationLegend, FogLegend, MoistureLegend, LightningLegend, CATLegend, VisibilityLegend } from '../components/Legend'
 import { WindLayer } from './windLayer'
 import { TemperatureLayer } from './TemperatureLayer'
 import { PrecipitationLayer } from './PrecipitationLayer'
 import { FogLayer } from './FogLayer'
 import { MoistureLayer } from './MoistureLayer'
 import { LightningLayer } from './LightningLayer'
+import { CATLayer } from './CATLayer'
+import { VisibilityLayer } from './VisibilityLayer'
 import titleImage from '../assets/title.png'
 
 import {
@@ -28,7 +30,7 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { useAppStore } from '../store/useAppStore'
 import type { AtlasData, WorldData } from '../types'
 import { deriveIsoCode, latLonToCartesian } from '../utils/geo'
-import { AIRPORTS, FLIGHTS, PROVINCE_AIRPORTS, getAirportByCode, getRiskColor } from '../data/flightData'
+import { AIRPORTS, FLIGHTS, PROVINCE_AIRPORTS, getAirportByCode, getRiskColor, calculateRiskFromEnvironmentRisk } from '../data/flightData'
 
 const GLOBE_RADIUS = 1.6
 
@@ -128,11 +130,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     showFogLayer,
     showMoistureLayer,
     showLightningLayer,
+    showCATLayer,
+    showVisibilityLayer,
     showLabels,
     showPreferencesMenu,
     setShowPreferencesMenu,
     airportCodeFormat,
     setAirportCodeFormat,
+    riskZones,
   } = useAppStore()
   const preferencesMenuRef = useRef<HTMLDivElement>(null)
   const loginStatusRef = useRef<HTMLDivElement>(null)
@@ -455,11 +460,17 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
   }, [atlas.countries, labelCandidates])
 
   const airportInstances = useMemo(() => {
-    return DEMO_AIRPORTS.map((airport) => {
-      const position = latLonToCartesian(airport.lat, airport.lon, GLOBE_RADIUS + 0.01)
-      return { ...airport, position }
-    })
-  }, [])
+    return DEMO_AIRPORTS
+      .filter((airport) => {
+        // 根据风险区间过滤机场
+        const { riskZone } = calculateRiskFromEnvironmentRisk(airport.environmentRisk)
+        return riskZones.includes(riskZone)
+      })
+      .map((airport) => {
+        const position = latLonToCartesian(airport.lat, airport.lon, GLOBE_RADIUS + 0.01)
+        return { ...airport, position }
+      })
+  }, [riskZones])
 
   // 计算航线：基于统一的航班数据生成航线
   const flightRoutes = useMemo(() => {
@@ -479,6 +490,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       humanRisk: number
       machineRisk: number
       environmentRisk: number
+      riskLevel?: string
     }> = []
     
     // 情况1: 如果选中了特定航线，只显示该航线
@@ -505,6 +517,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             const toPos = toAirportInstance.position.clone()
             const toElevated = toPos
             
+            // 根据风险区间过滤航线
+            const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+            if (!riskZones.includes(flightRiskZone)) {
+              return
+            }
+            
             // 根据环境风险值设置航线颜色
             const routeColor = getRiskColor(flight.environmentRisk)
             
@@ -524,6 +542,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           humanRisk: flight.humanRisk,
           machineRisk: flight.machineRisk,
           environmentRisk: flight.environmentRisk,
+          riskLevel: flight.riskLevel,
         })
           }
         }
@@ -564,6 +583,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         const fromElevated = fromPos
         const toElevated = toPos
 
+        // 根据风险区间过滤航线
+        const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+        if (!riskZones.includes(flightRiskZone)) {
+          return
+        }
+        
         // 根据环境风险值设置航线颜色
         const routeColor = getRiskColor(flight.environmentRisk)
         
@@ -583,6 +608,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           humanRisk: flight.humanRisk,
           machineRisk: flight.machineRisk,
           environmentRisk: flight.environmentRisk,
+          riskLevel: flight.riskLevel,
         })
       })
       
@@ -652,6 +678,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       const toPos = toAirportInstance.position.clone()
       const toElevated = toPos
 
+      // 根据风险区间过滤航线
+      const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+      if (!riskZones.includes(flightRiskZone)) {
+        return
+      }
+      
       // 根据环境风险值设置航线颜色
       const routeColor = getRiskColor(flight.environmentRisk)
 
@@ -671,11 +703,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         humanRisk: flight.humanRisk,
         machineRisk: flight.machineRisk,
         environmentRisk: flight.environmentRisk,
+        riskLevel: flight.riskLevel,
       })
     })
     
     return routes
-  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones])
 
   // 使用 useMemo 缓存颜色对象，避免每次渲染创建新对象
   const baseColor = useMemo(() => new Color('#ffffff'), [])
@@ -843,7 +876,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
               </div>
               <div className="tooltip-row">
                 <span className="tooltip-label">环风险值：</span>
-                <span className="tooltip-value">{hoveredFlightRoute.environmentRisk}</span>
+                <span className="tooltip-value">{hoveredFlightRoute.riskLevel || hoveredFlightRoute.environmentRisk}</span>
               </div>
             </div>
           )}
@@ -860,6 +893,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       <FogLegend visible={showFogLayer} />
       <MoistureLegend visible={showMoistureLayer} />
       <LightningLegend visible={showLightningLayer} />
+      <CATLegend visible={showCATLayer} />
+      <VisibilityLegend visible={showVisibilityLayer} />
       <Canvas 
         camera={{ position: [0, 0, 5], fov: 50 }}
         performance={{ min: 0.5 }}
@@ -931,10 +966,10 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 const deltaY = Math.abs(clientY - state.downY)
                 const moved = state.moved || deltaX > 5 || deltaY > 5
                 
-                // 只有在短按且没有移动的情况下才取消选择
-                if (!moved && duration < 200 && selectedCountry) {
-                  setSelectedCountry(null)
-                }
+                // 禁用地图点击选择功能，不再取消选择
+                // if (!moved && duration < 200 && selectedCountry) {
+                //   setSelectedCountry(null)
+                // }
                 
                 blankAreaPointerStateRef.current = null
               }}
@@ -994,6 +1029,18 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 radius={GLOBE_RADIUS + 0.01}
               />
             )}
+            {showCATLayer && (
+              <CATLayer 
+                radius={GLOBE_RADIUS + 0.01}
+                opacity={0.75}
+              />
+            )}
+            {showVisibilityLayer && (
+              <VisibilityLayer 
+                radius={GLOBE_RADIUS + 0.01}
+                opacity={0.75}
+              />
+            )}
             <group>
               {airportInstances.map((airport) => {
                 // 标准化国家代码进行匹配
@@ -1025,21 +1072,10 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 selectedCountry === iso || 
                 (key && selectedCountry === key)
               ))
-              const isHovered = !!(iso && hoveredCountry === iso)
+              const isHovered = false // 禁用国家 hover 效果
               const handlers = createPointerHandlers(iso, () => {
-                // 如果是中国省份，必须先选中中国才能选中省份
-                if (key && iso === 'CN') {
-                  if (selectedCountry === 'CN') {
-                    // 已经选中中国，可以选中省份
-                    setSelectedCountry(key)
-                  } else {
-                    // 未选中中国，先选中中国
-                    setSelectedCountry('CN')
-                  }
-                } else if (iso) {
-                  // 非省份情况，直接选中
-                  setSelectedCountry(iso)
-                }
+                // 禁用所有地图点击选择功能（包括国家和省份）
+                return
               })
               return (
                 <ElevatedPolygon
@@ -1052,11 +1088,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                   hoverColor={hoverColor}
                   highlightColor={highlightColor}
                   onPointerOver={() => {
-                    if (!iso) return
-                    setHoveredCountry(iso)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerOut={() => {
-                    setHoveredCountry(null)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerDown={handlers.onPointerDown}
                   onPointerMove={handlers.onPointerMove}
@@ -1070,23 +1107,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                 selectedCountry === iso || 
                 (key && selectedCountry === key)
               ))
-              const isHovered = !!(iso && hoveredCountry === iso)
+              const isHovered = false // 禁用国家 hover 效果
               
               // 直接使用内联函数，createPointerHandlers 已经使用 useCallback 优化
               const handlers = createPointerHandlers(iso, () => {
-                // 如果是中国省份，必须先选中中国才能选中省份
-                if (key && iso === 'CN') {
-                  if (selectedCountry === 'CN') {
-                    // 已经选中中国，可以选中省份
-                    setSelectedCountry(key)
-                  } else {
-                    // 未选中中国，先选中中国
-                    setSelectedCountry('CN')
-                  }
-                } else if (iso) {
-                  // 非省份情况，直接选中
-                  setSelectedCountry(iso)
-                }
+                // 禁用所有地图点击选择功能（包括国家和省份）
+                return
               })
               return (
                 <ElevatedLine
@@ -1099,11 +1125,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                   hoverColor={hoverColor}
                   highlightColor={highlightColor}
                   onPointerOver={() => {
-                    if (!iso) return
-                    setHoveredCountry(iso)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerOut={() => {
-                    setHoveredCountry(null)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerDown={handlers.onPointerDown}
                   onPointerMove={handlers.onPointerMove}
@@ -1124,19 +1151,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
 
               // 直接使用内联函数，createPointerHandlers 已经使用 useCallback 优化
               const handlers = createPointerHandlers(iso, () => {
-                // 如果是省份标签，必须先选中中国才能选中省份
-                if (key.startsWith('CN-')) {
-                  if (selectedCountry === 'CN') {
-                    // 已经选中中国，可以选中省份
-                    setSelectedCountry(key)
-                  } else {
-                    // 未选中中国，先选中中国
-                    setSelectedCountry('CN')
-                  }
-                } else if (iso) {
-                  // 非省份情况，直接选中
-                  setSelectedCountry(iso)
-                }
+                // 禁用所有地图点击选择功能（包括国家和省份）
+                return
               })
               return (
                 <CountryLabelText
@@ -1150,11 +1166,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                   onPointerMove={handlers.onPointerMove}
                   onPointerUp={handlers.onPointerUp}
                   onPointerOver={() => {
-                    if (!iso) return
-                    setHoveredCountry(iso)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerOut={() => {
-                    setHoveredCountry(null)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                 />
               )
@@ -1796,7 +1813,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
   const labelRef = useRef<Group>(null)
   const glowIntensityRef = useRef(1)
   const materialRefs = useRef<{ outer?: MeshBasicMaterial; middle?: MeshBasicMaterial; ring?: MeshBasicMaterial }>({})
-  const { setHoveredAirport, setTooltipPosition, viewingAirportId } = useAppStore()
+  const { setHoveredAirport, setTooltipPosition, viewingAirportId, setViewingAirportId, setSelectedAirportForAirline, setSidebarTab } = useAppStore()
   const isViewing = viewingAirportId === airport.id
   
   // 保存原始位置，避免被修改
@@ -1811,9 +1828,9 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     } else if (risk >= 5) {
       // 中风险：中等速度闪烁
       return { speed: 3, intensity: 0.3, baseColor: new Color('#ff6f00'), brightColor: new Color('#ffb74d') }
-    } else if (risk >= 2) {
+    } else if (risk >= 1) {
       // 低风险：慢速闪烁
-      return { speed: 2, intensity: 0.25, baseColor: new Color('#ffc107'), brightColor: new Color('#ffeb3b') }
+      return { speed: 2, intensity: 0.25, baseColor: new Color('#4caf50'), brightColor: new Color('#81c784') }
     } else {
       // 极低风险：很慢的闪烁
       return { speed: 1.5, intensity: 0.2, baseColor: new Color('#4caf50'), brightColor: new Color('#81c784') }
@@ -1851,6 +1868,15 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
     setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
   }, [setTooltipPosition])
+
+  // 处理机场点击
+  const handlePointerDown = useCallback((event: ThreeEvent<PointerEvent>) => {
+    event.stopPropagation()
+    // 设置正在查看的机场，并选中对应的机场卡片
+    setViewingAirportId(airport.id)
+    setSelectedAirportForAirline(airport.id)
+    setSidebarTab('airport') // 切换到机场标签页
+  }, [airport.id, setViewingAirportId, setSelectedAirportForAirline, setSidebarTab])
 
   useFrame(() => {
     if (!groupRef.current) return
@@ -1913,6 +1939,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
+        onPointerDown={handlePointerDown}
       >
         <sphereGeometry args={[isViewing ? 0.016 : isSelected ? 0.013 : 0.010, 16, 16]} />
         <meshBasicMaterial

@@ -13,6 +13,8 @@ import iconPrecipitation from '../assets/precipitation.png'
 import iconFog from '../assets/fog.png'
 import iconMoisture from '../assets/moisture.png'
 import iconLightning from '../assets/lightning.png'
+import iconCAT from '../assets/CAT.png'
+import iconVisibility from '../assets/visibility.png'
 import iconWrench from '../assets/wrench.png'
 import iconArrow from '../assets/collapse_tool.png'
 import iconRadar from '../assets/radar_icon.png'
@@ -56,6 +58,10 @@ export function LeftToolbar() {
     setShowMoistureLayer,
     showLightningLayer,
     setShowLightningLayer,
+    showCATLayer,
+    setShowCATLayer,
+    showVisibilityLayer,
+    setShowVisibilityLayer,
     flightFilters,
     setFlightFilters,
     riskTypes,
@@ -244,6 +250,24 @@ export function LeftToolbar() {
                 <img src={boxIcon} alt="box" className="toolbar-box-bg" />
                 <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
                 <img src={iconLightning} alt="lightning" className="toolbar-icon-img" />
+              </button>
+              <button
+                className={`toolbar-icon-box ${showCATLayer ? 'active' : ''}`}
+                onClick={() => setShowCATLayer(!showCATLayer)}
+                title={showCATLayer ? '隐藏颠簸区图层' : '显示颠簸区图层'}
+              >
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconCAT} alt="CAT" className="toolbar-icon-img" />
+              </button>
+              <button
+                className={`toolbar-icon-box ${showVisibilityLayer ? 'active' : ''}`}
+                onClick={() => setShowVisibilityLayer(!showVisibilityLayer)}
+                title={showVisibilityLayer ? '隐藏能见度图层' : '显示能见度图层'}
+              >
+                <img src={boxIcon} alt="box" className="toolbar-box-bg" />
+                <img src={boxActiveIcon} alt="box active" className="toolbar-box-bg-active" />
+                <img src={iconVisibility} alt="visibility" className="toolbar-icon-img" />
               </button>
             </div>
             <button

@@ -113,8 +113,8 @@ export function Sidebar() {
       return matchesSearch && matchesRiskZone
     })
 
-    // 按风险值从大到小排序
-    filtered.sort((a, b) => parseRiskValue(b.riskValue) - parseRiskValue(a.riskValue))
+    // 按风险值从大到小排序（使用 environmentRisk 数字值）
+    filtered.sort((a, b) => b.environmentRisk - a.environmentRisk)
     
     return filtered
   }, [searchQuery, riskZones])
@@ -334,9 +334,9 @@ export function Sidebar() {
   // 根据风险值数字获取颜色
   const getRiskValueColorFromNumber = (riskValue: number) => {
     if (riskValue >= 7) return '#ef4444' // 高风险 - 红色
-    if (riskValue >= 5) return '#f97316' // 高中风险 - 橙色
-    if (riskValue >= 2) return '#eab308' // 中风险 - 黄色
-    return '#22c55e' // 低风险 - 绿色
+    if (riskValue >= 5) return '#f97316' // 中风险 - 橙色
+    if (riskValue >= 1) return '#eab308' // 低风险 - 黄色
+    return '#22c55e' // 极低风险 - 绿色
   }
 
   // 根据风险值数字获取风险等级文字
@@ -345,7 +345,7 @@ export function Sidebar() {
     if (isNaN(num)) return '低风险'
     if (num >= 7) return '高风险'
     if (num >= 5) return '中风险'
-    if (num >= 2) return '中风险'
+    if (num >= 1) return '低风险'
     return '低风险'
   }
 
@@ -354,7 +354,7 @@ export function Sidebar() {
     switch (riskZone) {
       case 'red': return '高风险'
       case 'orange': return '中风险'
-      case 'yellow': return '中风险'
+      case 'yellow': return '低风险'
       case 'green': return '低风险'
       default: return '低风险'
     }
@@ -397,24 +397,24 @@ export function Sidebar() {
   // 根据风险值数字获取背景颜色（用于航班卡片）
   const getFlightRiskBackgroundColor = (riskValue: number) => {
     if (riskValue >= 7) return 'rgba(255, 23, 68, 0.12)' // 高风险 - 红色
-    if (riskValue >= 5) return 'rgba(255, 111, 0, 0.12)' // 高中风险 - 橙色
-    if (riskValue >= 2) return 'rgba(255, 193, 7, 0.12)' // 中风险 - 黄色
-    return 'rgba(76, 175, 80, 0.12)' // 低风险 - 绿色
+    if (riskValue >= 5) return 'rgba(255, 111, 0, 0.12)' // 中风险 - 橙色
+    if (riskValue >= 1) return 'rgba(255, 193, 7, 0.12)' // 低风险 - 黄色
+    return 'rgba(76, 175, 80, 0.12)' // 极低风险 - 绿色
   }
 
   // 根据风险值数字获取hover背景颜色（用于航班卡片）
   const getFlightRiskHoverBackgroundColor = (riskValue: number) => {
     if (riskValue >= 7) return 'rgba(255, 23, 68, 0.2)' // 高风险 - 红色
-    if (riskValue >= 5) return 'rgba(255, 111, 0, 0.2)' // 高中风险 - 橙色
-    if (riskValue >= 2) return 'rgba(255, 193, 7, 0.2)' // 中风险 - 黄色
-    return 'rgba(76, 175, 80, 0.2)' // 低风险 - 绿色
+    if (riskValue >= 5) return 'rgba(255, 111, 0, 0.2)' // 中风险 - 橙色
+    if (riskValue >= 1) return 'rgba(255, 193, 7, 0.2)' // 低风险 - 黄色
+    return 'rgba(76, 175, 80, 0.2)' // 极低风险 - 绿色
   }
 
   // 根据风险值数字获取风险区间（用于航班卡片高亮）
   const getFlightRiskZone = (riskValue: number): RiskZone => {
     if (riskValue >= 7) return 'red'
     if (riskValue >= 5) return 'orange'
-    if (riskValue >= 2) return 'yellow'
+    if (riskValue >= 1) return 'yellow'
     return 'green'
   }
 
@@ -759,7 +759,7 @@ export function Sidebar() {
                             机<span style={{ color: getRiskValueColorFromNumber(selectedFlight.machineRisk) }}>{getRiskLevelText(selectedFlight.machineRisk)}</span>
                         </span>
                         <span className="flight-risk-value">
-                            环<span style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>{getRiskLevelText(selectedFlight.environmentRisk)}</span>
+                            环<span style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>{selectedFlight.riskLevel || getRiskLevelText(selectedFlight.environmentRisk)}</span>
                         </span>
                         </div>
                         <button 
@@ -960,7 +960,7 @@ export function Sidebar() {
                       <div className="detail-risk-value-item">
                         <span className="detail-risk-label">环</span>
                         <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>
-                          {selectedFlight.environmentRisk.toFixed(2)}
+                          {selectedFlight.riskLevel || getRiskLevelText(selectedFlight.environmentRisk)}
                         </span>
                       </div>
                       {selectedFlight.riskValues && (
@@ -1119,7 +1119,7 @@ export function Sidebar() {
                               机<span style={{ color: getRiskValueColorFromNumber(flight.machineRisk) }}>{getRiskLevelText(flight.machineRisk)}</span>
                           </span>
                           <span className="flight-risk-value">
-                              环<span style={{ color: getRiskValueColorFromNumber(flight.environmentRisk) }}>{getRiskLevelText(flight.environmentRisk)}</span>
+                              环<span style={{ color: getRiskValueColorFromNumber(flight.environmentRisk) }}>{flight.riskLevel || getRiskLevelText(flight.environmentRisk)}</span>
                           </span>
                           </div>
                           <button 

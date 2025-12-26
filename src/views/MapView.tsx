@@ -6,7 +6,7 @@ import { Color, DoubleSide, Path, Shape, Vector3, Group, MeshBasicMaterial } fro
 import { useAppStore } from '../store/useAppStore'
 import type { WorldData, AtlasData } from '../types'
 import { deriveIsoCode, latLonToPlane } from '../utils/geo'
-import { AIRPORTS, FLIGHTS, getAirportByCode, getRiskColor } from '../data/flightData'
+import { AIRPORTS, FLIGHTS, getAirportByCode, getRiskColor, calculateRiskFromEnvironmentRisk } from '../data/flightData'
 import { MapFlightPaths } from '../components/MapFlightPaths'
 import type { OrthographicCamera as OrthographicCameraImpl } from 'three'
 
@@ -76,6 +76,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     viewingAirportId,
     selectedFlightRouteId,
     showLabels,
+    riskZones,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
 
@@ -269,11 +270,17 @@ export function MapView({ world, atlas }: MapViewProps) {
 
   // 机场实例（使用平面坐标）
   const airportInstances = useMemo(() => {
-    return AIRPORTS.map((airport) => {
-      const position = latLonToPlane(airport.lat, airport.lon, MAP_SCALE)
-      return { ...airport, position }
-    })
-  }, [])
+    return AIRPORTS
+      .filter((airport) => {
+        // 根据风险区间过滤机场
+        const { riskZone } = calculateRiskFromEnvironmentRisk(airport.environmentRisk)
+        return riskZones.includes(riskZone)
+      })
+      .map((airport) => {
+        const position = latLonToPlane(airport.lat, airport.lon, MAP_SCALE)
+        return { ...airport, position }
+      })
+  }, [riskZones])
 
   // 计算航线
   const flightRoutes = useMemo(() => {
@@ -293,6 +300,7 @@ export function MapView({ world, atlas }: MapViewProps) {
       humanRisk: number
       machineRisk: number
       environmentRisk: number
+      riskLevel?: string
     }> = []
     
     // 情况1: 如果选中了特定航线，只显示该航线
@@ -313,6 +321,12 @@ export function MapView({ world, atlas }: MapViewProps) {
             const toPos = toAirportInstance.position.clone()
             toPos.z = 0.05
             
+            // 根据风险区间过滤航线
+            const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+            if (!riskZones.includes(flightRiskZone)) {
+              return
+            }
+            
             // 根据环境风险值设置航线颜色
             const routeColor = getRiskColor(flight.environmentRisk)
             
@@ -332,6 +346,7 @@ export function MapView({ world, atlas }: MapViewProps) {
               humanRisk: flight.humanRisk,
               machineRisk: flight.machineRisk,
               environmentRisk: flight.environmentRisk,
+              riskLevel: flight.riskLevel,
             })
           }
         }
@@ -369,6 +384,12 @@ export function MapView({ world, atlas }: MapViewProps) {
         const toPos = toAirportInstance.position.clone()
         toPos.z = 0.05
         
+        // 根据风险区间过滤航线
+        const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+        if (!riskZones.includes(flightRiskZone)) {
+          return
+        }
+        
         // 根据环境风险值设置航线颜色
         const routeColor = getRiskColor(flight.environmentRisk)
         
@@ -388,6 +409,7 @@ export function MapView({ world, atlas }: MapViewProps) {
           humanRisk: flight.humanRisk,
           machineRisk: flight.machineRisk,
           environmentRisk: flight.environmentRisk,
+          riskLevel: flight.riskLevel,
         })
       })
       
@@ -420,6 +442,12 @@ export function MapView({ world, atlas }: MapViewProps) {
       const toPos = toAirportInstance.position.clone()
       toPos.z = 0.05
 
+      // 根据风险区间过滤航线
+      const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+      if (!riskZones.includes(flightRiskZone)) {
+        return
+      }
+      
       // 根据环境风险值设置航线颜色
       const routeColor = getRiskColor(flight.environmentRisk)
 
@@ -439,11 +467,12 @@ export function MapView({ world, atlas }: MapViewProps) {
         humanRisk: flight.humanRisk,
         machineRisk: flight.machineRisk,
         environmentRisk: flight.environmentRisk,
+        riskLevel: flight.riskLevel,
       })
     })
     
     return routes
-  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones])
 
   const baseColor = new Color('#2dd4bf')
   const hoverColor = new Color('#facc15')
@@ -495,10 +524,10 @@ export function MapView({ world, atlas }: MapViewProps) {
               const deltaY = Math.abs(clientY - state.downY)
               const moved = state.moved || deltaX > 5 || deltaY > 5
               
-              // 只有在短按且没有移动的情况下才取消选择
-              if (!moved && duration < 200 && selectedCountry) {
-                setSelectedCountry(null)
-              }
+              // 禁用地图点击选择功能，不再取消选择
+              // if (!moved && duration < 200 && selectedCountry) {
+              //   setSelectedCountry(null)
+              // }
               
               blankAreaPointerStateRef.current = null
             }}
@@ -508,7 +537,7 @@ export function MapView({ world, atlas }: MapViewProps) {
           </mesh>
           {fillPolygons.map(({ id, iso, shape }) => {
             const isSelected = iso && selectedCountry === iso
-            const isHovered = iso && hoveredCountry === iso
+            const isHovered = false // 禁用国家 hover 效果
             const color = isSelected ? highlightColor : isHovered ? hoverColor : baseColor
             const opacity = isSelected ? 0.6 : isHovered ? 0.4 : 0.2
             return (
@@ -517,18 +546,19 @@ export function MapView({ world, atlas }: MapViewProps) {
                 position={[0, 0, -0.01]}
                 renderOrder={0}
                 onPointerOver={(event) => {
-                  if (!iso) return
+                  // 禁用国家 hover 效果
                   event.stopPropagation()
-                  setHoveredCountry(iso)
+                  // 不执行任何操作
                 }}
                 onPointerOut={(event) => {
+                  // 禁用国家 hover 效果
                   event.stopPropagation()
-                  setHoveredCountry(null)
+                  // 不执行任何操作
                 }}
                 onPointerDown={(event) => {
-                  if (!iso) return
+                  // 禁用地图点击选择功能
                   event.stopPropagation()
-                  setSelectedCountry(iso)
+                  // 不执行任何操作
                 }}
               >
                 <shapeGeometry args={[shape]} />
@@ -538,7 +568,7 @@ export function MapView({ world, atlas }: MapViewProps) {
           })}
           {linePolygons.map(({ id, iso, points }) => {
             const isSelected = iso && selectedCountry === iso
-            const isHovered = iso && hoveredCountry === iso
+            const isHovered = false // 禁用国家 hover 效果
             const color = isSelected ? highlightColor : isHovered ? hoverColor : baseColor
             const lineWidth = isSelected ? 1.4 : isHovered ? 1.1 : 0.8
             return (
@@ -550,18 +580,19 @@ export function MapView({ world, atlas }: MapViewProps) {
                 transparent
                 opacity={isSelected ? 1 : 0.7}
                 onPointerOver={(event) => {
-                  if (!iso) return
+                  // 禁用国家 hover 效果
                   event.stopPropagation()
-                  setHoveredCountry(iso)
+                  // 不执行任何操作
                 }}
                 onPointerOut={(event) => {
+                  // 禁用国家 hover 效果
                   event.stopPropagation()
-                  setHoveredCountry(null)
+                  // 不执行任何操作
                 }}
                 onPointerDown={(event) => {
-                  if (!iso) return
+                  // 禁用地图点击选择功能
                   event.stopPropagation()
-                  setSelectedCountry(iso)
+                  // 不执行任何操作
                 }}
               />
             )
@@ -588,7 +619,7 @@ export function MapView({ world, atlas }: MapViewProps) {
             .filter(({ key, iso }) => {
               // 只显示选中的国家、悬停的国家，或者主要大国
               const isSelected = iso && selectedCountry === iso
-              const isHovered = iso && hoveredCountry === iso
+              const isHovered = false // 禁用国家 hover 效果
               
               // 主要国家列表（基于面积和重要性，只显示最重要的国家）
               const majorCountries = ['CN', 'US', 'RU', 'CA', 'BR', 'AU', 'IN', 'AR', 'KZ', 'DZ', 'SA', 'MX', 'ID', 'MN', 'LY', 'IR', 'PE', 'NG', 'TZ', 'EG', 'MA', 'ZA', 'SD', 'YE', 'TH', 'ES', 'TR', 'BO', 'MM', 'AF', 'VE', 'MY', 'PH', 'IQ', 'SE', 'GB', 'FR', 'DE', 'JP', 'IT', 'KR', 'PL', 'VN', 'NO', 'NZ', 'BD', 'EC', 'RO', 'KE', 'SY', 'KH', 'UY', 'TN', 'BG', 'NP', 'GR', 'BA', 'LK', 'GT', 'JO', 'AE', 'CZ', 'PT', 'HU', 'RS', 'IE', 'GE', 'CR', 'SK', 'HR', 'LV', 'LT', 'SI', 'ME', 'EE', 'DK', 'NL', 'CH', 'AT', 'BE', 'SG']
@@ -622,14 +653,16 @@ export function MapView({ world, atlas }: MapViewProps) {
                   isSelected={!!(iso && selectedCountry === iso)}
                   isHovered={!!(iso && hoveredCountry === iso)}
                   onPointerOver={() => {
-                    if (!iso) return
-                    setHoveredCountry(iso)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerOut={() => {
-                    setHoveredCountry(null)
+                    // 禁用国家 hover 效果
+                    // 不执行任何操作
                   }}
                   onPointerDown={() => {
-                    if (iso) setSelectedCountry(iso)
+                    // 禁用地图点击选择功能
+                    // 不执行任何操作
                   }}
                 />
               )
@@ -722,7 +755,7 @@ export function MapView({ world, atlas }: MapViewProps) {
               </div>
               <div className="tooltip-row">
                 <span className="tooltip-label">环风险值：</span>
-                <span className="tooltip-value">{hoveredFlightRoute.environmentRisk}</span>
+                <span className="tooltip-value">{hoveredFlightRoute.riskLevel || hoveredFlightRoute.environmentRisk}</span>
               </div>
             </div>
           )}
@@ -757,9 +790,9 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     } else if (risk >= 5) {
       // 中风险：中等速度闪烁
       return { speed: 3, intensity: 0.3, baseColor: new Color('#ff6f00'), brightColor: new Color('#ffb74d') }
-    } else if (risk >= 2) {
+    } else if (risk >= 1) {
       // 低风险：慢速闪烁
-      return { speed: 2, intensity: 0.25, baseColor: new Color('#ffc107'), brightColor: new Color('#ffeb3b') }
+      return { speed: 2, intensity: 0.25, baseColor: new Color('#4caf50'), brightColor: new Color('#81c784') }
     } else {
       // 极低风险：很慢的闪烁
       return { speed: 1.5, intensity: 0.2, baseColor: new Color('#4caf50'), brightColor: new Color('#81c784') }

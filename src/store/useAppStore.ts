@@ -18,7 +18,8 @@ interface FlightRouteHoverInfo {
   scheduledArrival: string // 预到时间
   humanRisk: number // 人风险值
   machineRisk: number // 机风险值
-  environmentRisk: number // 环风险值
+  environmentRisk: number // 环风险值（数字，用于颜色计算）
+  riskLevel?: string // 风险等级（文字：高风险、中风险、低风险）
 }
 
 export type SidebarTab = 'airport' | 'airline' | 'person'
@@ -71,6 +72,10 @@ interface AppState {
   setShowMoistureLayer: (show: boolean) => void
   showLightningLayer: boolean
   setShowLightningLayer: (show: boolean) => void
+  showCATLayer: boolean
+  setShowCATLayer: (show: boolean) => void
+  showVisibilityLayer: boolean
+  setShowVisibilityLayer: (show: boolean) => void
   // 航班筛选条件
   flightFilters: {
     flightNumber: string
@@ -139,7 +144,7 @@ export const useAppStore = create<AppState>((set) => ({
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
-  riskZones: ['red', 'orange', 'yellow', 'green'],
+  riskZones: ['red', 'orange'], // 默认只显示中高风险
   setRiskZones: (zones) => set({ riskZones: zones }),
   // Zoom到机场
   targetAirportId: null,
@@ -168,6 +173,10 @@ export const useAppStore = create<AppState>((set) => ({
   setShowMoistureLayer: (show) => set({ showMoistureLayer: show }),
   showLightningLayer: false,
   setShowLightningLayer: (show) => set({ showLightningLayer: show }),
+  showCATLayer: false,
+  setShowCATLayer: (show) => set({ showCATLayer: show }),
+  showVisibilityLayer: false,
+  setShowVisibilityLayer: (show) => set({ showVisibilityLayer: show }),
   // 航班筛选条件
   flightFilters: {
     flightNumber: '',
