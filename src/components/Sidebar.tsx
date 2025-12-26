@@ -74,6 +74,7 @@ export function Sidebar() {
     setTargetFlightRouteId,
     riskTypes,
     setViewingAirportId,
+    setViewingFlightRouteId,
     selectedPersonId,
     setSelectedPersonId,
     expandedTeamIds,
@@ -124,6 +125,7 @@ export function Sidebar() {
     if (e) {
       e.stopPropagation() // 阻止事件冒泡到卡片
     }
+    setViewingAirportId(airport.id) // 设置正在查看的机场，用于在globe上显示该机场的所有航线
     setTargetAirportId(airport.id) // 只触发镜头跟随
     setHighlightedAirportId(airport.id) // 设置高亮状态
   }
@@ -172,6 +174,7 @@ export function Sidebar() {
     if (fromAirport && toAirport) {
       // 使用与GlobeView相同的ID格式：${fromAirport.id}-${toAirport.id}-${flight.id}
       const routeId = `${fromAirport.id}-${toAirport.id}-${flight.id}`
+      setViewingFlightRouteId(routeId) // 设置正在查看的航线，用于在globe上显示该航线
       setTargetFlightRouteId(routeId) // 只触发镜头跟随
       setHighlightedFlightRouteId(flight.id) // 设置高亮状态
     }

@@ -1739,10 +1739,13 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
         targetCameraPositionRef.current = null
         targetLookAtPointRef.current = null
         isAnimatingRef.current = false
+        // 在动画过程中，不清除查看状态，保持选中效果
+        // 只有在动画结束后，用户主动拖动时才清除
+      } else {
+        // 只有在动画结束后，用户主动拖动时才清除查看状态
+        setViewingAirportId(null)
+        setViewingFlightRouteId(null)
       }
-      // 用户开始交互时，清除查看状态，允许地球继续旋转
-      setViewingAirportId(null)
-      setViewingFlightRouteId(null)
       // 用户开始交互时，将目标点重置为原点，使相机围绕地球中心旋转
       controls.target.set(0, 0, 0)
       controls.update()
