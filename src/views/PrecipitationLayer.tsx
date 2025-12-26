@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
 const DATA_URL =
-    '/data/weather/current/current-tmp-surface-level-gfs-1.0.json'
+    'https://arvis.oss-cn-chengdu.aliyuncs.com/current-tmp-surface-level-gfs-1.0.json'
 
 // ---- 参数编号（GFS）----
 const PARAM = {

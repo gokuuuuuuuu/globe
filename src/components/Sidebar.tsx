@@ -40,12 +40,12 @@ const MOCK_AIRPORTS: AirportData[] = AIRPORTS.map(airport => {
 // 使用统一的航班数据
 const MOCK_FLIGHTS: Flight[] = FLIGHTS
 
-// 风险值转换为数字用于排序
-function parseRiskValue(riskValue: string): number {
-  // 解析 "X.Y" 格式的风险值字符串为数字
-  const num = parseFloat(riskValue)
-  return isNaN(num) ? 0 : num
-}
+// 风险值转换为数字用于排序（已注释，未使用）
+// function parseRiskValue(riskValue: string): number {
+//   // 解析 "X.Y" 格式的风险值字符串为数字
+//   const num = parseFloat(riskValue)
+//   return isNaN(num) ? 0 : num
+// }
 
 // 根据风险值确定风险区间
 // function getRiskZone(riskValue: string): RiskZone {

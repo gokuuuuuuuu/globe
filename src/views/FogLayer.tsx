@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 
-const DATA_URL = '/data/weather/current/current-fog-surface-level-gfs-1.0.json'
+const DATA_URL = 'https://arvis.oss-cn-chengdu.aliyuncs.com/current-fog-surface-level-gfs-1.0.json'
 
 // ---- 参数编号（GFS）----
 const PARAM = {

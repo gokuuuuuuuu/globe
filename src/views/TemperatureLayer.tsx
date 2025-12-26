@@ -6,7 +6,7 @@ import { Text } from '@react-three/drei';
 import { latLonToCartesian } from '../utils/geo';
 
 // ---- 配置 ----
-const DATA_URL = '/data/weather/current/current-tmp-surface-level-gfs-1.0.json';
+const DATA_URL = 'https://arvis.oss-cn-chengdu.aliyuncs.com/current-tmp-surface-level-gfs-1.0.json';
 
 // ---- 类型 ----
 type GribHeader = {

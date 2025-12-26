@@ -67,9 +67,7 @@ interface CountryLabel {
 export function MapView({ world, atlas }: MapViewProps) {
   const { 
     selectedCountry, 
-    setSelectedCountry, 
     hoveredCountry, 
-    setHoveredCountry,
     hoveredAirport,
     hoveredFlightRoute,
     tooltipPosition,
@@ -512,23 +510,8 @@ export function MapView({ world, atlas }: MapViewProps) {
                 blankAreaPointerStateRef.current.moved = true
               }
             }}
-            onPointerUp={(event) => {
-              // 只有在短按（< 200ms）且没有移动的情况下才取消选择
-              if (!blankAreaPointerStateRef.current) return
-              const state = blankAreaPointerStateRef.current
-              const duration = Date.now() - state.downTime
-              const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
-              const clientX = nativeEvent.clientX ?? 0
-              const clientY = nativeEvent.clientY ?? 0
-              const deltaX = Math.abs(clientX - state.downX)
-              const deltaY = Math.abs(clientY - state.downY)
-              const moved = state.moved || deltaX > 5 || deltaY > 5
-              
-              // 禁用地图点击选择功能，不再取消选择
-              // if (!moved && duration < 200 && selectedCountry) {
-              //   setSelectedCountry(null)
-              // }
-              
+            onPointerUp={() => {
+              // 禁用地图点击选择功能
               blankAreaPointerStateRef.current = null
             }}
           >
@@ -611,7 +594,7 @@ export function MapView({ world, atlas }: MapViewProps) {
             )
           })}
           {/* 航线显示 */}
-          {flightRoutes.length > 0 && (
+          {flightRoutes && flightRoutes.length > 0 && (
             <MapFlightPaths routes={flightRoutes} />
           )}
           {/* 国家标签 - 只显示选中的国家、悬停的国家或主要国家 */}

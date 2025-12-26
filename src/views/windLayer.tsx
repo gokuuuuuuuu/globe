@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { latLonToCartesian } from '../utils/geo'; 
 
 // ---- 配置 ----
-const DATA_URL = '/data/weather/current/current-wind-surface-level-gfs-1.0.json';
+const DATA_URL = 'https://arvis.oss-cn-chengdu.aliyuncs.com/current-wind-surface-level-gfs-1.0.json';
 // 提高默认粒子数量，让整体风场更加“饱满”
 const DEFAULT_PARTICLE_COUNT = 16000;
 const DEFAULT_TRAIL = 12;

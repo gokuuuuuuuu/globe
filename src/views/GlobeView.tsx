@@ -116,9 +116,7 @@ function sanitizeRing(ring: number[][]): number[][] {
 export function GlobeView({ world, atlas }: GlobeViewProps) {
   const { 
     selectedCountry, 
-    setSelectedCountry, 
     hoveredCountry, 
-    setHoveredCountry,
     hoveredAirport,
     hoveredFlightRoute,
     tooltipPosition,
@@ -794,7 +792,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         </div>
       </div>
       {/* 无航线提示 */}
-      {((viewingAirportId && flightRoutes.length === 0) || (selectedFlightRouteId && flightRoutes.length === 0)) && (
+      {flightRoutes && ((viewingAirportId && flightRoutes.length === 0) || (selectedFlightRouteId && flightRoutes.length === 0)) && (
         <div className="globe-empty-routes-hint">
           <div className="empty-routes-content">
             <div className="empty-routes-icon">✈️</div>
@@ -954,23 +952,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                   blankAreaPointerStateRef.current.moved = true
                 }
               }}
-              onPointerUp={(event) => {
-                // 只有在短按（< 200ms）且没有移动的情况下才取消选择
-                if (!blankAreaPointerStateRef.current) return
-                const state = blankAreaPointerStateRef.current
-                const duration = Date.now() - state.downTime
-                const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
-                const clientX = nativeEvent.clientX ?? 0
-                const clientY = nativeEvent.clientY ?? 0
-                const deltaX = Math.abs(clientX - state.downX)
-                const deltaY = Math.abs(clientY - state.downY)
-                const moved = state.moved || deltaX > 5 || deltaY > 5
-                
-                // 禁用地图点击选择功能，不再取消选择
-                // if (!moved && duration < 200 && selectedCountry) {
-                //   setSelectedCountry(null)
-                // }
-                
+              onPointerUp={() => {
+                // 禁用地图点击选择功能
                 blankAreaPointerStateRef.current = null
               }}
             >
@@ -1057,7 +1040,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
               })}
             </group>
             {/* 航线 - 使用新的发光路径组件 */}
-            {flightRoutes.length > 0 && (
+            {flightRoutes && flightRoutes.length > 0 && (
                <GlowingFlightPaths routes={flightRoutes} radius={GLOBE_RADIUS} />
             )}
             {/* 后期处理 - Bloom 泛光效果 */}
@@ -1184,7 +1167,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           orbitControlsRef={orbitControlsRef}
           globeGroupRef={globeGroupRef}
           airportInstances={airportInstances}
-          flightRoutes={flightRoutes}
+          flightRoutes={flightRoutes ?? []}
         />
         <OrbitControls
           ref={orbitControlsRef}

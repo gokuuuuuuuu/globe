@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 
 // ---- 配置 ----
-const DATA_URL = '/data/weather/current/current-lightning-surface-level-gfs-1.0.json';
+const DATA_URL = 'https://arvis.oss-cn-chengdu.aliyuncs.com/current-lightning-surface-level-gfs-1.0.json';
 
 // ---- 类型 ----
 type GribHeader = {

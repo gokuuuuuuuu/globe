@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { latLonToCartesian } from '../utils/geo'; 
 
 // ---- 配置 ----
-const DATA_URL = '/data/weather/current/current-moisture-surface-level-gfs-1.0.json';
+const DATA_URL = 'https://arvis.oss-cn-chengdu.aliyuncs.com/current-moisture-surface-level-gfs-1.0.json';
 // const DEFAULT_PARTICLE_COUNT = 20000;
 // const DEFAULT_TRAIL = 15;
 const DEFAULT_PARTICLE_COUNT = 10000;
