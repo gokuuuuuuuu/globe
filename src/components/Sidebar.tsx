@@ -232,8 +232,8 @@ export function Sidebar() {
         flight.fromAirportZh.includes(searchQuery) ||
         flight.toAirportZh.includes(searchQuery)
 
-      // 状态过滤
-      const matchesStatus = flightStatuses.length === 0 || flightStatuses.includes(flight.status)
+      // 状态过滤：如果没有任何状态被选中，则不显示任何航班
+      const matchesStatus = flightStatuses.length > 0 && flightStatuses.includes(flight.status)
 
       return matchesSearch && matchesStatus
     })
