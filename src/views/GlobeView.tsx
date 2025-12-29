@@ -910,13 +910,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           radius={300}
           depth={60}
           count={2000}
-          factor={4}
+          factor={8}
           saturation={0}
           fade
           speed={0.5}
         />
-        <ambientLight intensity={0.6} />
-        <directionalLight position={[4, 6, 2]} intensity={0.7} />
+        <ambientLight intensity={0.3} />
+        <directionalLight position={[4, 6, 2]} intensity={0.5} />
+        <StarLights />
         <Suspense fallback={null}>
           <GlobeRotator
             globeGroupRef={globeGroupRef}
@@ -960,8 +961,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
               <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
               <meshStandardMaterial
                 color="#050505"
-                roughness={0.95}
-                metalness={0.05}
+                roughness={0.85}
+                metalness={0.1}
                 transparent={false}
                 opacity={1}
                 depthWrite={true}
@@ -1740,12 +1741,9 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
         targetLookAtPointRef.current = null
         isAnimatingRef.current = false
         // 在动画过程中，不清除查看状态，保持选中效果
-        // 只有在动画结束后，用户主动拖动时才清除
-      } else {
-        // 只有在动画结束后，用户主动拖动时才清除查看状态
-        setViewingAirportId(null)
-        setViewingFlightRouteId(null)
       }
+      // 用户开始交互时（包括缩放），不清除查看状态
+      // 只有在右侧取消时才会清除查看状态
       // 用户开始交互时，将目标点重置为原点，使相机围绕地球中心旋转
       controls.target.set(0, 0, 0)
       controls.update()
@@ -1755,7 +1753,7 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
     return () => {
       controls.removeEventListener('start', handleStart)
     }
-  }, [orbitControlsRef, setViewingAirportId, setViewingFlightRouteId])
+  }, [orbitControlsRef])
 
   // 平滑动画到目标位置
   useFrame(() => {
@@ -1785,6 +1783,45 @@ function CameraController({ selectedCountry, countryLabels, orbitControlsRef, gl
   })
 
   return null
+}
+
+// 星星光照组件：在地球周围添加多个点光源模拟星星的光照
+function StarLights() {
+  // 生成多个点光源位置，分布在地球周围的球面上
+  const lightPositions = useMemo(() => {
+    const positions: Vector3[] = []
+    const count = 12 // 点光源数量
+    const radius = GLOBE_RADIUS * 8 // 光源距离地球的距离
+    
+    for (let i = 0; i < count; i++) {
+      // 使用球面坐标生成均匀分布的点
+      const theta = Math.random() * Math.PI * 2 // 方位角
+      const phi = Math.acos(2 * Math.random() - 1) // 极角
+      
+      const x = radius * Math.sin(phi) * Math.cos(theta)
+      const y = radius * Math.sin(phi) * Math.sin(theta)
+      const z = radius * Math.cos(phi)
+      
+      positions.push(new Vector3(x, y, z))
+    }
+    
+    return positions
+  }, [])
+  
+  return (
+    <>
+      {lightPositions.map((position, index) => (
+        <pointLight
+          key={index}
+          position={position}
+          intensity={0.6}
+          distance={GLOBE_RADIUS * 20}
+          decay={1.5}
+          color="#e8f4ff"
+        />
+      ))}
+    </>
+  )
 }
 
 interface AirportParticleProps {

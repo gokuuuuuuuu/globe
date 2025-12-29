@@ -142,6 +142,7 @@ export function Sidebar() {
   const handleDeselectAirport = () => {
     setSelectedAirportForAirline(null)
     setViewingAirportId(null) // 清除正在查看的机场
+    setViewingFlightRouteId(null) // 清除正在查看的航线，显示全部航线
   }
 
   // 处理航班状态切换
@@ -184,8 +185,9 @@ export function Sidebar() {
   const handleFlightViewClick = (flight: Flight) => {
     // 先设置选中的航班ID，用于显示详情面板
     setSelectedFlightRouteId(flight.id)
-    // 清除viewingAirportId，确保只显示当前选中的航线
+    // 清除viewingAirportId和viewingFlightRouteId，确保只显示当前选中的航线
     setViewingAirportId(null)
+    setViewingFlightRouteId(null) // 清除之前可能设置的viewingFlightRouteId
     setHighlightedFlightRouteId(null) // 清除高亮状态
     
     // 根据起降机场生成航线ID（格式：起飞机场-降落机场-航班ID，与GlobeView保持一致）
@@ -206,10 +208,14 @@ export function Sidebar() {
   const handleDeselectFlight = () => {
     setSelectedFlightRouteId(null)
     setTargetFlightRouteId(null)
+    setViewingFlightRouteId(null) // 清除正在查看的航线
     setHighlightedFlightRouteId(null) // 清除高亮状态
     // 如果取消选中航线，但还有选中的机场，则恢复显示该机场的所有航线
     if (selectedAirportForAirline) {
       setViewingAirportId(selectedAirportForAirline)
+    } else {
+      // 如果没有选中的机场，清除viewingAirportId，显示全部航线
+      setViewingAirportId(null)
     }
   }
 
