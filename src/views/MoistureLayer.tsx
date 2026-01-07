@@ -546,14 +546,26 @@ export function MoistureLayer({
     });
   }, []);
 
+  // 确保线段和点云不会被裁剪，并控制渲染顺序（通过 ref 设置，避免 TS 类型报错）
+  useEffect(() => {
+    if (trailRef.current) {
+      trailRef.current.frustumCulled = false
+      trailRef.current.renderOrder = 99
+    }
+    if (pointsRef.current) {
+      pointsRef.current.frustumCulled = false
+      pointsRef.current.renderOrder = 100
+    }
+  }, [])
+
   return (
     <group>
-      <lineSegments ref={trailRef} frustumCulled={false} renderOrder={99}>
+      <lineSegments ref={trailRef}>
         <bufferGeometry ref={trailGeomRef} />
         <primitive object={trailMaterial} attach="material" />
       </lineSegments>
 
-      <points ref={pointsRef} frustumCulled={false} renderOrder={100}>
+      <points ref={pointsRef}>
         <bufferGeometry ref={geometryRef} />
         <primitive object={pointMaterial} attach="material" />
       </points>
