@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { Suspense, useMemo, useRef, useEffect, useCallback, useState } from 'react'
 import { GlowingFlightPaths } from '../components/GlowingFlightPaths'
 import { Sidebar } from '../components/Sidebar'
+import { Timeline } from '../components/Timeline'
 import { WindLegend, TemperatureLegend, PrecipitationLegend, FogLegend, MoistureLegend, LightningLegend, CATLegend, VisibilityLegend } from '../components/Legend'
 import { WindLayer } from './windLayer'
 import { TemperatureLayer } from './TemperatureLayer'
@@ -102,6 +103,33 @@ function normalizeCountryCode(code: string | null): string | null {
 // 使用统一数据源
 const DEMO_AIRPORTS: AirportParticle[] = AIRPORTS
 
+// 解析航班时间（支持完整日期时间或仅时间格式，按 GMT+8 处理）
+// 如果只有时间（如 "11:55"），则使用 2024-07-25 作为日期
+function parseFlightDateTime(dateTime: string): Date | null {
+  if (!dateTime) return null
+  
+  // 如果包含日期（有空格或包含 "-"），按完整日期时间解析
+  if (dateTime.includes(' ') || dateTime.includes('-')) {
+    const isoLike = `${dateTime.replace(' ', 'T')}+08:00`
+    const d = new Date(isoLike)
+    return Number.isNaN(d.getTime()) ? null : d
+  }
+  
+  // 如果只有时间（如 "11:55"），添加 2024-07-25 作为日期
+  const isoLike = `2024-07-25T${dateTime}+08:00`
+  const d = new Date(isoLike)
+  return Number.isNaN(d.getTime()) ? null : d
+}
+
+// 判断航班在给定时间点是否处于起飞与落地之间（正在飞行）
+function isFlightActiveAt(scheduledDeparture: string, scheduledArrival: string, at: Date): boolean {
+  const dep = parseFlightDateTime(scheduledDeparture)
+  const arr = parseFlightDateTime(scheduledArrival)
+  if (!dep || !arr) return false
+  const t = at.getTime()
+  return t >= dep.getTime() && t <= arr.getTime()
+}
+
 function sanitizeRing(ring: number[][]): number[][] {
   if (ring.length > 1) {
     const first = ring[0]
@@ -136,6 +164,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     airportCodeFormat,
     setAirportCodeFormat,
     riskZones,
+    timelineCurrentTime,
   } = useAppStore()
   const preferencesMenuRef = useRef<HTMLDivElement>(null)
   const loginStatusRef = useRef<HTMLDivElement>(null)
@@ -490,11 +519,17 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       environmentRisk: number
       riskLevel?: string
     }> = []
+
+    const activeTime = timelineCurrentTime
     
     // 情况1: 如果选中了特定航线，只显示该航线
     if (selectedFlightRouteId) {
       const flight = FLIGHTS.find(f => f.id === selectedFlightRouteId)
       if (flight) {
+        // 仅在当前时间点处于飞行中的航班才显示
+        if (!isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)) {
+          return routes
+        }
         const fromAirport = getAirportByCode(flight.fromAirport)
         const toAirport = getAirportByCode(flight.toAirport)
         
@@ -555,7 +590,9 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       
       // 筛选与该机场相关的航班（起飞机场或降落机场）
       const relevantFlights = FLIGHTS.filter(flight => {
-        return flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+        const related = flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+        if (!related) return false
+        return isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)
       })
       
       relevantFlights.forEach(flight => {
@@ -628,6 +665,10 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       : null
     
     allFlights.forEach(flight => {
+      // 仅在当前时间点处于飞行中的航班才显示
+      if (!isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)) {
+        return
+      }
       const fromAirport = getAirportByCode(flight.fromAirport)
       const toAirport = getAirportByCode(flight.toAirport)
       
@@ -706,7 +747,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     })
     
     return routes
-  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones, timelineCurrentTime])
 
   // 使用 useMemo 缓存颜色对象，避免每次渲染创建新对象
   const baseColor = useMemo(() => new Color('#ffffff'), [])
@@ -791,6 +832,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           </div>
         </div>
       </div>
+      {/* 时间轴 */}
+      <Timeline />
       {/* 无航线提示 */}
       {flightRoutes && ((viewingAirportId && flightRoutes.length === 0) || (selectedFlightRouteId && flightRoutes.length === 0)) && (
         <div className="globe-empty-routes-hint">

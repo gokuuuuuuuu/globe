@@ -1,0 +1,105 @@
+.radar-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.radar-chart-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.radar-chart-title-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.radar-chart-wrapper {
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(88, 133, 255, 0.3);
+  box-shadow: inset 0 0 10px rgba(88, 133, 255, 0.2);
+  border-radius: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  overflow: visible;
+}
+
+.radar-chart-wrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(88, 133, 255, 0.05) 0%, rgba(15, 23, 42, 0.5) 100%);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.radar-chart-svg {
+  width: 100%;
+  height: auto;
+  max-width: 500px;
+  overflow: visible;
+}
+
+.radar-axis-label {
+  font-size: 15px;
+  fill: #cbd5e1;
+  font-weight: 500;
+  pointer-events: none;
+  user-select: none;
+}
+
+.radar-average-polygon {
+  filter: drop-shadow(0 0 4px rgba(34, 197, 94, 0.4));
+  opacity: 0.9;
+}
+
+.radar-person-polygon {
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+  opacity: 0.9;
+}
+
+.radar-average-point {
+  filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.8));
+}
+
+.radar-person-point {
+  filter: drop-shadow(0 0 3px rgba(239, 68, 68, 0.8));
+}
+
+.radar-chart-legend {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.radar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.radar-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.radar-legend-label {
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  font-weight: 500;
+}

@@ -1269,6 +1269,29 @@
   color: #f1f5f9;
 }
 
+.detail-info-item-full {
+  width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  white-space: normal;
+}
+
+.detail-info-value-multiline {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.6;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(15, 23, 42, 0.3);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 400;
+  width: 100%;
+  color: #e2e8f0;
+}
+
 /* 机组成员 - 列展示 */
 .detail-crew-row {
   flex-direction: column;

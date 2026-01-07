@@ -1,7 +1,10 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react'
 import { useAppStore, type RiskZone } from '../store/useAppStore'
 import { AIRPORTS, FLIGHTS, calculateRiskFromEnvironmentRisk, type Airport, type Flight, getRiskColor } from '../data/flightData'
-import { PERSONS, TEAMS, getPersonById, getTeamById } from '../data/personData'
+import { TEAMS, getPersonById, getTeamById, ALL_PERSONS } from '../data/personData'
+import { RadarChart } from './RadarChart'
+import { getMetarReport } from '../utils/metarData'
+import { enrichFlightWithAirportCodes } from '../utils/airportCodeData'
 import collapseIcon from '../assets/collapse.png'
 import airlineIcon from '../assets/airline.png'
 import airportIcon from '../assets/airport.png'
@@ -72,7 +75,6 @@ export function Sidebar() {
     selectedFlightRouteId,
     setSelectedFlightRouteId,
     setTargetFlightRouteId,
-    riskTypes,
     setViewingAirportId,
     setViewingFlightRouteId,
     selectedPersonId,
@@ -83,7 +85,135 @@ export function Sidebar() {
     setHighlightedAirportId,
     highlightedFlightRouteId,
     setHighlightedFlightRouteId,
+    airportCodeFormat,
   } = useAppStore()
+
+  // 根据偏好设置获取机场编码显示
+  const getAirportCode = (flight: Flight, type: 'from' | 'to'): string => {
+    if (type === 'from') {
+      if (airportCodeFormat === 'four') {
+        return flight.fromAirportCode4 || flight.fromAirport || flight.fromAirportZh || '--'
+      } else {
+        return flight.fromAirportCode3 || flight.fromAirport || flight.fromAirportZh || '--'
+      }
+    } else {
+      if (airportCodeFormat === 'four') {
+        return flight.toAirportCode4 || flight.toAirport || flight.toAirportZh || '--'
+      } else {
+        return flight.toAirportCode3 || flight.toAirport || flight.toAirportZh || '--'
+      }
+    }
+  }
+  
+  // 从航班数据中构建机场三字码到四字码的映射（作为基础映射）
+  const baseAirportCodeMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    FLIGHTS.forEach(flight => {
+      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
+        map[flight.fromAirportCode3] = flight.fromAirportCode4
+      }
+      if (flight.toAirportCode3 && flight.toAirportCode4) {
+        map[flight.toAirportCode3] = flight.toAirportCode4
+      }
+    })
+    return map
+  }, [])
+  
+  // 完整的机场编码映射（从CSV加载，包含所有机场）
+  const [fullAirportCodeMap, setFullAirportCodeMap] = useState<Record<string, string>>({})
+  
+  // 异步加载完整的机场编码映射
+  useEffect(() => {
+    const loadFullCodeMap = async () => {
+      try {
+        const response = await fetch('/data.csv')
+        const text = await response.text()
+        const lines = text.split('\n')
+        
+        if (lines.length < 2) return
+        
+        const headers = lines[0].split(',')
+        const fromCode3Idx = headers.findIndex(h => h.includes('起飞机场三字码'))
+        const fromCode4Idx = headers.findIndex(h => h.includes('起飞机场四字码'))
+        const toCode3Idx = headers.findIndex(h => h.includes('降落机场三字码'))
+        const toCode4Idx = headers.findIndex(h => h.includes('降落机场四字码'))
+        
+        if (fromCode3Idx === -1 || fromCode4Idx === -1 || toCode3Idx === -1 || toCode4Idx === -1) {
+          return
+        }
+        
+        const map: Record<string, string> = {}
+        
+        // 解析CSV数据
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim()
+          if (!line) continue
+          
+          // 简单的CSV解析（处理引号）
+          const row: string[] = []
+          let current = ''
+          let inQuotes = false
+          
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j]
+            if (char === '"') {
+              inQuotes = !inQuotes
+            } else if (char === ',' && !inQuotes) {
+              row.push(current)
+              current = ''
+            } else {
+              current += char
+            }
+          }
+          row.push(current)
+          
+          if (row.length <= Math.max(fromCode3Idx, fromCode4Idx, toCode3Idx, toCode4Idx)) {
+            continue
+          }
+          
+          // 处理起飞机场编码
+          const fromCode3 = row[fromCode3Idx]?.trim()
+          const fromCode4 = row[fromCode4Idx]?.trim()
+          if (fromCode3 && fromCode4 && fromCode3 !== 'nan' && fromCode4 !== 'nan') {
+            if (!map[fromCode3]) {
+              map[fromCode3] = fromCode4
+            }
+          }
+          
+          // 处理降落机场编码
+          const toCode3 = row[toCode3Idx]?.trim()
+          const toCode4 = row[toCode4Idx]?.trim()
+          if (toCode3 && toCode4 && toCode3 !== 'nan' && toCode4 !== 'nan') {
+            if (!map[toCode3]) {
+              map[toCode3] = toCode4
+            }
+          }
+        }
+        
+        setFullAirportCodeMap(map)
+      } catch (error) {
+        console.error('加载完整机场编码映射失败:', error)
+      }
+    }
+    
+    loadFullCodeMap()
+  }, [])
+  
+  // 合并基础映射和完整映射（完整映射优先）
+  const airportCodeMap = useMemo(() => {
+    return { ...baseAirportCodeMap, ...fullAirportCodeMap }
+  }, [baseAirportCodeMap, fullAirportCodeMap])
+  
+  // 根据用户设置获取机场卡片显示的编码
+  const getAirportDisplayCode = (airport: AirportData): string => {
+    if (airportCodeFormat === 'four') {
+      // 查找四字码，如果找不到则显示三字码
+      return airportCodeMap[airport.code] || airport.code
+    } else {
+      // 显示三字码
+      return airport.code
+    }
+  }
   
   // 本地状态：从tab进入时，默认展开所有机队
   const [isFromTab, setIsFromTab] = useState(false)
@@ -220,10 +350,55 @@ export function Sidebar() {
   }
 
   // 获取当前选中的航线信息
-  const selectedFlight = useMemo(() => {
-    if (!selectedFlightRouteId) return null
-    return MOCK_FLIGHTS.find(f => f.id === selectedFlightRouteId) || null
+  const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null)
+  
+  useEffect(() => {
+    if (!selectedFlightRouteId) {
+      setSelectedFlight(null)
+      return
+    }
+    
+    const flight = MOCK_FLIGHTS.find(f => f.id === selectedFlightRouteId)
+    if (flight) {
+      // 如果航班还没有三字码和四字码，从CSV加载
+      if (!flight.fromAirportCode3 || !flight.fromAirportCode4 || !flight.toAirportCode3 || !flight.toAirportCode4) {
+        enrichFlightWithAirportCodes(flight).then(enrichedFlight => {
+          setSelectedFlight(enrichedFlight as Flight)
+        }).catch(err => {
+          console.error('加载机场编码失败:', err)
+          setSelectedFlight(flight)
+        })
+      } else {
+        setSelectedFlight(flight)
+      }
+    } else {
+      setSelectedFlight(null)
+    }
   }, [selectedFlightRouteId])
+
+  // 动态加载metar报文
+  const [metarReport, setMetarReport] = useState<string | null>(null)
+  
+  useEffect(() => {
+    if (selectedFlight) {
+      // 如果航班已有metarReport，直接使用
+      if (selectedFlight.metarReport) {
+        setMetarReport(selectedFlight.metarReport)
+      } else {
+        // 否则从CSV加载
+        getMetarReport(selectedFlight.flightNumber, selectedFlight.fromAirport, selectedFlight.toAirport)
+          .then(metar => {
+            setMetarReport(metar || null)
+          })
+          .catch(err => {
+            console.error('加载metar报文失败:', err)
+            setMetarReport(null)
+          })
+      }
+    } else {
+      setMetarReport(null)
+    }
+  }, [selectedFlight])
 
   // 过滤和排序航班数据
   const filteredFlights = useMemo(() => {
@@ -239,7 +414,11 @@ export function Sidebar() {
       const matchesSearch = !searchQuery || 
         flight.flightNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         flight.fromAirportZh.includes(searchQuery) ||
-        flight.toAirportZh.includes(searchQuery)
+        flight.toAirportZh.includes(searchQuery) ||
+        (flight.fromAirportCode3 && flight.fromAirportCode3.includes(searchQuery)) ||
+        (flight.fromAirportCode4 && flight.fromAirportCode4.includes(searchQuery)) ||
+        (flight.toAirportCode3 && flight.toAirportCode3.includes(searchQuery)) ||
+        (flight.toAirportCode4 && flight.toAirportCode4.includes(searchQuery))
 
       // 状态过滤：如果没有任何状态被选中，则不显示任何航班
       const matchesStatus = flightStatuses.length > 0 && flightStatuses.includes(flight.status)
@@ -292,11 +471,27 @@ export function Sidebar() {
   const prevSearchQueryRef = useRef<string>('')
   const prevFilteredTeamsLengthRef = useRef<number>(0)
   const expandedTeamIdsRef = useRef<string[]>(expandedTeamIds)
+  // 用于跟踪需要滚动到的机队ID
+  const teamToScrollRef = useRef<string | null>(null)
   
   // 同步 expandedTeamIds 到 ref（不触发更新）
   useEffect(() => {
     expandedTeamIdsRef.current = expandedTeamIds
   }, [expandedTeamIds])
+  
+  // 当机队展开后，滚动到对应的机队
+  useEffect(() => {
+    if (teamToScrollRef.current && expandedTeamIds.includes(teamToScrollRef.current) && sidebarTab === 'person') {
+      // 使用 setTimeout 确保 DOM 已经更新
+      setTimeout(() => {
+        const teamElement = document.querySelector(`[data-team-id="${teamToScrollRef.current}"]`)
+        if (teamElement) {
+          teamElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          teamToScrollRef.current = null // 清除标记
+        }
+      }, 150) // 增加延迟时间，确保 tab 切换和 DOM 更新完成
+    }
+  }, [expandedTeamIds, sidebarTab])
   
   // 当有搜索查询时，自动展开匹配的机队（仅在person tab）
   useEffect(() => {
@@ -567,7 +762,7 @@ export function Sidebar() {
           <div className="selected-airport-info">
             <div className="selected-airport-left">
             <div className="selected-airport-name">
-              {selectedAirport.nameZh} {selectedAirport.code}
+              {getAirportDisplayCode(selectedAirport)}
             </div>
             <div className="selected-airport-stats">
               <span>执飞单位 {selectedAirport.operatorCount}</span>
@@ -662,7 +857,7 @@ export function Sidebar() {
               >
                 <div className="item-left">
                   <div className="item-title">
-                    {airport.nameZh} {airport.code}
+                    {getAirportDisplayCode(airport)}
                   </div>
                   <div className="item-info">
                     <span className="item-info-item">执飞单位: {airport.operatorCount}</span>
@@ -747,8 +942,8 @@ export function Sidebar() {
                             <div className="flight-route">
                               <img src={planeIcon} alt="plane" className="flight-route-plane" />
                               <div className="flight-route-airports">
-                              <span className="flight-route-from">{selectedFlight.fromAirportZh}</span>
-                              <span className="flight-route-to">{selectedFlight.toAirportZh}</span>
+                              <span className="flight-route-from">{getAirportCode(selectedFlight, 'from')}</span>
+                              <span className="flight-route-to">{getAirportCode(selectedFlight, 'to')}</span>
                             </div>
                             </div>
                         </div>
@@ -882,6 +1077,8 @@ export function Sidebar() {
                                     if (person.teamId) {
                                       const team = getTeamById(person.teamId)
                                       if (team) {
+                                        // 标记需要滚动到这个机队
+                                        teamToScrollRef.current = team.id
                                         // 展开该人员所属的机队
                                         setExpandedTeamIds([team.id])
                                         // 不选中人员，显示机队信息
@@ -890,11 +1087,13 @@ export function Sidebar() {
                                         // 如果找不到机队，则选中该人员
                                         setSelectedPersonId(person.id)
                                         setExpandedTeamIds([])
+                                        teamToScrollRef.current = null
                                       }
                                     } else {
                                       // 如果人员没有teamId，则选中该人员
                                       setSelectedPersonId(person.id)
                                       setExpandedTeamIds([])
+                                      teamToScrollRef.current = null
                                     }
                                   }}
                                   style={{ cursor: 'pointer' }}
@@ -944,109 +1143,36 @@ export function Sidebar() {
                           </div>
                         </div>
                       )}
-                    </div>
-                  </div>
 
-                  {/* 风险值 - 独立方块 */}
-                  <div className="detail-risk-section-box">
-                    <div className="detail-subsection-title">
-                      <span>风险值</span>
-                    </div>
-                    <div className="detail-risk-values-inline">
-                      {/* 第一行：人、机、环、滑出 */}
-                      <div className="detail-risk-value-item">
-                        <span className="detail-risk-label">人</span>
-                        <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.humanRisk) }}>
-                          {selectedFlight.humanRisk.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="detail-risk-value-item">
-                        <span className="detail-risk-label">机</span>
-                        <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.machineRisk) }}>
-                          {selectedFlight.machineRisk.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="detail-risk-value-item">
-                        <span className="detail-risk-label">环</span>
-                        <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.environmentRisk) }}>
-                          {selectedFlight.riskLevel || getRiskLevelText(selectedFlight.environmentRisk)}
-                        </span>
-                      </div>
-                      {selectedFlight.riskValues && (
-                        <div className="detail-risk-value-item">
-                          <span className="detail-risk-label">滑出</span>
-                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiOut) }}>
-                            {selectedFlight.riskValues.taxiOut.toFixed(2)}
-                          </span>
+                      {/* 降落metar报文 */}
+                      {metarReport && (
+                        <div className="detail-info-row">
+                          <div className="detail-info-item detail-info-item-full">
+                            <span className="detail-info-label">降落报文</span>
+                            <span className="detail-info-value detail-info-value-multiline">{metarReport}</span>
+                          </div>
                         </div>
                       )}
                     </div>
-                    {/* 分隔线 */}
-                    {selectedFlight.riskValues && (
-                      <div className="detail-risk-divider"></div>
-                    )}
-                    {/* 第二行：起飞、巡航、着陆、滑入 */}
-                    {selectedFlight.riskValues && (
-                      <div className="detail-risk-values-inline">
-                        <div className="detail-risk-value-item">
-                          <span className="detail-risk-label">起飞</span>
-                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.takeoff) }}>
-                            {selectedFlight.riskValues.takeoff.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="detail-risk-value-item">
-                          <span className="detail-risk-label">巡航</span>
-                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.cruise) }}>
-                            {selectedFlight.riskValues.cruise.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="detail-risk-value-item">
-                          <span className="detail-risk-label">着陆</span>
-                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.landing) }}>
-                            {selectedFlight.riskValues.landing.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="detail-risk-value-item">
-                          <span className="detail-risk-label">滑入</span>
-                          <span className="detail-risk-number" style={{ color: getRiskValueColorFromNumber(selectedFlight.riskValues.taxiIn) }}>
-                            {selectedFlight.riskValues.taxiIn.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* 预测风险 - 独立方块 */}
-                  {selectedFlight.predictedRisks && selectedFlight.predictedRisks.length > 0 && (
-                    <div className="detail-risk-section-box">
-                      <div className="detail-subsection-title">
-                        <span>预测风险</span>
-                      </div>
-                      <div className="detail-predicted-risks-inline">
-                        {selectedFlight.predictedRisks
-                          .filter((risk) => {
-                            // 如果riskTypes为空，显示所有；否则只显示在riskTypes中的
-                            if (riskTypes.length === 0) return true
-                            return riskTypes.includes(risk.type)
-                          })
-                          .map((risk, idx) => {
-                            const riskColor = risk.severity === 'red' ? '#ef4444' : risk.severity === 'orange' ? '#f97316' : '#eab308'
-                            return (
-                              <div 
-                                key={idx} 
-                                className="detail-predicted-item-inline"
-                                style={{ 
-                                  color: riskColor,
-                                  borderColor: riskColor
-                                }}
-                              >
-                                {risk.type}
-                              </div>
-                            )
-                          })}
+                  <div className="detail-risk-section-box">
+                    <div className="detail-subsection-title">
+                      <span>预测风险</span>
+                    </div>
+                    <div className="detail-predicted-risks-inline">
+                      <div 
+                        className="detail-predicted-item-inline"
+                        style={{ 
+                          color: '#ef4444',
+                          borderColor: '#ef4444'
+                        }}
+                      >
+                        冲偏出轨道
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             ) : (
@@ -1107,8 +1233,8 @@ export function Sidebar() {
                               <div className="flight-route">
                               <img src={planeIcon} alt="plane" className="flight-route-plane" />
                               <div className="flight-route-airports">
-                                <span className="flight-route-from">{flight.fromAirportZh}</span>
-                                <span className="flight-route-to">{flight.toAirportZh}</span>
+                                <span className="flight-route-from">{getAirportCode(flight, 'from')}</span>
+                                <span className="flight-route-to">{getAirportCode(flight, 'to')}</span>
                               </div>
                             </div>
                           </div>
@@ -1170,7 +1296,7 @@ export function Sidebar() {
                   </button>
                 </div>
                 {(() => {
-                  const person = PERSONS.find(p => p.id === selectedPersonId)
+                  const person = getPersonById(selectedPersonId)
                   if (!person) return <div className="sidebar-empty">人员不存在</div>
                   
                   return (
@@ -1251,6 +1377,9 @@ export function Sidebar() {
                           </div>
                         </div>
                       </div>
+
+                      {/* 雷达图 */}
+                      <RadarChart person={person} allPersons={ALL_PERSONS} />
                     </>
                   )
                 })()}
@@ -1269,6 +1398,7 @@ export function Sidebar() {
                   return (
                     <div 
                       key={team.id} 
+                      data-team-id={team.id}
                       className={`team-card ${isExpanded ? 'team-card-selected' : ''}`}
                       style={isExpanded ? { backgroundImage: `url(${personCardBg})` } : {}}
                     >

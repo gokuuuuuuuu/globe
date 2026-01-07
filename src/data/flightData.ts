@@ -3,6 +3,8 @@
 // 自动生成，请勿手动编辑
 
 // 机场中文名称映射（从 CSV 数据中提取）
+import { getTeamByName } from './personData'
+
 export const AIRPORT_NAMES_ZH: Record<string, string> = {
   'YNJ': 'YNJ',
   'ICN': 'Incheon International Airport',
@@ -197,10 +199,14 @@ export interface Airport {
 export interface Flight {
   id: string
   flightNumber: string
-  fromAirport: string // 起飞机场代码
-  fromAirportZh: string // 起飞机场中文名
-  toAirport: string // 降落机场代码
-  toAirportZh: string // 降落机场中文名
+  fromAirport: string // 起飞机场代码（三字码）
+  fromAirportZh: string // 起飞机场中文名（保留用于兼容）
+  fromAirportCode3?: string // 起飞机场三字码
+  fromAirportCode4?: string // 起飞机场四字码
+  toAirport: string // 降落机场代码（三字码）
+  toAirportZh: string // 降落机场中文名（保留用于兼容）
+  toAirportCode3?: string // 降落机场三字码
+  toAirportCode4?: string // 降落机场四字码
   scheduledDeparture: string // 预飞时间
   estimatedDeparture: string // 计飞时间
   scheduledArrival: string // 预到时间
@@ -221,6 +227,7 @@ export interface Flight {
   crewMembers?: Array<{ personId: string; role: string }> // 机组成员
   dispatcher?: string // 放行签派员
   alternateAirport?: string // 备降机场
+  metarReport?: string // 降落metar报文
   // 各阶段风险值
   riskValues?: {
     taxiOut: number // 滑出
@@ -389,9 +396,13 @@ export const FLIGHTS: Flight[] = [
     id: 'FL0001', 
     flightNumber: '891', 
     fromAirport: 'YNJ', 
-    fromAirportZh: 'YNJ', 
+    fromAirportZh: 'YNJ',
+    fromAirportCode3: 'YNJ',
+    fromAirportCode4: 'ZYYJ',
     toAirport: 'ICN', 
-    toAirportZh: 'Incheon International Airport', 
+    toAirportZh: 'Incheon International Airport',
+    toAirportCode3: 'ICN',
+    toAirportCode4: 'RKSI', 
     scheduledDeparture: '11:55', 
     estimatedDeparture: '11:55', 
     scheduledArrival: '13:44', 
@@ -408,6 +419,15 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1009',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    metarReport: '例行天气报告：首尔(RKSI, ICN)机场；北京时间2024-07-25 14:30；220度的风6节(4米/秒)，风向在120度至290度间变化；能见度高于10公里；微量的云，云底高3000英尺(900米)、多云，云底高19000英尺(5700米)；气温为32℃，露点温度为24℃；修正海压为1006百帕；天气没有明显变化。',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0002', 
@@ -432,6 +452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1009',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0003', 
@@ -456,6 +484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x100F',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0004', 
@@ -480,6 +516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x100F',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0005', 
@@ -504,6 +548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1021',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0006', 
@@ -528,6 +580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1021',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0007', 
@@ -552,6 +612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1024',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0008', 
@@ -576,6 +644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1037',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0009', 
@@ -600,6 +676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x103B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0010', 
@@ -624,6 +708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x103B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0011', 
@@ -648,6 +740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x103D',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0012', 
@@ -672,6 +772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x103F',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0013', 
@@ -696,6 +804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x104B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0014', 
@@ -720,6 +836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x105',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0015', 
@@ -744,6 +868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x105',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0016', 
@@ -768,6 +900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1059',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0017', 
@@ -792,6 +932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x105E',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0018', 
@@ -816,6 +964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1068',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0019', 
@@ -840,6 +996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1073',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0020', 
@@ -864,6 +1028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1073',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0021', 
@@ -888,6 +1060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x107D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0022', 
@@ -912,6 +1092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x107D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0023', 
@@ -936,6 +1124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x107D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0024', 
@@ -960,6 +1156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x108',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0025', 
@@ -984,6 +1188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x108E',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0026', 
@@ -1008,6 +1220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x108F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0027', 
@@ -1032,6 +1252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x108F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0028', 
@@ -1056,6 +1284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1095',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0029', 
@@ -1080,6 +1316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10A3',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0030', 
@@ -1104,6 +1348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10A9',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0031', 
@@ -1128,6 +1380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10A9',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0032', 
@@ -1152,6 +1412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10AE',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0033', 
@@ -1176,6 +1444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10AE',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0034', 
@@ -1200,6 +1476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10AE',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0035', 
@@ -1224,6 +1508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10B',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0036', 
@@ -1248,6 +1540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10B4',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0037', 
@@ -1272,6 +1572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0038', 
@@ -1296,6 +1604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10CF',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0039', 
@@ -1320,6 +1636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10CF',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0040', 
@@ -1344,6 +1668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10EE',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0041', 
@@ -1368,6 +1700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0042', 
@@ -1392,6 +1732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10F8',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0043', 
@@ -1416,6 +1764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x10F8',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0044', 
@@ -1440,6 +1796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x110',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0045', 
@@ -1464,6 +1828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x110',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0046', 
@@ -1488,6 +1860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1106',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0047', 
@@ -1512,6 +1892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1106',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0048', 
@@ -1536,6 +1924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x110F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0049', 
@@ -1560,6 +1956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x110F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0050', 
@@ -1584,6 +1988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1112',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0051', 
@@ -1608,6 +2020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1121',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0052', 
@@ -1632,6 +2052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x112B',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0053', 
@@ -1656,6 +2084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x114',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0054', 
@@ -1680,6 +2116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1143',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0055', 
@@ -1704,6 +2148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x115',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0056', 
@@ -1728,6 +2180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x115',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0057', 
@@ -1752,6 +2212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1159',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0058', 
@@ -1776,6 +2244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x116',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0059', 
@@ -1800,6 +2276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1161',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0060', 
@@ -1824,6 +2308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x116A',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0061', 
@@ -1848,6 +2340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x116C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0062', 
@@ -1872,6 +2372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1171',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0063', 
@@ -1896,6 +2404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x117D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0064', 
@@ -1920,6 +2436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x117D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0065', 
@@ -1944,6 +2468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x117D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0066', 
@@ -1968,6 +2500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x117D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0067', 
@@ -1992,6 +2532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1183',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0068', 
@@ -2016,6 +2564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x118A',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0069', 
@@ -2040,6 +2596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x118A',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0070', 
@@ -2064,6 +2628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x119A',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0071', 
@@ -2088,6 +2660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11A9',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0072', 
@@ -2112,6 +2692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11B',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0073', 
@@ -2136,6 +2724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11B',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0074', 
@@ -2160,6 +2756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11C',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0075', 
@@ -2184,6 +2788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11C3',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0076', 
@@ -2208,6 +2820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11C3',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0077', 
@@ -2232,6 +2852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11CD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0078', 
@@ -2256,6 +2884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11CD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0079', 
@@ -2280,6 +2916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11F4',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0080', 
@@ -2304,6 +2948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11F6',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0081', 
@@ -2328,6 +2980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11F7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0082', 
@@ -2352,6 +3012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11F7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0083', 
@@ -2376,6 +3044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x11F7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0084', 
@@ -2400,6 +3076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0085', 
@@ -2424,6 +3108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x120',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0086', 
@@ -2448,6 +3140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x120',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0087', 
@@ -2472,6 +3172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1220',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0088', 
@@ -2496,6 +3204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1220',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0089', 
@@ -2520,6 +3236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1220',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0090', 
@@ -2544,6 +3268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1228',
     pfTechnology: '巡航机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0091', 
@@ -2568,6 +3300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1228',
     pfTechnology: '巡航机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0092', 
@@ -2592,6 +3332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1232',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0093', 
@@ -2616,6 +3364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1232',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0094', 
@@ -2640,6 +3396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1234',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0095', 
@@ -2664,6 +3428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x123D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0096', 
@@ -2688,6 +3460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x123D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0097', 
@@ -2712,6 +3492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1242',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0098', 
@@ -2736,6 +3524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x124B',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0099', 
@@ -2760,6 +3556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x124B',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0100', 
@@ -2784,6 +3588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x125',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0101', 
@@ -2808,6 +3620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x126E',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0102', 
@@ -2832,6 +3652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1273',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0103', 
@@ -2856,6 +3684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1273',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0104', 
@@ -2880,6 +3716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x127F',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0105', 
@@ -2904,6 +3748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0106', 
@@ -2928,6 +3780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0107', 
@@ -2952,6 +3812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12AC',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0108', 
@@ -2976,6 +3844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12B2',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0109', 
@@ -3000,6 +3876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12BE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0110', 
@@ -3024,6 +3908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12BE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0111', 
@@ -3048,6 +3940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C2',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0112', 
@@ -3072,6 +3972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0113', 
@@ -3096,6 +4004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0114', 
@@ -3120,6 +4036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C8',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0115', 
@@ -3144,6 +4068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C8',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0116', 
@@ -3168,6 +4100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C8',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0117', 
@@ -3192,6 +4132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12C8',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0118', 
@@ -3216,6 +4164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12D2',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0119', 
@@ -3240,6 +4196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12D2',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0120', 
@@ -3264,6 +4228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12D2',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0121', 
@@ -3288,6 +4260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12D4',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0122', 
@@ -3312,6 +4292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12D4',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0123', 
@@ -3336,6 +4324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12D4',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0124', 
@@ -3360,6 +4356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12ED',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0125', 
@@ -3384,6 +4388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12ED',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0126', 
@@ -3408,6 +4420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x12FA',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0127', 
@@ -3432,6 +4452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1300',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0128', 
@@ -3456,6 +4484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1301',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0129', 
@@ -3480,6 +4516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1301',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0130', 
@@ -3504,6 +4548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1301',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0131', 
@@ -3528,6 +4580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1304',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0132', 
@@ -3552,6 +4612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1306',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0133', 
@@ -3576,6 +4644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1306',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0134', 
@@ -3600,6 +4676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x130D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0135', 
@@ -3624,6 +4708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x131D',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0136', 
@@ -3648,6 +4740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x131D',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0137', 
@@ -3672,6 +4772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x132',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0138', 
@@ -3696,6 +4804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x132B',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0139', 
@@ -3720,6 +4836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x132B',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0140', 
@@ -3744,6 +4868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x132C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0141', 
@@ -3768,6 +4900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x132C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0142', 
@@ -3792,6 +4932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1330',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0143', 
@@ -3816,6 +4964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1342',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0144', 
@@ -3840,6 +4996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x134B',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0145', 
@@ -3864,6 +5028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x134B',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0146', 
@@ -3888,6 +5060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1353',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0147', 
@@ -3912,6 +5092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x135D',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0148', 
@@ -3936,6 +5124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x135E',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0149', 
@@ -3960,6 +5156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1376',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0150', 
@@ -3984,6 +5188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1376',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0151', 
@@ -4008,6 +5220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1376',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0152', 
@@ -4032,6 +5252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1386',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0153', 
@@ -4056,6 +5284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1386',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0154', 
@@ -4080,6 +5316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x138A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0155', 
@@ -4104,6 +5348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x138A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0156', 
@@ -4128,6 +5380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x139A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0157', 
@@ -4152,6 +5412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x139A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0158', 
@@ -4176,6 +5444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x139C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0159', 
@@ -4200,6 +5476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13A7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0160', 
@@ -4224,6 +5508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13B0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0161', 
@@ -4248,6 +5540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13B0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0162', 
@@ -4272,6 +5572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13B3',
     pfTechnology: '巡航机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0163', 
@@ -4296,6 +5604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13B3',
     pfTechnology: '巡航机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0164', 
@@ -4320,6 +5636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13B3',
     pfTechnology: '巡航机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0165', 
@@ -4344,6 +5668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13BC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0166', 
@@ -4368,6 +5700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13BC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0167', 
@@ -4392,6 +5732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13C6',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0168', 
@@ -4416,6 +5764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13CB',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0169', 
@@ -4440,6 +5796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13CB',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0170', 
@@ -4464,6 +5828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13CD',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0171', 
@@ -4488,6 +5860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13D7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0172', 
@@ -4512,6 +5892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13DD',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0173', 
@@ -4536,6 +5924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13DD',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0174', 
@@ -4560,6 +5956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13E0',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0175', 
@@ -4584,6 +5988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13E0',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0176', 
@@ -4608,6 +6020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13E3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0177', 
@@ -4632,6 +6052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13E3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0178', 
@@ -4656,6 +6084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x13E3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0179', 
@@ -4680,6 +6116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1404',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0180', 
@@ -4704,6 +6148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1404',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0181', 
@@ -4728,6 +6180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x140B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0182', 
@@ -4752,6 +6212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x140B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0183', 
@@ -4776,6 +6244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1411',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0184', 
@@ -4800,6 +6276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1414',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0185', 
@@ -4824,6 +6308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1414',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0186', 
@@ -4848,6 +6340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1414',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0187', 
@@ -4872,6 +6372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1419',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0188', 
@@ -4896,6 +6404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1420',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0189', 
@@ -4920,6 +6436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x142B',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0190', 
@@ -4944,6 +6468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x142B',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0191', 
@@ -4968,6 +6500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x144',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0192', 
@@ -4992,6 +6532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x144',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0193', 
@@ -5016,6 +6564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1449',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0194', 
@@ -5040,6 +6596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1450',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0195', 
@@ -5064,6 +6628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x145D',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0196', 
@@ -5088,6 +6660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x147B',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0197', 
@@ -5112,6 +6692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1492',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0198', 
@@ -5136,6 +6724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14B3',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0199', 
@@ -5160,6 +6756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14BF',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0200', 
@@ -5184,6 +6788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14C',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0201', 
@@ -5208,6 +6820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14C0',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0202', 
@@ -5232,6 +6852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14C0',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0203', 
@@ -5256,6 +6884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14D3',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0204', 
@@ -5280,6 +6916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14D3',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0205', 
@@ -5304,6 +6948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14DB',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0206', 
@@ -5328,6 +6980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14EF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0207', 
@@ -5352,6 +7012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14EF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0208', 
@@ -5376,6 +7044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x14F3',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0209', 
@@ -5400,6 +7076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1502',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0210', 
@@ -5424,6 +7108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1512',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0211', 
@@ -5448,6 +7140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x152',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0212', 
@@ -5472,6 +7172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1535',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0213', 
@@ -5496,6 +7204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1535',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0214', 
@@ -5520,6 +7236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1535',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0215', 
@@ -5544,6 +7268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1547',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0216', 
@@ -5568,6 +7300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x155E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0217', 
@@ -5592,6 +7332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x155F',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0218', 
@@ -5616,6 +7364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x155F',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0219', 
@@ -5640,6 +7396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1566',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0220', 
@@ -5664,6 +7428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x156B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0221', 
@@ -5688,6 +7460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1572',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0222', 
@@ -5712,6 +7492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1572',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0223', 
@@ -5736,6 +7524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x157C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0224', 
@@ -5760,6 +7556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x157C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0225', 
@@ -5784,6 +7588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x157C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0226', 
@@ -5808,6 +7620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1593',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0227', 
@@ -5832,6 +7652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x159F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0228', 
@@ -5856,6 +7684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x159F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0229', 
@@ -5880,6 +7716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15A3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0230', 
@@ -5904,6 +7748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15A3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0231', 
@@ -5928,6 +7780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15A7',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0232', 
@@ -5952,6 +7812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15A7',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0233', 
@@ -5976,6 +7844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15B',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0234', 
@@ -6000,6 +7876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15B',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0235', 
@@ -6024,6 +7908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15B0',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0236', 
@@ -6048,6 +7940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15B0',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0237', 
@@ -6072,6 +7972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15C3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0238', 
@@ -6096,6 +8004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15C4',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0239', 
@@ -6120,6 +8036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15C4',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0240', 
@@ -6144,6 +8068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15C9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0241', 
@@ -6168,6 +8100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15C9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0242', 
@@ -6192,6 +8132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15D1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0243', 
@@ -6216,6 +8164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15D1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0244', 
@@ -6240,6 +8196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15D1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0245', 
@@ -6264,6 +8228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15D1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0246', 
@@ -6288,6 +8260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15D9',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0247', 
@@ -6312,6 +8292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15E',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('76.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0248', 
@@ -6336,6 +8324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15E',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('76.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0249', 
@@ -6360,6 +8356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15EA',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0250', 
@@ -6384,6 +8388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15EC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0251', 
@@ -6408,6 +8420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15F2',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0252', 
@@ -6432,6 +8452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15F2',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0253', 
@@ -6456,6 +8484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0254', 
@@ -6480,6 +8516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15F8',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0255', 
@@ -6504,6 +8548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15FC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0256', 
@@ -6528,6 +8580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x15FC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0257', 
@@ -6552,6 +8612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x161A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0258', 
@@ -6576,6 +8644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x161A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0259', 
@@ -6600,6 +8676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x162',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0260', 
@@ -6624,6 +8708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x162A',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0261', 
@@ -6648,6 +8740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x163B',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0262', 
@@ -6672,6 +8772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x164',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0263', 
@@ -6696,6 +8804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x164',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0264', 
@@ -6720,6 +8836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1647',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0265', 
@@ -6744,6 +8868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x164C',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0266', 
@@ -6768,6 +8900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x167',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0267', 
@@ -6792,6 +8932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x167',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0268', 
@@ -6816,6 +8964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1676',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0269', 
@@ -6840,6 +8996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1677',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0270', 
@@ -6864,6 +9028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1677',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0271', 
@@ -6888,6 +9060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x167A',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0272', 
@@ -6912,6 +9092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1682',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0273', 
@@ -6936,6 +9124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1682',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0274', 
@@ -6960,6 +9156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1682',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0275', 
@@ -6984,6 +9188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1689',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0276', 
@@ -7008,6 +9220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x168B',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0277', 
@@ -7032,6 +9252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x168C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0278', 
@@ -7056,6 +9284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x168C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0279', 
@@ -7080,6 +9316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1690',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0280', 
@@ -7104,6 +9348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x169C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0281', 
@@ -7128,6 +9380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x169C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0282', 
@@ -7152,6 +9412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16A7',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0283', 
@@ -7176,6 +9444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16AC',
     pfTechnology: '巡航机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0284', 
@@ -7200,6 +9476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16AF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0285', 
@@ -7224,6 +9508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16BA',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0286', 
@@ -7248,6 +9540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16C2',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0287', 
@@ -7272,6 +9572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16C3',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0288', 
@@ -7296,6 +9604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16CC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0289', 
@@ -7320,6 +9636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16D0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0290', 
@@ -7344,6 +9668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16D0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0291', 
@@ -7368,6 +9700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16E7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0292', 
@@ -7392,6 +9732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16E9',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0293', 
@@ -7416,6 +9764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16E9',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0294', 
@@ -7440,6 +9796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x16FC',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0295', 
@@ -7464,6 +9828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x170',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0296', 
@@ -7488,6 +9860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1703',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0297', 
@@ -7512,6 +9892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1731',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0298', 
@@ -7536,6 +9924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x173D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0299', 
@@ -7560,6 +9956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1740',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0300', 
@@ -7584,6 +9988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x174B',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0301', 
@@ -7608,6 +10020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1753',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0302', 
@@ -7632,6 +10052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1753',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0303', 
@@ -7656,6 +10084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1757',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0304', 
@@ -7680,6 +10116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1760',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0305', 
@@ -7704,6 +10148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1763',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0306', 
@@ -7728,6 +10180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x176B',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0307', 
@@ -7752,6 +10212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1770',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0308', 
@@ -7776,6 +10244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1783',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0309', 
@@ -7800,6 +10276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1783',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0310', 
@@ -7824,6 +10308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1783',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0311', 
@@ -7848,6 +10340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1798',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0312', 
@@ -7872,6 +10372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1798',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0313', 
@@ -7896,6 +10404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17AC',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0314', 
@@ -7920,6 +10436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17AC',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0315', 
@@ -7944,6 +10468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17AD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0316', 
@@ -7968,6 +10500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17AD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0317', 
@@ -7992,6 +10532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17AF',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0318', 
@@ -8016,6 +10564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17AF',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0319', 
@@ -8040,6 +10596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17B3',
     pfTechnology: '巡航机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0320', 
@@ -8064,6 +10628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17C7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0321', 
@@ -8088,6 +10660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17C7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0322', 
@@ -8112,6 +10692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17CC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0323', 
@@ -8136,6 +10724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17CC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0324', 
@@ -8160,6 +10756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17CF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0325', 
@@ -8184,6 +10788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17D1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0326', 
@@ -8208,6 +10820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17DB',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0327', 
@@ -8232,6 +10852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17DB',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0328', 
@@ -8256,6 +10884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17E1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0329', 
@@ -8280,6 +10916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17E1',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0330', 
@@ -8304,6 +10948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17ED',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0331', 
@@ -8328,6 +10980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17ED',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0332', 
@@ -8352,6 +11012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0333', 
@@ -8376,6 +11044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x17FE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0334', 
@@ -8400,6 +11076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1812',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0335', 
@@ -8424,6 +11108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1813',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0336', 
@@ -8448,6 +11140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1824',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0337', 
@@ -8472,6 +11172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1824',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0338', 
@@ -8496,6 +11204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1826',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0339', 
@@ -8520,6 +11236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1826',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0340', 
@@ -8544,6 +11268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x183A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0341', 
@@ -8568,6 +11300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x183E',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0342', 
@@ -8592,6 +11332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x183E',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0343', 
@@ -8616,6 +11364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1841',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0344', 
@@ -8640,6 +11396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x184F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0345', 
@@ -8664,6 +11428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1853',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0346', 
@@ -8688,6 +11460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1853',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0347', 
@@ -8712,6 +11492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1858',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0348', 
@@ -8736,6 +11524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1890',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0349', 
@@ -8760,6 +11556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18A3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0350', 
@@ -8784,6 +11588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0351', 
@@ -8808,6 +11620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18C2',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0352', 
@@ -8832,6 +11652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18CC',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0353', 
@@ -8856,6 +11684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18D9',
     pfTechnology: '巡航机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0354', 
@@ -8880,6 +11716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18D9',
     pfTechnology: '巡航机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0355', 
@@ -8904,6 +11748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18E',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0356', 
@@ -8928,6 +11780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18E',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0357', 
@@ -8952,6 +11812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18E',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0358', 
@@ -8976,6 +11844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18E4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0359', 
@@ -9000,6 +11876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x18E4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0360', 
@@ -9024,6 +11908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1903',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0361', 
@@ -9048,6 +11940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1907',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0362', 
@@ -9072,6 +11972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1909',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0363', 
@@ -9096,6 +12004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x191A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0364', 
@@ -9120,6 +12036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x191A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0365', 
@@ -9144,6 +12068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x191C',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0366', 
@@ -9168,6 +12100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x191C',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0367', 
@@ -9192,6 +12132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x191E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0368', 
@@ -9216,6 +12164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1923',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0369', 
@@ -9240,6 +12196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1923',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0370', 
@@ -9264,6 +12228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1923',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0371', 
@@ -9288,6 +12260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1926',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0372', 
@@ -9312,6 +12292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x193',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0373', 
@@ -9336,6 +12324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x193',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0374', 
@@ -9360,6 +12356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1932',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0375', 
@@ -9384,6 +12388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1935',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0376', 
@@ -9408,6 +12420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1935',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0377', 
@@ -9432,6 +12452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1935',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0378', 
@@ -9456,6 +12484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x193A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0379', 
@@ -9480,6 +12516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1949',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0380', 
@@ -9504,6 +12548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1949',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0381', 
@@ -9528,6 +12580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x194B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0382', 
@@ -9552,6 +12612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x194B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0383', 
@@ -9576,6 +12644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x194B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0384', 
@@ -9600,6 +12676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x196',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0385', 
@@ -9624,6 +12708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x196',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0386', 
@@ -9648,6 +12740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1968',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0387', 
@@ -9672,6 +12772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1968',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0388', 
@@ -9696,6 +12804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x197E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0389', 
@@ -9720,6 +12836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x197E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0390', 
@@ -9744,6 +12868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1984',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0391', 
@@ -9768,6 +12900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1985',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0392', 
@@ -9792,6 +12932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x199',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0393', 
@@ -9816,6 +12964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1991',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0394', 
@@ -9840,6 +12996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19A5',
     pfTechnology: '巡航机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0395', 
@@ -9864,6 +13028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19B3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0396', 
@@ -9888,6 +13060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19B3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0397', 
@@ -9912,6 +13092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19B3',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0398', 
@@ -9936,6 +13124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19C2',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0399', 
@@ -9960,6 +13156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19C5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0400', 
@@ -9984,6 +13188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19D1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0401', 
@@ -10008,6 +13220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19D3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0402', 
@@ -10032,6 +13252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19DC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0403', 
@@ -10056,6 +13284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19DC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0404', 
@@ -10080,6 +13316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19E1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0405', 
@@ -10104,6 +13348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19E1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0406', 
@@ -10128,6 +13380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19F8',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0407', 
@@ -10152,6 +13412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19FA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0408', 
@@ -10176,6 +13444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19FA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0409', 
@@ -10200,6 +13476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19FB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0410', 
@@ -10224,6 +13508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x19FB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0411', 
@@ -10248,6 +13540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A04',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0412', 
@@ -10272,6 +13572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A09',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0413', 
@@ -10296,6 +13604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A1',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0414', 
@@ -10320,6 +13636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A1',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0415', 
@@ -10344,6 +13668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A1E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0416', 
@@ -10368,6 +13700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A1E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0417', 
@@ -10392,6 +13732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A2C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0418', 
@@ -10416,6 +13764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A2C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0419', 
@@ -10440,6 +13796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A2C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0420', 
@@ -10464,6 +13828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A33',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0421', 
@@ -10488,6 +13860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A33',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0422', 
@@ -10512,6 +13892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A4E',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0423', 
@@ -10536,6 +13924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A5B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0424', 
@@ -10560,6 +13956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A5B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0425', 
@@ -10584,6 +13988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A7D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0426', 
@@ -10608,6 +14020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A81',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0427', 
@@ -10632,6 +14052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A81',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0428', 
@@ -10656,6 +14084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A8B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0429', 
@@ -10680,6 +14116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A8B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0430', 
@@ -10704,6 +14148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A8E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0431', 
@@ -10728,6 +14180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1A8E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0432', 
@@ -10752,6 +14212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1AB5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0433', 
@@ -10776,6 +14244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ABC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0434', 
@@ -10800,6 +14276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ABD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0435', 
@@ -10824,6 +14308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ABF',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0436', 
@@ -10848,6 +14340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1AF',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0437', 
@@ -10872,6 +14372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B00',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0438', 
@@ -10896,6 +14404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B10',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0439', 
@@ -10920,6 +14436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B10',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0440', 
@@ -10944,6 +14468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0441', 
@@ -10968,6 +14500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0442', 
@@ -10992,6 +14532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B24',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0443', 
@@ -11016,6 +14564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B2C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0444', 
@@ -11040,6 +14596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B2C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0445', 
@@ -11064,6 +14628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B2F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0446', 
@@ -11088,6 +14660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B33',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0447', 
@@ -11112,6 +14692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B3A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0448', 
@@ -11136,6 +14724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B3A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0449', 
@@ -11160,6 +14756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B49',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0450', 
@@ -11184,6 +14788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B49',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0451', 
@@ -11208,6 +14820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B4D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0452', 
@@ -11232,6 +14852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B4E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0453', 
@@ -11256,6 +14884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B5E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0454', 
@@ -11280,6 +14916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B5E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0455', 
@@ -11304,6 +14948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B60',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0456', 
@@ -11328,6 +14980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B60',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0457', 
@@ -11352,6 +15012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B66',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0458', 
@@ -11376,6 +15044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B67',
     pfTechnology: '巡航机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0459', 
@@ -11400,6 +15076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B67',
     pfTechnology: '巡航机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0460', 
@@ -11424,6 +15108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B70',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0461', 
@@ -11448,6 +15140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B8',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0462', 
@@ -11472,6 +15172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B8B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0463', 
@@ -11496,6 +15204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B8F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0464', 
@@ -11520,6 +15236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B8F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0465', 
@@ -11544,6 +15268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B92',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0466', 
@@ -11568,6 +15300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1B92',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0467', 
@@ -11592,6 +15332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0468', 
@@ -11616,6 +15364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0469', 
@@ -11640,6 +15396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0470', 
@@ -11664,6 +15428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0471', 
@@ -11688,6 +15460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0472', 
@@ -11712,6 +15492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0473', 
@@ -11736,6 +15524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0474', 
@@ -11760,6 +15556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0475', 
@@ -11784,6 +15588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BA9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0476', 
@@ -11808,6 +15620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BBA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0477', 
@@ -11832,6 +15652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BBA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0478', 
@@ -11856,6 +15684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BC4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0479', 
@@ -11880,6 +15716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0480', 
@@ -11904,6 +15748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0481', 
@@ -11928,6 +15780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BD0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0482', 
@@ -11952,6 +15812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BD0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0483', 
@@ -11976,6 +15844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BD9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0484', 
@@ -12000,6 +15876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BDF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0485', 
@@ -12024,6 +15908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BE2',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0486', 
@@ -12048,6 +15940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BE9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0487', 
@@ -12072,6 +15972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BE9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0488', 
@@ -12096,6 +16004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1BF',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0489', 
@@ -12120,6 +16036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C02',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0490', 
@@ -12144,6 +16068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C30',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0491', 
@@ -12168,6 +16100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C32',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0492', 
@@ -12192,6 +16132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C32',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0493', 
@@ -12216,6 +16164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C35',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0494', 
@@ -12240,6 +16196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C3B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0495', 
@@ -12264,6 +16228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C3C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0496', 
@@ -12288,6 +16260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C3C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0497', 
@@ -12312,6 +16292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C46',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0498', 
@@ -12336,6 +16324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C4D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0499', 
@@ -12360,6 +16356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C4D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0500', 
@@ -12384,6 +16388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C4D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0501', 
@@ -12408,6 +16420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C59',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0502', 
@@ -12432,6 +16452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0503', 
@@ -12456,6 +16484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C6A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0504', 
@@ -12480,6 +16516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C7B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0505', 
@@ -12504,6 +16548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C7B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0506', 
@@ -12528,6 +16580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C7D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0507', 
@@ -12552,6 +16612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C8D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0508', 
@@ -12576,6 +16644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C9',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0509', 
@@ -12600,6 +16676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C9',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0510', 
@@ -12624,6 +16708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C92',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0511', 
@@ -12648,6 +16740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C92',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0512', 
@@ -12672,6 +16772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C93',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0513', 
@@ -12696,6 +16804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1C96',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0514', 
@@ -12720,6 +16836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CB4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0515', 
@@ -12744,6 +16868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CB9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0516', 
@@ -12768,6 +16900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CBE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0517', 
@@ -12792,6 +16932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CCD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0518', 
@@ -12816,6 +16964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CD5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0519', 
@@ -12840,6 +16996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CED',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0520', 
@@ -12864,6 +17028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CF',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0521', 
@@ -12888,6 +17060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CFD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0522', 
@@ -12912,6 +17092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CFD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0523', 
@@ -12936,6 +17124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CFD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0524', 
@@ -12960,6 +17156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1CFD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0525', 
@@ -12984,6 +17188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0526', 
@@ -13008,6 +17220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0527', 
@@ -13032,6 +17252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0528', 
@@ -13056,6 +17284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D1B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0529', 
@@ -13080,6 +17316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D1B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0530', 
@@ -13104,6 +17348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D2',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0531', 
@@ -13128,6 +17380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D2',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0532', 
@@ -13152,6 +17412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D2A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0533', 
@@ -13176,6 +17444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D2F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0534', 
@@ -13200,6 +17476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D3',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0535', 
@@ -13224,6 +17508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D3',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0536', 
@@ -13248,6 +17540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D31',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0537', 
@@ -13272,6 +17572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D3A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0538', 
@@ -13296,6 +17604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D43',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0539', 
@@ -13320,6 +17636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D4E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0540', 
@@ -13344,6 +17668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D50',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0541', 
@@ -13368,6 +17700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D5B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0542', 
@@ -13392,6 +17732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D6C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0543', 
@@ -13416,6 +17764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D6C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0544', 
@@ -13440,6 +17796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D6C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0545', 
@@ -13464,6 +17828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D6C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0546', 
@@ -13488,6 +17860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D6E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0547', 
@@ -13512,6 +17892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D6E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0548', 
@@ -13536,6 +17924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D88',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0549', 
@@ -13560,6 +17956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D88',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0550', 
@@ -13584,6 +17988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D89',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0551', 
@@ -13608,6 +18020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D8B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0552', 
@@ -13632,6 +18052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D8E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0553', 
@@ -13656,6 +18084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D8E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0554', 
@@ -13680,6 +18116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D8F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0555', 
@@ -13704,6 +18148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D8F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0556', 
@@ -13728,6 +18180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D9B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0557', 
@@ -13752,6 +18212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D9B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0558', 
@@ -13776,6 +18244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1D9E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0559', 
@@ -13800,6 +18276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DA9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0560', 
@@ -13824,6 +18308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DC7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0561', 
@@ -13848,6 +18340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DCC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0562', 
@@ -13872,6 +18372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DCC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0563', 
@@ -13896,6 +18404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DCC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0564', 
@@ -13920,6 +18436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DCC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0565', 
@@ -13944,6 +18468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DD3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0566', 
@@ -13968,6 +18500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DD6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0567', 
@@ -13992,6 +18532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1DD7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0568', 
@@ -14016,6 +18564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E06',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0569', 
@@ -14040,6 +18596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E08',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0570', 
@@ -14064,6 +18628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E08',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0571', 
@@ -14088,6 +18660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E0F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0572', 
@@ -14112,6 +18692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E0F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0573', 
@@ -14136,6 +18724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E15',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0574', 
@@ -14160,6 +18756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E1D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0575', 
@@ -14184,6 +18788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E23',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0576', 
@@ -14208,6 +18820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E26',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0577', 
@@ -14232,6 +18852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E27',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0578', 
@@ -14256,6 +18884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E3C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0579', 
@@ -14280,6 +18916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E4',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0580', 
@@ -14304,6 +18948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E4',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0581', 
@@ -14328,6 +18980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E40',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0582', 
@@ -14352,6 +19012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E40',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0583', 
@@ -14376,6 +19044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E4C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0584', 
@@ -14400,6 +19076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E4C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0585', 
@@ -14424,6 +19108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E4C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0586', 
@@ -14448,6 +19140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E4E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0587', 
@@ -14472,6 +19172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E69',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0588', 
@@ -14496,6 +19204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E69',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0589', 
@@ -14520,6 +19236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E72',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0590', 
@@ -14544,6 +19268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E72',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0591', 
@@ -14568,6 +19300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E9',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0592', 
@@ -14592,6 +19332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E9',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0593', 
@@ -14616,6 +19364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1E9D',
     pfTechnology: '巡航机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0594', 
@@ -14640,6 +19396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1EB',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0595', 
@@ -14664,6 +19428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1EB0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0596', 
@@ -14688,6 +19460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1EBE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0597', 
@@ -14712,6 +19492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ECD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0598', 
@@ -14736,6 +19524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ECD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0599', 
@@ -14760,6 +19556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ECD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0600', 
@@ -14784,6 +19588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ED6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0601', 
@@ -14808,6 +19620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1ED6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0602', 
@@ -14832,6 +19652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1EFB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0603', 
@@ -14856,6 +19684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1EFB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0604', 
@@ -14880,6 +19716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F12',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0605', 
@@ -14904,6 +19748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F15',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0606', 
@@ -14928,6 +19780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F32',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0607', 
@@ -14952,6 +19812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F4D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0608', 
@@ -14976,6 +19844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F5C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0609', 
@@ -15000,6 +19876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F5D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0610', 
@@ -15024,6 +19908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F6',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0611', 
@@ -15048,6 +19940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1F6',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0612', 
@@ -15072,6 +19972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FA6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0613', 
@@ -15096,6 +20004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FA6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0614', 
@@ -15120,6 +20036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FA7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0615', 
@@ -15144,6 +20068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FAA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0616', 
@@ -15168,6 +20100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FAA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0617', 
@@ -15192,6 +20132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FB8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0618', 
@@ -15216,6 +20164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FC',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0619', 
@@ -15240,6 +20196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FC',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0620', 
@@ -15264,6 +20228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FED',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0621', 
@@ -15288,6 +20260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FED',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0622', 
@@ -15312,6 +20292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x1FFD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0623', 
@@ -15336,6 +20324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2004',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0624', 
@@ -15360,6 +20356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2004',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0625', 
@@ -15384,6 +20388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x201',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0626', 
@@ -15408,6 +20420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x201A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0627', 
@@ -15432,6 +20452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x201A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0628', 
@@ -15456,6 +20484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2030',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0629', 
@@ -15480,6 +20516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2044',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0630', 
@@ -15504,6 +20548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2051',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0631', 
@@ -15528,6 +20580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2053',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0632', 
@@ -15552,6 +20612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x205F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0633', 
@@ -15576,6 +20644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x206',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0634', 
@@ -15600,6 +20676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2065',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0635', 
@@ -15624,6 +20708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2069',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0636', 
@@ -15648,6 +20740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2076',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0637', 
@@ -15672,6 +20772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2085',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0638', 
@@ -15696,6 +20804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20A5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0639', 
@@ -15720,6 +20836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20A5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0640', 
@@ -15744,6 +20868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20AA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0641', 
@@ -15768,6 +20900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20AA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0642', 
@@ -15792,6 +20932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0643', 
@@ -15816,6 +20964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0644', 
@@ -15840,6 +20996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0645', 
@@ -15864,6 +21028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x20FB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0646', 
@@ -15888,6 +21060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2127',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0647', 
@@ -15912,6 +21092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2129',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0648', 
@@ -15936,6 +21124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x212D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0649', 
@@ -15960,6 +21156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x213',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0650', 
@@ -15984,6 +21188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2150',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0651', 
@@ -16008,6 +21220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2150',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0652', 
@@ -16032,6 +21252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2151',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0653', 
@@ -16056,6 +21284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2151',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0654', 
@@ -16080,6 +21316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2161',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0655', 
@@ -16104,6 +21348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x218D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0656', 
@@ -16128,6 +21380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x218D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0657', 
@@ -16152,6 +21412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2199',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0658', 
@@ -16176,6 +21444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0659', 
@@ -16200,6 +21476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21A',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0660', 
@@ -16224,6 +21508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21B',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0661', 
@@ -16248,6 +21540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21B',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0662', 
@@ -16272,6 +21572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21D8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0663', 
@@ -16296,6 +21604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21DA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0664', 
@@ -16320,6 +21636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21E8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0665', 
@@ -16344,6 +21668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21E8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0666', 
@@ -16368,6 +21700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21E8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0667', 
@@ -16392,6 +21732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21F1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0668', 
@@ -16416,6 +21764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x21FF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0669', 
@@ -16440,6 +21796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0670', 
@@ -16464,6 +21828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0671', 
@@ -16488,6 +21860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x220A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0672', 
@@ -16512,6 +21892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x220A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0673', 
@@ -16536,6 +21924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x220F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0674', 
@@ -16560,6 +21956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x222',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0675', 
@@ -16584,6 +21988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x222',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0676', 
@@ -16608,6 +22020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2220',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0677', 
@@ -16632,6 +22052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2220',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0678', 
@@ -16656,6 +22084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2228',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0679', 
@@ -16680,6 +22116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x224',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0680', 
@@ -16704,6 +22148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x224',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0681', 
@@ -16728,6 +22180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x224C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0682', 
@@ -16752,6 +22212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x226E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0683', 
@@ -16776,6 +22244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x226E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0684', 
@@ -16800,6 +22276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2279',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0685', 
@@ -16824,6 +22308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2279',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0686', 
@@ -16848,6 +22340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2279',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0687', 
@@ -16872,6 +22372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x227B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0688', 
@@ -16896,6 +22404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x227B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0689', 
@@ -16920,6 +22436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x228B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0690', 
@@ -16944,6 +22468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x228F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0691', 
@@ -16968,6 +22500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2299',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0692', 
@@ -16992,6 +22532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22A1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0693', 
@@ -17016,6 +22564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22A1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0694', 
@@ -17040,6 +22596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22A8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0695', 
@@ -17064,6 +22628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22C0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0696', 
@@ -17088,6 +22660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22C2',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0697', 
@@ -17112,6 +22692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22F',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0698', 
@@ -17136,6 +22724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22F',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0699', 
@@ -17160,6 +22756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x22F',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0700', 
@@ -17184,6 +22788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2311',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0701', 
@@ -17208,6 +22820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x232C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0702', 
@@ -17232,6 +22852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x232C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0703', 
@@ -17256,6 +22884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2333',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0704', 
@@ -17280,6 +22916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2345',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0705', 
@@ -17304,6 +22948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x234E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0706', 
@@ -17328,6 +22980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2357',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0707', 
@@ -17352,6 +23012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x235E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0708', 
@@ -17376,6 +23044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x235E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0709', 
@@ -17400,6 +23076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2361',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0710', 
@@ -17424,6 +23108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2361',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0711', 
@@ -17448,6 +23140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x236B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0712', 
@@ -17472,6 +23172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x236D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0713', 
@@ -17496,6 +23204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x236F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0714', 
@@ -17520,6 +23236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2377',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0715', 
@@ -17544,6 +23268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x239B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0716', 
@@ -17568,6 +23300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x239D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0717', 
@@ -17592,6 +23332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x239D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0718', 
@@ -17616,6 +23364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x23B',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0719', 
@@ -17640,6 +23396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x23BF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0720', 
@@ -17664,6 +23428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x23E3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0721', 
@@ -17688,6 +23460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x23F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0722', 
@@ -17712,6 +23492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x23F3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0723', 
@@ -17736,6 +23524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x23FD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0724', 
@@ -17760,6 +23556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2414',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0725', 
@@ -17784,6 +23588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2417',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0726', 
@@ -17808,6 +23620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2417',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0727', 
@@ -17832,6 +23652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2421',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0728', 
@@ -17856,6 +23684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x243',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0729', 
@@ -17880,6 +23716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2431',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0730', 
@@ -17904,6 +23748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2434',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0731', 
@@ -17928,6 +23780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2434',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0732', 
@@ -17952,6 +23812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x243B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0733', 
@@ -17976,6 +23844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x243B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0734', 
@@ -18000,6 +23876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x244',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0735', 
@@ -18024,6 +23908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2441',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0736', 
@@ -18048,6 +23940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2441',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0737', 
@@ -18072,6 +23972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2442',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0738', 
@@ -18096,6 +24004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2442',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0739', 
@@ -18120,6 +24036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2447',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0740', 
@@ -18144,6 +24068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x244B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0741', 
@@ -18168,6 +24100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x244B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0742', 
@@ -18192,6 +24132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24A3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0743', 
@@ -18216,6 +24164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24B3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0744', 
@@ -18240,6 +24196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24BB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0745', 
@@ -18264,6 +24228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24BB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0746', 
@@ -18288,6 +24260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24CC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0747', 
@@ -18312,6 +24292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24D4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0748', 
@@ -18336,6 +24324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24E0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0749', 
@@ -18360,6 +24356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24E6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0750', 
@@ -18384,6 +24388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24E7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0751', 
@@ -18408,6 +24420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24F1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0752', 
@@ -18432,6 +24452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24F1',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0753', 
@@ -18456,6 +24484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x24FC',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0754', 
@@ -18480,6 +24516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x250',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0755', 
@@ -18504,6 +24548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x250E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0756', 
@@ -18528,6 +24580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x251B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0757', 
@@ -18552,6 +24612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x253D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0758', 
@@ -18576,6 +24644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x254A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0759', 
@@ -18600,6 +24676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2556',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0760', 
@@ -18624,6 +24708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2567',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0761', 
@@ -18648,6 +24740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x257F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0762', 
@@ -18672,6 +24772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x259B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0763', 
@@ -18696,6 +24804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25A9',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0764', 
@@ -18720,6 +24836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25B',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0765', 
@@ -18744,6 +24868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25BD',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0766', 
@@ -18768,6 +24900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25D8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0767', 
@@ -18792,6 +24932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25D8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0768', 
@@ -18816,6 +24964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25D8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0769', 
@@ -18840,6 +24996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25DB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0770', 
@@ -18864,6 +25028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25E8',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0771', 
@@ -18888,6 +25060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25F9',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0772', 
@@ -18912,6 +25092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x25FF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0773', 
@@ -18936,6 +25124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x260',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0774', 
@@ -18960,6 +25156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2642',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0775', 
@@ -18984,6 +25188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2650',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0776', 
@@ -19008,6 +25220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2654',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0777', 
@@ -19032,6 +25252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2655',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0778', 
@@ -19056,6 +25284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2679',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0779', 
@@ -19080,6 +25316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x268C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0780', 
@@ -19104,6 +25348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x269',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0781', 
@@ -19128,6 +25380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2699',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0782', 
@@ -19152,6 +25412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x269E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0783', 
@@ -19176,6 +25444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26A',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0784', 
@@ -19200,6 +25476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26A',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0785', 
@@ -19224,6 +25508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26A4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0786', 
@@ -19248,6 +25540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26CB',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0787', 
@@ -19272,6 +25572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26CC',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0788', 
@@ -19296,6 +25604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26CC',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0789', 
@@ -19320,6 +25636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26D9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0790', 
@@ -19344,6 +25668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26E4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0791', 
@@ -19368,6 +25700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26E4',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0792', 
@@ -19392,6 +25732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26E5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0793', 
@@ -19416,6 +25764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x26F8',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0794', 
@@ -19440,6 +25796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x271F',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0795', 
@@ -19464,6 +25828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x276F',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0796', 
@@ -19488,6 +25860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2773',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0797', 
@@ -19512,6 +25892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x279B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0798', 
@@ -19536,6 +25924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x279B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0799', 
@@ -19560,6 +25956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x279E',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0800', 
@@ -19584,6 +25988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x279E',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0801', 
@@ -19608,6 +26020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x27A',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0802', 
@@ -19632,6 +26052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x27A',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0803', 
@@ -19656,6 +26084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x27AC',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0804', 
@@ -19680,6 +26116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x27C0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('97.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0805', 
@@ -19704,6 +26148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x27DD',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0806', 
@@ -19728,6 +26180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x27EE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0807', 
@@ -19752,6 +26212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x280B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0808', 
@@ -19776,6 +26244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2844',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0809', 
@@ -19800,6 +26276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2866',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0810', 
@@ -19824,6 +26308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x287D',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0811', 
@@ -19848,6 +26340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x288F',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0812', 
@@ -19872,6 +26372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2897',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0813', 
@@ -19896,6 +26404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2897',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0814', 
@@ -19920,6 +26436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x289E',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0815', 
@@ -19944,6 +26468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28A5',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0816', 
@@ -19968,6 +26500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28A5',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0817', 
@@ -19992,6 +26532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28A8',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0818', 
@@ -20016,6 +26564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28AB',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0819', 
@@ -20040,6 +26596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28AB',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0820', 
@@ -20064,6 +26628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28AB',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0821', 
@@ -20088,6 +26660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28AB',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0822', 
@@ -20112,6 +26692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0823', 
@@ -20136,6 +26724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0824', 
@@ -20160,6 +26756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28DA',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0825', 
@@ -20184,6 +26788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28E1',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0826', 
@@ -20208,6 +26820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x28E4',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0827', 
@@ -20232,6 +26852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x291A',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0828', 
@@ -20256,6 +26884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2924',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0829', 
@@ -20280,6 +26916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2934',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0830', 
@@ -20304,6 +26948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x293A',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0831', 
@@ -20328,6 +26980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x294B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0832', 
@@ -20352,6 +27012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x294B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0833', 
@@ -20376,6 +27044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x294F',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0834', 
@@ -20400,6 +27076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2953',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0835', 
@@ -20424,6 +27108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x295A',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0836', 
@@ -20448,6 +27140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x295A',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0837', 
@@ -20472,6 +27172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2967',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0838', 
@@ -20496,6 +27204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2979',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('97.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0839', 
@@ -20520,6 +27236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x297E',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0840', 
@@ -20544,6 +27268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x297E',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0841', 
@@ -20568,6 +27300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2992',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0842', 
@@ -20592,6 +27332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2997',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0843', 
@@ -20616,6 +27364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2997',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0844', 
@@ -20640,6 +27396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2997',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0845', 
@@ -20664,6 +27428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2999',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0846', 
@@ -20688,6 +27460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29AE',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0847', 
@@ -20712,6 +27492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29AE',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0848', 
@@ -20736,6 +27524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29C5',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0849', 
@@ -20760,6 +27556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29D',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0850', 
@@ -20784,6 +27588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29E',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0851', 
@@ -20808,6 +27620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29E5',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0852', 
@@ -20832,6 +27652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29EA',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0853', 
@@ -20856,6 +27684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29F3',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0854', 
@@ -20880,6 +27716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x29FB',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0855', 
@@ -20904,6 +27748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A03',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0856', 
@@ -20928,6 +27780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A08',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0857', 
@@ -20952,6 +27812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A0B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0858', 
@@ -20976,6 +27844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A15',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0859', 
@@ -21000,6 +27876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A1F',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0860', 
@@ -21024,6 +27908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A2C',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0861', 
@@ -21048,6 +27940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A3',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0862', 
@@ -21072,6 +27972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A34',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0863', 
@@ -21096,6 +28004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A34',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0864', 
@@ -21120,6 +28036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A53',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0865', 
@@ -21144,6 +28068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A5B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0866', 
@@ -21168,6 +28100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A63',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0867', 
@@ -21192,6 +28132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A6A',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0868', 
@@ -21216,6 +28164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A6A',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0869', 
@@ -21240,6 +28196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A6B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0870', 
@@ -21264,6 +28228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A7',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0871', 
@@ -21288,6 +28260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A72',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0872', 
@@ -21312,6 +28292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A72',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0873', 
@@ -21336,6 +28324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A74',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0874', 
@@ -21360,6 +28356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A74',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0875', 
@@ -21384,6 +28388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A9B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('97.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0876', 
@@ -21408,6 +28420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2A9B',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('97.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0877', 
@@ -21432,6 +28452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AA9',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0878', 
@@ -21456,6 +28484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AB4',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0879', 
@@ -21480,6 +28516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AB6',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0880', 
@@ -21504,6 +28548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AB7',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('97.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0881', 
@@ -21528,6 +28580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AC4',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0882', 
@@ -21552,6 +28612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AC4',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0883', 
@@ -21576,6 +28644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AD1',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('111.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0884', 
@@ -21600,6 +28676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AD4',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0885', 
@@ -21624,6 +28708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AD5',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0886', 
@@ -21648,6 +28740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AD5',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0887', 
@@ -21672,6 +28772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AD6',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0888', 
@@ -21696,6 +28804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AD6',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0889', 
@@ -21720,6 +28836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2ADF',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('113.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0890', 
@@ -21744,6 +28868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AE7',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0891', 
@@ -21768,6 +28900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AFA',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0892', 
@@ -21792,6 +28932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2AFD',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('110.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0893', 
@@ -21816,6 +28964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2B0',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0894', 
@@ -21840,6 +28996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2B0',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0895', 
@@ -21864,6 +29028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2BA',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0896', 
@@ -21888,6 +29060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2BE',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0897', 
@@ -21912,6 +29092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0898', 
@@ -21936,6 +29124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2C5',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0899', 
@@ -21960,6 +29156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2D5',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0900', 
@@ -21984,6 +29188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2D5',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0901', 
@@ -22008,6 +29220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2E4',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0902', 
@@ -22032,6 +29252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2EE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0903', 
@@ -22056,6 +29284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2F9',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0904', 
@@ -22080,6 +29316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x2FC',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0905', 
@@ -22104,6 +29348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x30E',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0906', 
@@ -22128,6 +29380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x30E',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0907', 
@@ -22152,6 +29412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x311',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0908', 
@@ -22176,6 +29444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x311',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0909', 
@@ -22200,6 +29476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x315',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0910', 
@@ -22224,6 +29508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x317',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0911', 
@@ -22248,6 +29540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x317',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0912', 
@@ -22272,6 +29572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x317',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0913', 
@@ -22296,6 +29604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x318',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0914', 
@@ -22320,6 +29636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x31B',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0915', 
@@ -22344,6 +29668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x31F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0916', 
@@ -22368,6 +29700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x31F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0917', 
@@ -22392,6 +29732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x325',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0918', 
@@ -22416,6 +29764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x326',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0919', 
@@ -22440,6 +29796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x328',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0920', 
@@ -22464,6 +29828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x329',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0921', 
@@ -22488,6 +29860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x329',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0922', 
@@ -22512,6 +29892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x32B',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0923', 
@@ -22536,6 +29924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x32B',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0924', 
@@ -22560,6 +29956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x32E',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0925', 
@@ -22584,6 +29988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x32E',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0926', 
@@ -22608,6 +30020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x349',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0927', 
@@ -22632,6 +30052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x34F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0928', 
@@ -22656,6 +30084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x34F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0929', 
@@ -22680,6 +30116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x352',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0930', 
@@ -22704,6 +30148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x352',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0931', 
@@ -22728,6 +30180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x358',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0932', 
@@ -22752,6 +30212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x359',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0933', 
@@ -22776,6 +30244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x359',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0934', 
@@ -22800,6 +30276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x35B',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0935', 
@@ -22824,6 +30308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x363',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0936', 
@@ -22848,6 +30340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x363',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0937', 
@@ -22872,6 +30372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x369',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0938', 
@@ -22896,6 +30404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x36F',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0939', 
@@ -22920,6 +30436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x36F',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0940', 
@@ -22944,6 +30468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x370',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0941', 
@@ -22968,6 +30500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x370',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0942', 
@@ -22992,6 +30532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x37E',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0943', 
@@ -23016,6 +30564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x37E',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0944', 
@@ -23040,6 +30596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x385',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0945', 
@@ -23064,6 +30628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x386',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0946', 
@@ -23088,6 +30660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x387',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0947', 
@@ -23112,6 +30692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x387',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0948', 
@@ -23136,6 +30724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x387',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0949', 
@@ -23160,6 +30756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x394',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0950', 
@@ -23184,6 +30788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x394',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0951', 
@@ -23208,6 +30820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x395',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0952', 
@@ -23232,6 +30852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3C5',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0953', 
@@ -23256,6 +30884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3CA',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0954', 
@@ -23280,6 +30916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3CA',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0955', 
@@ -23304,6 +30948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3D0',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0956', 
@@ -23328,6 +30980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3E0',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0957', 
@@ -23352,6 +31012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3EB',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0958', 
@@ -23376,6 +31044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3F1',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0959', 
@@ -23400,6 +31076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3F5',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0960', 
@@ -23424,6 +31108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3F5',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0961', 
@@ -23448,6 +31140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3F6',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0962', 
@@ -23472,6 +31172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3F6',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0963', 
@@ -23496,6 +31204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x3FE',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0964', 
@@ -23520,6 +31236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x40',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0965', 
@@ -23544,6 +31268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x405',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0966', 
@@ -23568,6 +31300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x405',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0967', 
@@ -23592,6 +31332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x40A',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0968', 
@@ -23616,6 +31364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x40A',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0969', 
@@ -23640,6 +31396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x411',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0970', 
@@ -23664,6 +31428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x411',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0971', 
@@ -23688,6 +31460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x411',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0972', 
@@ -23712,6 +31492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x411',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0973', 
@@ -23736,6 +31524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x417',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0974', 
@@ -23760,6 +31556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x417',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0975', 
@@ -23784,6 +31588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x41F',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0976', 
@@ -23808,6 +31620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x426',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0977', 
@@ -23832,6 +31652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x426',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0978', 
@@ -23856,6 +31684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x426',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0979', 
@@ -23880,6 +31716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x434',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0980', 
@@ -23904,6 +31748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x434',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0981', 
@@ -23928,6 +31780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x43F',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0982', 
@@ -23952,6 +31812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x442',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0983', 
@@ -23976,6 +31844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x449',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0984', 
@@ -24000,6 +31876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x44C',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0985', 
@@ -24024,6 +31908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x44C',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0986', 
@@ -24048,6 +31940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x45B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0987', 
@@ -24072,6 +31972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x45B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0988', 
@@ -24096,6 +32004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x465',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0989', 
@@ -24120,6 +32036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x474',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0990', 
@@ -24144,6 +32068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x476',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0991', 
@@ -24168,6 +32100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x480',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0992', 
@@ -24192,6 +32132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x480',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0993', 
@@ -24216,6 +32164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x48A',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0994', 
@@ -24240,6 +32196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x48E',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0995', 
@@ -24264,6 +32228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x48E',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0996', 
@@ -24288,6 +32260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x491',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0997', 
@@ -24312,6 +32292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x497',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0998', 
@@ -24336,6 +32324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4AA',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL0999', 
@@ -24360,6 +32356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4CE',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1000', 
@@ -24384,6 +32388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4CE',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1001', 
@@ -24408,6 +32420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4CE',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1002', 
@@ -24432,6 +32452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4D',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1003', 
@@ -24456,6 +32484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4D',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1004', 
@@ -24480,6 +32516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4D',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1005', 
@@ -24504,6 +32548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4DA',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1006', 
@@ -24528,6 +32580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4E3',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1007', 
@@ -24552,6 +32612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4E3',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1008', 
@@ -24576,6 +32644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4E6',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1009', 
@@ -24600,6 +32676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4E6',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1010', 
@@ -24624,6 +32708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x4F',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1011', 
@@ -24648,6 +32740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x504',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1012', 
@@ -24672,6 +32772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x508',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1013', 
@@ -24696,6 +32804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x508',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1014', 
@@ -24720,6 +32836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x50A',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1015', 
@@ -24744,6 +32868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x518',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1016', 
@@ -24768,6 +32900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x539',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1017', 
@@ -24792,6 +32932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x53C',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1018', 
@@ -24816,6 +32964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x53C',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1019', 
@@ -24840,6 +32996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x548',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1020', 
@@ -24864,6 +33028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x548',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1021', 
@@ -24888,6 +33060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x549',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1022', 
@@ -24912,6 +33092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x54A',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1023', 
@@ -24936,6 +33124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x54A',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1024', 
@@ -24960,6 +33156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x54C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1025', 
@@ -24984,6 +33188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x54C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1026', 
@@ -25008,6 +33220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x54F',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1027', 
@@ -25032,6 +33252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x550',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1028', 
@@ -25056,6 +33284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x550',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1029', 
@@ -25080,6 +33316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x574',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1030', 
@@ -25104,6 +33348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x574',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1031', 
@@ -25128,6 +33380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x582',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1032', 
@@ -25152,6 +33412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x58C',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1033', 
@@ -25176,6 +33444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x58C',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1034', 
@@ -25200,6 +33476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x58C',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1035', 
@@ -25224,6 +33508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x58C',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1036', 
@@ -25248,6 +33540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x593',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1037', 
@@ -25272,6 +33572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x593',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1038', 
@@ -25296,6 +33604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x597',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1039', 
@@ -25320,6 +33636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5A9',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1040', 
@@ -25344,6 +33668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5A9',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1041', 
@@ -25368,6 +33700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5BA',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1042', 
@@ -25392,6 +33732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5BD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1043', 
@@ -25416,6 +33764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5C',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1044', 
@@ -25440,6 +33796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5C',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1045', 
@@ -25464,6 +33828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5D',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1046', 
@@ -25488,6 +33860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5ED',
     pfTechnology: '教员',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1047', 
@@ -25512,6 +33892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5F0',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1048', 
@@ -25536,6 +33924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5F1',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1049', 
@@ -25560,6 +33956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5F1',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1050', 
@@ -25584,6 +33988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5F1',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1051', 
@@ -25608,6 +34020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5FD',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1052', 
@@ -25632,6 +34052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5FD',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1053', 
@@ -25656,6 +34084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x5FD',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1054', 
@@ -25680,6 +34116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x603',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1055', 
@@ -25704,6 +34148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x60E',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1056', 
@@ -25728,6 +34180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x60F',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1057', 
@@ -25752,6 +34212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x60F',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1058', 
@@ -25776,6 +34244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x610',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1059', 
@@ -25800,6 +34276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x610',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1060', 
@@ -25824,6 +34308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x614',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1061', 
@@ -25848,6 +34340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x615',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1062', 
@@ -25872,6 +34372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x615',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1063', 
@@ -25896,6 +34404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x61F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1064', 
@@ -25920,6 +34436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x61F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1065', 
@@ -25944,6 +34468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x62',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1066', 
@@ -25968,6 +34500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x62',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1067', 
@@ -25992,6 +34532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x626',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1068', 
@@ -26016,6 +34564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x626',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1069', 
@@ -26040,6 +34596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x629',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1070', 
@@ -26064,6 +34628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x62B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1071', 
@@ -26088,6 +34660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x62B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1072', 
@@ -26112,6 +34692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x634',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1073', 
@@ -26136,6 +34724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x64C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1074', 
@@ -26160,6 +34756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x64C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1075', 
@@ -26184,6 +34788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x651',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1076', 
@@ -26208,6 +34820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x66',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1077', 
@@ -26232,6 +34852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x663',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1078', 
@@ -26256,6 +34884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x663',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1079', 
@@ -26280,6 +34916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x663',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1080', 
@@ -26304,6 +34948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x669',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1081', 
@@ -26328,6 +34980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x669',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1082', 
@@ -26352,6 +35012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x669',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1083', 
@@ -26376,6 +35044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x669',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1084', 
@@ -26400,6 +35076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x66C',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1085', 
@@ -26424,6 +35108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x675',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1086', 
@@ -26448,6 +35140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x675',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1087', 
@@ -26472,6 +35172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x67B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1088', 
@@ -26496,6 +35204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x67B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1089', 
@@ -26520,6 +35236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x67B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1090', 
@@ -26544,6 +35268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x69C',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1091', 
@@ -26568,6 +35300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x69C',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1092', 
@@ -26592,6 +35332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6A0',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1093', 
@@ -26616,6 +35364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6A0',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1094', 
@@ -26640,6 +35396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6A2',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1095', 
@@ -26664,6 +35428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6A2',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1096', 
@@ -26688,6 +35460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6A6',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1097', 
@@ -26712,6 +35492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6A6',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1098', 
@@ -26736,6 +35524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6AB',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1099', 
@@ -26760,6 +35556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6B7',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1100', 
@@ -26784,6 +35588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6B9',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1101', 
@@ -26808,6 +35620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6B9',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1102', 
@@ -26832,6 +35652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6BD',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1103', 
@@ -26856,6 +35684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6BD',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1104', 
@@ -26880,6 +35716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6CE',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1105', 
@@ -26904,6 +35748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6D2',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1106', 
@@ -26928,6 +35780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6D6',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1107', 
@@ -26952,6 +35812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6DF',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1108', 
@@ -26976,6 +35844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6E9',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1109', 
@@ -27000,6 +35876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6EF',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1110', 
@@ -27024,6 +35908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6F6',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1111', 
@@ -27048,6 +35940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x6F6',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1112', 
@@ -27072,6 +35972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x704',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1113', 
@@ -27096,6 +36004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x704',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1114', 
@@ -27120,6 +36036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x706',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1115', 
@@ -27144,6 +36068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x707',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1116', 
@@ -27168,6 +36100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x707',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1117', 
@@ -27192,6 +36132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x707',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1118', 
@@ -27216,6 +36164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x70D',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1119', 
@@ -27240,6 +36196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x714',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1120', 
@@ -27264,6 +36228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x714',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1121', 
@@ -27288,6 +36260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x717',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1122', 
@@ -27312,6 +36292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x728',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1123', 
@@ -27336,6 +36324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x733',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1124', 
@@ -27360,6 +36356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x733',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1125', 
@@ -27384,6 +36388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x734',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1126', 
@@ -27408,6 +36420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x734',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1127', 
@@ -27432,6 +36452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x73A',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1128', 
@@ -27456,6 +36484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x73A',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1129', 
@@ -27480,6 +36516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x73A',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1130', 
@@ -27504,6 +36548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x73F',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1131', 
@@ -27528,6 +36580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x73F',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1132', 
@@ -27552,6 +36612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x743',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1133', 
@@ -27576,6 +36644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x75A',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1134', 
@@ -27600,6 +36676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x76A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1135', 
@@ -27624,6 +36708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x76A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1136', 
@@ -27648,6 +36740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x76A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1137', 
@@ -27672,6 +36772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x77F',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1138', 
@@ -27696,6 +36804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x77F',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1139', 
@@ -27720,6 +36836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x782',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1140', 
@@ -27744,6 +36868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x782',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1141', 
@@ -27768,6 +36900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x782',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1142', 
@@ -27792,6 +36932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x787',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1143', 
@@ -27816,6 +36964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x789',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1144', 
@@ -27840,6 +36996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x799',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1145', 
@@ -27864,6 +37028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x799',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1146', 
@@ -27888,6 +37060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x79E',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1147', 
@@ -27912,6 +37092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7C5',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1148', 
@@ -27936,6 +37124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7CB',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1149', 
@@ -27960,6 +37156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7D2',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1150', 
@@ -27984,6 +37188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7D3',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1151', 
@@ -28008,6 +37220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7D5',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1152', 
@@ -28032,6 +37252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7D9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1153', 
@@ -28056,6 +37284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7D9',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1154', 
@@ -28080,6 +37316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7E9',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1155', 
@@ -28104,6 +37348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7EA',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1156', 
@@ -28128,6 +37380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F0',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1157', 
@@ -28152,6 +37412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F0',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1158', 
@@ -28176,6 +37444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F1',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1159', 
@@ -28200,6 +37476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F2',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1160', 
@@ -28224,6 +37508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F7',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1161', 
@@ -28248,6 +37540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F7',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1162', 
@@ -28272,6 +37572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x7F8',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1163', 
@@ -28296,6 +37604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x800',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1164', 
@@ -28320,6 +37636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x800',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1165', 
@@ -28344,6 +37668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x803',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1166', 
@@ -28368,6 +37700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x803',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1167', 
@@ -28392,6 +37732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x804',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1168', 
@@ -28416,6 +37764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x815',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1169', 
@@ -28440,6 +37796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x816',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1170', 
@@ -28464,6 +37828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x819',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1171', 
@@ -28488,6 +37860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x820',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1172', 
@@ -28512,6 +37892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x829',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1173', 
@@ -28536,6 +37924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x829',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1174', 
@@ -28560,6 +37956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x83',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1175', 
@@ -28584,6 +37988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x83',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1176', 
@@ -28608,6 +38020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x83',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1177', 
@@ -28632,6 +38052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x839',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1178', 
@@ -28656,6 +38084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x84F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1179', 
@@ -28680,6 +38116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x84F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1180', 
@@ -28704,6 +38148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x860',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1181', 
@@ -28728,6 +38180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x865',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1182', 
@@ -28752,6 +38212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x869',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1183', 
@@ -28776,6 +38244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x877',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1184', 
@@ -28800,6 +38276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x883',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1185', 
@@ -28824,6 +38308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x888',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1186', 
@@ -28848,6 +38340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x898',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1187', 
@@ -28872,6 +38372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8CC',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1188', 
@@ -28896,6 +38404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8CF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1189', 
@@ -28920,6 +38436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8D3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1190', 
@@ -28944,6 +38468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8E',
     pfTechnology: '教员',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1191', 
@@ -28968,6 +38500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8E3',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1192', 
@@ -28992,6 +38532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8E7',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1193', 
@@ -29016,6 +38564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8E7',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1194', 
@@ -29040,6 +38596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8F7',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1195', 
@@ -29064,6 +38628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8F7',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1196', 
@@ -29088,6 +38660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8F7',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1197', 
@@ -29112,6 +38692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8F9',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1198', 
@@ -29136,6 +38724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8FB',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1199', 
@@ -29160,6 +38756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x8FD',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1200', 
@@ -29184,6 +38788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x901',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1201', 
@@ -29208,6 +38820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x901',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1202', 
@@ -29232,6 +38852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x904',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1203', 
@@ -29256,6 +38884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x904',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1204', 
@@ -29280,6 +38916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x90F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1205', 
@@ -29304,6 +38948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x90F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1206', 
@@ -29328,6 +38980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x90F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1207', 
@@ -29352,6 +39012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x90F',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1208', 
@@ -29376,6 +39044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x910',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1209', 
@@ -29400,6 +39076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x92F',
     pfTechnology: '教员',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1210', 
@@ -29424,6 +39108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x92F',
     pfTechnology: '教员',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1211', 
@@ -29448,6 +39140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x933',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1212', 
@@ -29472,6 +39172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x93F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1213', 
@@ -29496,6 +39204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x95C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('74.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1214', 
@@ -29520,6 +39236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x95F',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1215', 
@@ -29544,6 +39268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x95F',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1216', 
@@ -29568,6 +39300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x95F',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1217', 
@@ -29592,6 +39332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x963',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1218', 
@@ -29616,6 +39364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x963',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1219', 
@@ -29640,6 +39396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x96A',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1220', 
@@ -29664,6 +39428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x96A',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1221', 
@@ -29688,6 +39460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x97A',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1222', 
@@ -29712,6 +39492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x97A',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1223', 
@@ -29736,6 +39524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x97E',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1224', 
@@ -29760,6 +39556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x97F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1225', 
@@ -29784,6 +39588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x98A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1226', 
@@ -29808,6 +39620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x98A',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1227', 
@@ -29832,6 +39652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x995',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1228', 
@@ -29856,6 +39684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x995',
     pfTechnology: '第二副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1229', 
@@ -29880,6 +39716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x99F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1230', 
@@ -29904,6 +39748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x99F',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1231', 
@@ -29928,6 +39780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9A0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1232', 
@@ -29952,6 +39812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9A3',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1233', 
@@ -29976,6 +39844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9A3',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1234', 
@@ -30000,6 +39876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9AC',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1235', 
@@ -30024,6 +39908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9AE',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1236', 
@@ -30048,6 +39940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B1',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1237', 
@@ -30072,6 +39972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B4',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1238', 
@@ -30096,6 +40004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B4',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1239', 
@@ -30120,6 +40036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B6',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1240', 
@@ -30144,6 +40068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B6',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1241', 
@@ -30168,6 +40100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B9',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1242', 
@@ -30192,6 +40132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9B9',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1243', 
@@ -30216,6 +40164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9BD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1244', 
@@ -30240,6 +40196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9C',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1245', 
@@ -30264,6 +40228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9C',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1246', 
@@ -30288,6 +40260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9C5',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1247', 
@@ -30312,6 +40292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9C5',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1248', 
@@ -30336,6 +40324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9DB',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1249', 
@@ -30360,6 +40356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9DD',
     pfTechnology: '巡航机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1250', 
@@ -30384,6 +40388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0x9DD',
     pfTechnology: '巡航机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1251', 
@@ -30408,6 +40420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA04',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1252', 
@@ -30432,6 +40452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA08',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1253', 
@@ -30456,6 +40484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA08',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1254', 
@@ -30480,6 +40516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA09',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1255', 
@@ -30504,6 +40548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA09',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1256', 
@@ -30528,6 +40580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA0E',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1257', 
@@ -30552,6 +40612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA30',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1258', 
@@ -30576,6 +40644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA30',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('140.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1259', 
@@ -30600,6 +40676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA41',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1260', 
@@ -30624,6 +40708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA41',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1261', 
@@ -30648,6 +40740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA43',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1262', 
@@ -30672,6 +40772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA4F',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1263', 
@@ -30696,6 +40804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA5E',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1264', 
@@ -30720,6 +40836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA60',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1265', 
@@ -30744,6 +40868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA60',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1266', 
@@ -30768,6 +40900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA6A',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1267', 
@@ -30792,6 +40932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA6A',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1268', 
@@ -30816,6 +40964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA6A',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1269', 
@@ -30840,6 +40996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA6E',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1270', 
@@ -30864,6 +41028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA6E',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1271', 
@@ -30888,6 +41060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA86',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1272', 
@@ -30912,6 +41092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA87',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1273', 
@@ -30936,6 +41124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA87',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1274', 
@@ -30960,6 +41156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA89',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1275', 
@@ -30984,6 +41188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA89',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1276', 
@@ -31008,6 +41220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA95',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1277', 
@@ -31032,6 +41252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xA98',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1278', 
@@ -31056,6 +41284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAA9',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1279', 
@@ -31080,6 +41316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAD8',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1280', 
@@ -31104,6 +41348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAD8',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1281', 
@@ -31128,6 +41380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAE9',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1282', 
@@ -31152,6 +41412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAE9',
     pfTechnology: '教员',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1283', 
@@ -31176,6 +41444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAEB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1284', 
@@ -31200,6 +41476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAED',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1285', 
@@ -31224,6 +41508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAF6',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1286', 
@@ -31248,6 +41540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xAFA',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1287', 
@@ -31272,6 +41572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB1',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1288', 
@@ -31296,6 +41604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB1',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1289', 
@@ -31320,6 +41636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB1',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1290', 
@@ -31344,6 +41668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB16',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1291', 
@@ -31368,6 +41700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB16',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1292', 
@@ -31392,6 +41732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB16',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1293', 
@@ -31416,6 +41764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1294', 
@@ -31440,6 +41796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1295', 
@@ -31464,6 +41828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB17',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1296', 
@@ -31488,6 +41860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB20',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1297', 
@@ -31512,6 +41892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB2B',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1298', 
@@ -31536,6 +41924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB35',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1299', 
@@ -31560,6 +41956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB35',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1300', 
@@ -31584,6 +41988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB39',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1301', 
@@ -31608,6 +42020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB41',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1302', 
@@ -31632,6 +42052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB4E',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1303', 
@@ -31656,6 +42084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB65',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1304', 
@@ -31680,6 +42116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB65',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1305', 
@@ -31704,6 +42148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB6B',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1306', 
@@ -31728,6 +42180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB6B',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1307', 
@@ -31752,6 +42212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB6B',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1308', 
@@ -31776,6 +42244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB79',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1309', 
@@ -31800,6 +42276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB82',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1310', 
@@ -31824,6 +42308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB82',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1311', 
@@ -31848,6 +42340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB83',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1312', 
@@ -31872,6 +42372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB83',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1313', 
@@ -31896,6 +42404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB83',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1314', 
@@ -31920,6 +42436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB8C',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1315', 
@@ -31944,6 +42468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB9',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1316', 
@@ -31968,6 +42500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB9',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1317', 
@@ -31992,6 +42532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB9D',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1318', 
@@ -32016,6 +42564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xB9D',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1319', 
@@ -32040,6 +42596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBA5',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1320', 
@@ -32064,6 +42628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBA5',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1321', 
@@ -32088,6 +42660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBA6',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1322', 
@@ -32112,6 +42692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBB0',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1323', 
@@ -32136,6 +42724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBB5',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1324', 
@@ -32160,6 +42756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBB5',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1325', 
@@ -32184,6 +42788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBB5',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1326', 
@@ -32208,6 +42820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBB5',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1327', 
@@ -32232,6 +42852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBBF',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1328', 
@@ -32256,6 +42884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBBF',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1329', 
@@ -32280,6 +42916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBBF',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1330', 
@@ -32304,6 +42948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBBF',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1331', 
@@ -32328,6 +42980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBC0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('42.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1332', 
@@ -32352,6 +43012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBC7',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1333', 
@@ -32376,6 +43044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBC8',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1334', 
@@ -32400,6 +43076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBC8',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1335', 
@@ -32424,6 +43108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBD1',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1336', 
@@ -32448,6 +43140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBD1',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1337', 
@@ -32472,6 +43172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBDE',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1338', 
@@ -32496,6 +43204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBE6',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1339', 
@@ -32520,6 +43236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBF0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1340', 
@@ -32544,6 +43268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBF5',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1341', 
@@ -32568,6 +43300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBF5',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1342', 
@@ -32592,6 +43332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBFB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1343', 
@@ -32616,6 +43364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xBFF',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1344', 
@@ -32640,6 +43396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC09',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1345', 
@@ -32664,6 +43428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC1D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1346', 
@@ -32688,6 +43460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC1D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1347', 
@@ -32712,6 +43492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC1D',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1348', 
@@ -32736,6 +43524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC24',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1349', 
@@ -32760,6 +43556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC24',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1350', 
@@ -32784,6 +43588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC34',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1351', 
@@ -32808,6 +43620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC35',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1352', 
@@ -32832,6 +43652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC35',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('32.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1353', 
@@ -32856,6 +43684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC41',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('122.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1354', 
@@ -32880,6 +43716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC4E',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1355', 
@@ -32904,6 +43748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC4E',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('24.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1356', 
@@ -32928,6 +43780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1357', 
@@ -32952,6 +43812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC5B',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1358', 
@@ -32976,6 +43844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC5B',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1359', 
@@ -33000,6 +43876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC60',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1360', 
@@ -33024,6 +43908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC6B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1361', 
@@ -33048,6 +43940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC6B',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1362', 
@@ -33072,6 +43972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC74',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1363', 
@@ -33096,6 +44004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC74',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('17.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1364', 
@@ -33120,6 +44036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC7D',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1365', 
@@ -33144,6 +44068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC8D',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1366', 
@@ -33168,6 +44100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xC8D',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('179.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1367', 
@@ -33192,6 +44132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCA0',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1368', 
@@ -33216,6 +44164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCA5',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1369', 
@@ -33240,6 +44196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCA5',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1370', 
@@ -33264,6 +44228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCB0',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1371', 
@@ -33288,6 +44260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCBE',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1372', 
@@ -33312,6 +44292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCBE',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1373', 
@@ -33336,6 +44324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCCC',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1374', 
@@ -33360,6 +44356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCCC',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1375', 
@@ -33384,6 +44388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCE4',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1376', 
@@ -33408,6 +44420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCE6',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1377', 
@@ -33432,6 +44452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCE6',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1378', 
@@ -33456,6 +44484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCE6',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1379', 
@@ -33480,6 +44516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCED',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1380', 
@@ -33504,6 +44548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCED',
     pfTechnology: '教员',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1381', 
@@ -33528,6 +44580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCF2',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1382', 
@@ -33552,6 +44612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCF3',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1383', 
@@ -33576,6 +44644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCFE',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1384', 
@@ -33600,6 +44676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xCFE',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1385', 
@@ -33624,6 +44708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD04',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('71.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1386', 
@@ -33648,6 +44740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD0B',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1387', 
@@ -33672,6 +44772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD0F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1388', 
@@ -33696,6 +44804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD0F',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1389', 
@@ -33720,6 +44836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD20',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1390', 
@@ -33744,6 +44868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD24',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1391', 
@@ -33768,6 +44900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD24',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1392', 
@@ -33792,6 +44932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD24',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1393', 
@@ -33816,6 +44964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD2E',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1394', 
@@ -33840,6 +44996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD2E',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1395', 
@@ -33864,6 +45028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD2F',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1396', 
@@ -33888,6 +45060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD2F',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1397', 
@@ -33912,6 +45092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD2F',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1398', 
@@ -33936,6 +45124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD41',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1399', 
@@ -33960,6 +45156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD41',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1400', 
@@ -33984,6 +45188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD50',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1401', 
@@ -34008,6 +45220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD50',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1402', 
@@ -34032,6 +45252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD50',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1403', 
@@ -34056,6 +45284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD51',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1404', 
@@ -34080,6 +45316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD58',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1405', 
@@ -34104,6 +45348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD58',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('167.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1406', 
@@ -34128,6 +45380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD66',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1407', 
@@ -34152,6 +45412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD66',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1408', 
@@ -34176,6 +45444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD6A',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1409', 
@@ -34200,6 +45476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD76',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1410', 
@@ -34224,6 +45508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD76',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1411', 
@@ -34248,6 +45540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD7B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1412', 
@@ -34272,6 +45572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD8',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1413', 
@@ -34296,6 +45604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD8',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1414', 
@@ -34320,6 +45636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD84',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1415', 
@@ -34344,6 +45668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD84',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1416', 
@@ -34368,6 +45700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD84',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1417', 
@@ -34392,6 +45732,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD8D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1418', 
@@ -34416,6 +45764,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD8D',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1419', 
@@ -34440,6 +45796,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD9A',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('91.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1420', 
@@ -34464,6 +45828,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xD9C',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('51.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1421', 
@@ -34488,6 +45860,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDA4',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1422', 
@@ -34512,6 +45892,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDAE',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1423', 
@@ -34536,6 +45924,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDC8',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1424', 
@@ -34560,6 +45956,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDC8',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1425', 
@@ -34584,6 +45988,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDE3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('121.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1426', 
@@ -34608,6 +46020,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDEC',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('180.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1427', 
@@ -34632,6 +46052,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDFC',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1428', 
@@ -34656,6 +46084,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xDFC',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1429', 
@@ -34680,6 +46116,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE01',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1430', 
@@ -34704,6 +46148,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE07',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1431', 
@@ -34728,6 +46180,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE07',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1432', 
@@ -34752,6 +46212,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE07',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1433', 
@@ -34776,6 +46244,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE09',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1434', 
@@ -34800,6 +46276,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE12',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('3.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1435', 
@@ -34824,6 +46308,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE13',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1436', 
@@ -34848,6 +46340,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE13',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('56.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1437', 
@@ -34872,6 +46372,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE1C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1438', 
@@ -34896,6 +46404,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE1C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1439', 
@@ -34920,6 +46436,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE1C',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1440', 
@@ -34944,6 +46468,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE21',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1441', 
@@ -34968,6 +46500,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE29',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1442', 
@@ -34992,6 +46532,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE2F',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1443', 
@@ -35016,6 +46564,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE2F',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1444', 
@@ -35040,6 +46596,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE2F',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1445', 
@@ -35064,6 +46628,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE3',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1446', 
@@ -35088,6 +46660,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE3',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1447', 
@@ -35112,6 +46692,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE3',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1448', 
@@ -35136,6 +46724,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE3',
     pfTechnology: '教员',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1449', 
@@ -35160,6 +46756,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE30',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1450', 
@@ -35184,6 +46788,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE30',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1451', 
@@ -35208,6 +46820,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE3A',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1452', 
@@ -35232,6 +46852,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE3A',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1453', 
@@ -35256,6 +46884,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE41',
     pfTechnology: '教员',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1454', 
@@ -35280,6 +46916,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE57',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1455', 
@@ -35304,6 +46948,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE57',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('166.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1456', 
@@ -35328,6 +46980,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE72',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1457', 
@@ -35352,6 +47012,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE72',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1458', 
@@ -35376,6 +47044,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE72',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1459', 
@@ -35400,6 +47076,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE77',
     pfTechnology: '巡航机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('33.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1460', 
@@ -35424,6 +47108,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE79',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1461', 
@@ -35448,6 +47140,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE79',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1462', 
@@ -35472,6 +47172,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE79',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1463', 
@@ -35496,6 +47204,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE79',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1464', 
@@ -35520,6 +47236,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE7C',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1465', 
@@ -35544,6 +47268,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE7C',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1466', 
@@ -35568,6 +47300,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE7F',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1467', 
@@ -35592,6 +47332,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE7F',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1468', 
@@ -35616,6 +47364,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE7F',
     pfTechnology: '教员',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('67.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1469', 
@@ -35640,6 +47396,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE90',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1470', 
@@ -35664,6 +47428,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xE9E',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('47.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1471', 
@@ -35688,6 +47460,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEA',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('13.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1472', 
@@ -35712,6 +47492,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEA2',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1473', 
@@ -35736,6 +47524,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEA2',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1474', 
@@ -35760,6 +47556,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEA2',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1475', 
@@ -35784,6 +47588,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEA2',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1476', 
@@ -35808,6 +47620,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEA7',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('93.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1477', 
@@ -35832,6 +47652,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEB5',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1478', 
@@ -35856,6 +47684,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEB6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1479', 
@@ -35880,6 +47716,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEB6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1480', 
@@ -35904,6 +47748,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEB6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('94.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1481', 
@@ -35928,6 +47780,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEBB',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1482', 
@@ -35952,6 +47812,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEBF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1483', 
@@ -35976,6 +47844,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEBF',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1484', 
@@ -36000,6 +47876,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xECF',
     pfTechnology: '巡航机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1485', 
@@ -36024,6 +47908,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEDD',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1486', 
@@ -36048,6 +47940,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEDE',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1487', 
@@ -36072,6 +47972,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEE',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('124.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1488', 
@@ -36096,6 +48004,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEE6',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1489', 
@@ -36120,6 +48036,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEE6',
     pfTechnology: '机长',
     operatingUnit: 'D',
+    crewMembers: (() => {
+      const team = getTeamByName('2.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1490', 
@@ -36144,6 +48068,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEF3',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1491', 
@@ -36168,6 +48100,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEF3',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1492', 
@@ -36192,6 +48132,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEF3',
     pfTechnology: '机长',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('92.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1493', 
@@ -36216,6 +48164,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xEFB',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1494', 
@@ -36240,6 +48196,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF03',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1495', 
@@ -36264,6 +48228,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF03',
     pfTechnology: '机长',
     operatingUnit: 'J',
+    crewMembers: (() => {
+      const team = getTeamByName('20.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1496', 
@@ -36288,6 +48260,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF05',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1497', 
@@ -36312,6 +48292,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF05',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('120.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1498', 
@@ -36336,6 +48324,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF0D',
     pfTechnology: '教员',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1499', 
@@ -36360,6 +48356,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF28',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('62.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1500', 
@@ -36384,6 +48388,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF2A',
     pfTechnology: '教员',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1501', 
@@ -36408,6 +48420,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF33',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1502', 
@@ -36432,6 +48452,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF33',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1503', 
@@ -36456,6 +48484,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF33',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'B',
+    crewMembers: (() => {
+      const team = getTeamByName('89.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1504', 
@@ -36480,6 +48516,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF3E',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1505', 
@@ -36504,6 +48548,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF4',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1506', 
@@ -36528,6 +48580,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF4',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('119.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1507', 
@@ -36552,6 +48612,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF42',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1508', 
@@ -36576,6 +48644,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF42',
     pfTechnology: '机长',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('43.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1509', 
@@ -36600,6 +48676,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF4F',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1510', 
@@ -36624,6 +48708,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF4F',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1511', 
@@ -36648,6 +48740,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF4F',
     pfTechnology: '机长',
     operatingUnit: 'L',
+    crewMembers: (() => {
+      const team = getTeamByName('182.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1512', 
@@ -36672,6 +48772,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF5C',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1513', 
@@ -36696,6 +48804,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF5C',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1514', 
@@ -36720,6 +48836,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF5C',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1515', 
@@ -36744,6 +48868,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1516', 
@@ -36768,6 +48900,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1517', 
@@ -36792,6 +48932,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF71',
     pfTechnology: '机长',
     operatingUnit: 'E',
+    crewMembers: (() => {
+      const team = getTeamByName('125.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1518', 
@@ -36816,6 +48964,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1519', 
@@ -36840,6 +48996,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7B',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('30.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1520', 
@@ -36864,6 +49028,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7F',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1521', 
@@ -36888,6 +49060,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7F',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1522', 
@@ -36912,6 +49092,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF7F',
     pfTechnology: '教员',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('68.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1523', 
@@ -36936,6 +49124,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF9A',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1524', 
@@ -36960,6 +49156,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF9A',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1525', 
@@ -36984,6 +49188,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF9A',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1526', 
@@ -37008,6 +49220,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF9A',
     pfTechnology: '机长',
     operatingUnit: 'R',
+    crewMembers: (() => {
+      const team = getTeamByName('127.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1527', 
@@ -37032,6 +49252,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xF9D',
     pfTechnology: '教员',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('4.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1528', 
@@ -37056,6 +49284,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFA2',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1529', 
@@ -37080,6 +49316,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFA3',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'I',
+    crewMembers: (() => {
+      const team = getTeamByName('46.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1530', 
@@ -37104,6 +49348,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFC5',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1531', 
@@ -37128,6 +49380,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFC5',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1532', 
@@ -37152,6 +49412,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFC5',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1533', 
@@ -37176,6 +49444,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFC5',
     pfTechnology: '机长',
     operatingUnit: 'P',
+    crewMembers: (() => {
+      const team = getTeamByName('39.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1534', 
@@ -37200,6 +49476,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFCD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1535', 
@@ -37224,6 +49508,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFCD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1536', 
@@ -37248,6 +49540,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFCD',
     pfTechnology: '机长',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1537', 
@@ -37272,6 +49572,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFD1',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('15.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1538', 
@@ -37296,6 +49604,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFD6',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1539', 
@@ -37320,6 +49636,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFD6',
     pfTechnology: '机长',
     operatingUnit: 'C',
+    crewMembers: (() => {
+      const team = getTeamByName('123.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1540', 
@@ -37344,6 +49668,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFE3',
     pfTechnology: '机长',
     operatingUnit: 'A',
+    crewMembers: (() => {
+      const team = getTeamByName('69.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
   { 
     id: 'FL1541', 
@@ -37368,6 +49700,14 @@ export const FLIGHTS: Flight[] = [
     pfId: '0xFF6',
     pfTechnology: '第一副驾驶',
     operatingUnit: 'F',
+    crewMembers: (() => {
+      const team = getTeamByName('61.0队');
+      if (!team) return [];
+      return [
+        { personId: team.leader.id, role: team.leader.pfTechnology || '机长' },
+        ...team.members.map(m => ({ personId: m.id, role: m.pfTechnology || '第一副驾驶' }))
+      ];
+    })()
   },
 ]
 

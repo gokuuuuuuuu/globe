@@ -8077,21 +8077,558 @@ export const PERSONS: Person[] = [
     teamId: 'T1006', 
     riskValue: 2.5,
   },
+  // 模拟机组成员信息（包含完整详细信息）
+  { 
+    id: 'P2001', 
+    name: '张明', 
+    pfId: '0x2001', 
+    pfTechnology: '教员', 
+    teamId: 'T2001', 
+    riskValue: 1.8,
+    age: 45,
+    flightYears: 22,
+    totalFlightHours: 12500,
+    recent90DaysFlightHours: 180,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2002', 
+    name: '李强', 
+    pfId: '0x2002', 
+    pfTechnology: '机长', 
+    teamId: 'T2001', 
+    riskValue: 2.1,
+    age: 38,
+    flightYears: 15,
+    totalFlightHours: 8500,
+    recent90DaysFlightHours: 220,
+    certifiedAircraftTypes: ['A320', 'A320-NEO'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2003', 
+    name: '王芳', 
+    pfId: '0x2003', 
+    pfTechnology: '机长', 
+    teamId: 'T2002', 
+    riskValue: 2.3,
+    age: 35,
+    flightYears: 12,
+    totalFlightHours: 6800,
+    recent90DaysFlightHours: 195,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'B737'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2004', 
+    name: '刘伟', 
+    pfId: '0x2004', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2001', 
+    riskValue: 2.5,
+    age: 28,
+    flightYears: 5,
+    totalFlightHours: 2800,
+    recent90DaysFlightHours: 150,
+    certifiedAircraftTypes: ['A320'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2005', 
+    name: '陈静', 
+    pfId: '0x2005', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2002', 
+    riskValue: 2.4,
+    age: 26,
+    flightYears: 4,
+    totalFlightHours: 2100,
+    recent90DaysFlightHours: 165,
+    certifiedAircraftTypes: ['A320', 'A320-NEO'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2006', 
+    name: '赵军', 
+    pfId: '0x2006', 
+    pfTechnology: '教员', 
+    teamId: 'T2003', 
+    riskValue: 1.5,
+    age: 48,
+    flightYears: 25,
+    totalFlightHours: 14200,
+    recent90DaysFlightHours: 160,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330', 'B737'],
+    currentAircraftType: 'A330',
+  },
+  { 
+    id: 'P2007', 
+    name: '孙丽', 
+    pfId: '0x2007', 
+    pfTechnology: '机长', 
+    teamId: 'T2003', 
+    riskValue: 2.0,
+    age: 40,
+    flightYears: 18,
+    totalFlightHours: 9200,
+    recent90DaysFlightHours: 200,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2008', 
+    name: '周杰', 
+    pfId: '0x2008', 
+    pfTechnology: '机长', 
+    teamId: 'T2004', 
+    riskValue: 2.6,
+    age: 33,
+    flightYears: 10,
+    totalFlightHours: 5500,
+    recent90DaysFlightHours: 210,
+    certifiedAircraftTypes: ['A320'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2009', 
+    name: '吴敏', 
+    pfId: '0x2009', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2003', 
+    riskValue: 2.7,
+    age: 29,
+    flightYears: 6,
+    totalFlightHours: 3200,
+    recent90DaysFlightHours: 175,
+    certifiedAircraftTypes: ['A320', 'A320-NEO'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2010', 
+    name: '郑华', 
+    pfId: '0x2010', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2004', 
+    riskValue: 2.8,
+    age: 27,
+    flightYears: 3,
+    totalFlightHours: 1800,
+    recent90DaysFlightHours: 140,
+    certifiedAircraftTypes: ['A320'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2011', 
+    name: '马超', 
+    pfId: '0x2011', 
+    pfTechnology: '教员', 
+    teamId: 'T2005', 
+    riskValue: 1.6,
+    age: 46,
+    flightYears: 23,
+    totalFlightHours: 13100,
+    recent90DaysFlightHours: 170,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330', 'B737', 'B777'],
+    currentAircraftType: 'A330',
+  },
+  { 
+    id: 'P2012', 
+    name: '林雪', 
+    pfId: '0x2012', 
+    pfTechnology: '机长', 
+    teamId: 'T2005', 
+    riskValue: 2.2,
+    age: 36,
+    flightYears: 13,
+    totalFlightHours: 7200,
+    recent90DaysFlightHours: 190,
+    certifiedAircraftTypes: ['A320', 'A320-NEO'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2013', 
+    name: '黄磊', 
+    pfId: '0x2013', 
+    pfTechnology: '机长', 
+    teamId: 'T2006', 
+    riskValue: 2.4,
+    age: 34,
+    flightYears: 11,
+    totalFlightHours: 6100,
+    recent90DaysFlightHours: 205,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'B737'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2014', 
+    name: '徐娜', 
+    pfId: '0x2014', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2005', 
+    riskValue: 2.6,
+    age: 30,
+    flightYears: 7,
+    totalFlightHours: 3600,
+    recent90DaysFlightHours: 185,
+    certifiedAircraftTypes: ['A320', 'A320-NEO'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2015', 
+    name: '朱峰', 
+    pfId: '0x2015', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2006', 
+    riskValue: 2.9,
+    age: 25,
+    flightYears: 2,
+    totalFlightHours: 1200,
+    recent90DaysFlightHours: 130,
+    certifiedAircraftTypes: ['A320'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2016', 
+    name: '高阳', 
+    pfId: '0x2016', 
+    pfTechnology: '教员', 
+    teamId: 'T2007', 
+    riskValue: 1.4,
+    age: 50,
+    flightYears: 27,
+    totalFlightHours: 15800,
+    recent90DaysFlightHours: 155,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330', 'B737', 'B777', 'B787'],
+    currentAircraftType: 'B777',
+  },
+  { 
+    id: 'P2017', 
+    name: '何梅', 
+    pfId: '0x2017', 
+    pfTechnology: '机长', 
+    teamId: 'T2007', 
+    riskValue: 1.9,
+    age: 42,
+    flightYears: 20,
+    totalFlightHours: 10800,
+    recent90DaysFlightHours: 195,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330'],
+    currentAircraftType: 'A330',
+  },
+  { 
+    id: 'P2018', 
+    name: '罗斌', 
+    pfId: '0x2018', 
+    pfTechnology: '机长', 
+    teamId: 'T2008', 
+    riskValue: 2.3,
+    age: 37,
+    flightYears: 14,
+    totalFlightHours: 7800,
+    recent90DaysFlightHours: 215,
+    certifiedAircraftTypes: ['A320', 'A320-NEO'],
+    currentAircraftType: 'A320',
+  },
+  { 
+    id: 'P2019', 
+    name: '韩雨', 
+    pfId: '0x2019', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2007', 
+    riskValue: 2.5,
+    age: 31,
+    flightYears: 8,
+    totalFlightHours: 4100,
+    recent90DaysFlightHours: 180,
+    certifiedAircraftTypes: ['A320', 'A320-NEO', 'A330'],
+    currentAircraftType: 'A320-NEO',
+  },
+  { 
+    id: 'P2020', 
+    name: '唐亮', 
+    pfId: '0x2020', 
+    pfTechnology: '第一副驾驶', 
+    teamId: 'T2008', 
+    riskValue: 2.7,
+    age: 24,
+    flightYears: 1,
+    totalFlightHours: 800,
+    recent90DaysFlightHours: 120,
+    certifiedAircraftTypes: ['A320'],
+    currentAircraftType: 'A320',
+  },
 ]
 
-// 机队数据
-export const TEAMS: Team[] = [
-  // 根据实际数据动态生成
+// CSV中的PF机队名称列表（来自data.csv）
+const CSV_TEAM_NAMES = [
+  '110.0队', '111.0队', '113.0队', '119.0队', '120.0队', '121.0队', '122.0队', '123.0队', '124.0队', '125.0队', '127.0队',
+  '13.0队', '140.0队', '15.0队', '166.0队', '167.0队', '17.0队', '179.0队', '180.0队', '182.0队',
+  '2.0队', '20.0队', '24.0队', '3.0队', '30.0队', '32.0队', '33.0队', '39.0队', '4.0队',
+  '42.0队', '43.0队', '46.0队', '47.0队', '51.0队', '56.0队', '61.0队', '62.0队', '67.0队',
+  '68.0队', '69.0队', '71.0队', '74.0队', '76.0队', '89.0队', '91.0队', '92.0队', '93.0队', '94.0队', '97.0队'
 ]
 
-// 根据人员ID查找人员
-export function getPersonById(id: string): Person | undefined {
-  return PERSONS.find(p => p.id === id)
+// 中文姓氏和名字（用于随机生成姓名）
+const SURNAMES = ['张', '李', '王', '刘', '陈', '杨', '赵', '黄', '周', '吴', '徐', '孙', '马', '朱', '胡', '林', '郭', '何', '高', '罗', '郑', '梁', '谢', '宋', '唐', '韩', '曹', '许', '邓', '萧']
+const GIVEN_NAMES = ['明', '强', '芳', '伟', '静', '军', '丽', '杰', '敏', '华', '超', '雪', '磊', '娜', '峰', '阳', '梅', '斌', '雨', '亮', '鹏', '勇', '艳', '刚', '平', '辉', '建', '文', '红', '波']
+
+// 随机生成中文姓名
+function generateRandomName(): string {
+  const surname = SURNAMES[Math.floor(Math.random() * SURNAMES.length)]
+  const givenName = GIVEN_NAMES[Math.floor(Math.random() * GIVEN_NAMES.length)]
+  return surname + givenName
 }
 
-// 根据人员名称查找人员
+// 随机生成PF工号（基于机队编号）
+function generatePfId(teamName: string, index: number): string {
+  const teamNum = teamName.replace('队', '').replace('.0', '')
+  const hex = (parseInt(teamNum) * 16 + index).toString(16)
+  return `0x${hex}`
+}
+
+// 随机生成年龄（根据技术等级）
+function generateAge(tech: string): number {
+  if (tech === '教员') return 40 + Math.floor(Math.random() * 12) // 40-51
+  if (tech === '机长') return 30 + Math.floor(Math.random() * 15) // 30-44
+  return 24 + Math.floor(Math.random() * 8) // 24-31
+}
+
+// 随机生成飞行年限（根据技术等级）
+function generateFlightYears(tech: string): number {
+  if (tech === '教员') return 18 + Math.floor(Math.random() * 10) // 18-27
+  if (tech === '机长') return 8 + Math.floor(Math.random() * 12) // 8-19
+  return 1 + Math.floor(Math.random() * 6) // 1-6
+}
+
+// 随机生成总飞行时长（根据技术等级和飞行年限）
+function generateTotalFlightHours(tech: string, flightYears: number): number {
+  const baseHours = flightYears * 500 // 基础：每年500小时
+  const variance = Math.floor(Math.random() * 2000) // 0-2000小时变化
+  if (tech === '教员') return baseHours + variance + 2000 // 教员额外2000小时
+  if (tech === '机长') return baseHours + variance + 1000 // 机长额外1000小时
+  return baseHours + variance
+}
+
+// 随机生成近90天飞行时长
+function generateRecent90DaysHours(): number {
+  return 100 + Math.floor(Math.random() * 150) // 100-250小时
+}
+
+// 随机生成已认证机型
+function generateCertifiedAircraftTypes(tech: string): string[] {
+  const allTypes = ['A320', 'A320-NEO', 'A321', 'A330', 'B737', 'B777', 'B787']
+  const types: string[] = ['A320'] // 所有人员至少认证A320
+  
+  if (tech === '教员') {
+    // 教员可能认证多种机型
+    const additionalTypes = allTypes.filter(t => t !== 'A320')
+    const count = 2 + Math.floor(Math.random() * 3) // 2-4个额外机型
+    for (let i = 0; i < count && i < additionalTypes.length; i++) {
+      const type = additionalTypes[Math.floor(Math.random() * additionalTypes.length)]
+      if (!types.includes(type)) {
+        types.push(type)
+      }
+    }
+  } else if (tech === '机长') {
+    // 机长可能认证1-2个额外机型
+    const additionalTypes = ['A320-NEO', 'A321', 'A330']
+    const count = Math.floor(Math.random() * 2) + 1 // 1-2个额外机型
+    for (let i = 0; i < count && i < additionalTypes.length; i++) {
+      const type = additionalTypes[Math.floor(Math.random() * additionalTypes.length)]
+      if (!types.includes(type)) {
+        types.push(type)
+      }
+    }
+  } else {
+    // 第一副驾驶可能认证A320-NEO
+    if (Math.random() > 0.5) {
+      types.push('A320-NEO')
+    }
+  }
+  
+  return types
+}
+
+// 随机生成当前执飞机型（从已认证机型中选择）
+function generateCurrentAircraftType(certifiedTypes: string[]): string {
+  return certifiedTypes[Math.floor(Math.random() * certifiedTypes.length)]
+}
+
+// 随机生成风险值
+function generateRiskValue(tech: string): number {
+  const base = tech === '教员' ? 1.5 : tech === '机长' ? 2.0 : 2.5
+  return base + (Math.random() * 0.8) // 添加0-0.8的随机变化
+}
+
+// 从CSV中提取的PF工号、机队和技术等级数据（简化版，每个机队只包含主要人员）
+// 注意：实际数据量很大，这里只包含每个机队的前几个人员作为示例
+// 完整数据应该从data.csv中动态加载
+const CSV_TEAM_PERSONS_DATA: Record<string, Array<{pfId: string, tech: string}>> = {
+  '94.0队': [
+    {pfId: '0x1009', tech: '教员'}, {pfId: '0x1026', tech: '教员'}, {pfId: '0x1037', tech: '机长'},
+    {pfId: '0x10D4', tech: '机长'}, {pfId: '0x1112', tech: '教员'}
+  ],
+  '17.0队': [
+    {pfId: '0x100F', tech: '教员'}, {pfId: '0x1183', tech: '教员'}, {pfId: '0x12', tech: '教员'},
+    {pfId: '0x120', tech: '机长'}, {pfId: '0x1232', tech: '教员'}
+  ],
+  '71.0队': [
+    {pfId: '0x1021', tech: '机长'}, {pfId: '0x1024', tech: '机长'}, {pfId: '0x10C', tech: '机长'},
+    {pfId: '0x114', tech: '机长'}, {pfId: '0x1318', tech: '教员'}
+  ],
+  // 其他机队使用随机生成，但使用实际的机队名称
+}
+
+// 机队数据 - 根据CSV中的PF机队名称和实际PF工号生成
+function generateTeams(): Team[] {
+  const teams: Team[] = []
+  let personIdCounter = 10000 // 从P10000开始，避免与现有数据冲突
+  const usedPfIds = new Set<string>() // 跟踪已使用的PF工号，避免重复
+  
+  CSV_TEAM_NAMES.forEach((teamName) => {
+    // 生成机队ID（如 "T94.0"）
+    const teamId = `T${teamName.replace('队', '')}`
+    
+    // 获取该机队的实际人员数据（如果存在）
+    const actualPersons = CSV_TEAM_PERSONS_DATA[teamName] || []
+    
+    // 如果有机队的实际数据，使用实际数据；否则随机生成
+    let teamPersons: Array<{pfId: string, tech: string}> = []
+    
+    if (actualPersons.length > 0) {
+      // 使用实际数据，但确保PF工号不重复
+      actualPersons.forEach(p => {
+        if (!usedPfIds.has(p.pfId)) {
+          teamPersons.push(p)
+          usedPfIds.add(p.pfId)
+        }
+      })
+    }
+    
+    // 如果实际数据不足或没有，补充随机生成的人员
+    const targetCount = Math.max(actualPersons.length, 3 + Math.floor(Math.random() * 6)) // 至少3人，最多8人
+    while (teamPersons.length < targetCount) {
+      const rand = Math.random()
+      let tech: string
+      if (rand < 0.2) {
+        tech = '教员'
+      } else if (rand < 0.5) {
+        tech = '机长'
+      } else {
+        tech = '第一副驾驶'
+      }
+      
+      // 生成唯一的PF工号
+      let pfId = generatePfId(teamName, teamPersons.length)
+      let attempts = 0
+      while (usedPfIds.has(pfId) && attempts < 100) {
+        pfId = generatePfId(teamName, teamPersons.length + attempts)
+        attempts++
+      }
+      
+      if (!usedPfIds.has(pfId)) {
+        teamPersons.push({pfId, tech})
+        usedPfIds.add(pfId)
+      }
+    }
+    
+    // 选择分队长：优先选择教员，然后机长
+    teamPersons.sort((a, b) => {
+      const priorityA = a.tech === '教员' ? 3 : a.tech === '机长' ? 2 : 1
+      const priorityB = b.tech === '教员' ? 3 : b.tech === '机长' ? 2 : 1
+      return priorityB - priorityA
+    })
+    
+    const leaderData = teamPersons[0]
+    const membersData = teamPersons.slice(1)
+    
+    // 生成分队长
+    const leaderAge = generateAge(leaderData.tech)
+    const leaderFlightYears = generateFlightYears(leaderData.tech)
+    const leaderTotalHours = generateTotalFlightHours(leaderData.tech, leaderFlightYears)
+    const leaderCertifiedTypes = generateCertifiedAircraftTypes(leaderData.tech)
+    
+    const leader: Person = {
+      id: `P${personIdCounter++}`,
+      name: generateRandomName(),
+      pfId: leaderData.pfId,
+      pfTechnology: leaderData.tech,
+      teamId: teamId,
+      riskValue: generateRiskValue(leaderData.tech),
+      age: leaderAge,
+      flightYears: leaderFlightYears,
+      totalFlightHours: leaderTotalHours,
+      recent90DaysFlightHours: generateRecent90DaysHours(),
+      certifiedAircraftTypes: leaderCertifiedTypes,
+      currentAircraftType: generateCurrentAircraftType(leaderCertifiedTypes),
+    }
+    
+    // 生成其他成员
+    const members: Person[] = membersData.map((memberData, idx) => {
+      const memberAge = generateAge(memberData.tech)
+      const memberFlightYears = generateFlightYears(memberData.tech)
+      const memberTotalHours = generateTotalFlightHours(memberData.tech, memberFlightYears)
+      const memberCertifiedTypes = generateCertifiedAircraftTypes(memberData.tech)
+      
+      return {
+        id: `P${personIdCounter++}`,
+        name: generateRandomName(),
+        pfId: memberData.pfId,
+        pfTechnology: memberData.tech,
+        teamId: teamId,
+        riskValue: generateRiskValue(memberData.tech),
+        age: memberAge,
+        flightYears: memberFlightYears,
+        totalFlightHours: memberTotalHours,
+        recent90DaysFlightHours: generateRecent90DaysHours(),
+        certifiedAircraftTypes: memberCertifiedTypes,
+        currentAircraftType: generateCurrentAircraftType(memberCertifiedTypes),
+      }
+    })
+    
+    teams.push({
+      id: teamId,
+      name: teamName,
+      leader: leader,
+      members: members,
+    })
+  })
+  
+  // 按机队名称排序（数字排序）
+  teams.sort((a, b) => {
+    const numA = parseFloat(a.name.replace('队', ''))
+    const numB = parseFloat(b.name.replace('队', ''))
+    return numA - numB
+  })
+  
+  return teams
+}
+
+// 生成机队数据，同时收集所有生成的人员
+const { teams, generatedPersons } = (() => {
+  const teams = generateTeams()
+  const generatedPersons: Person[] = []
+  teams.forEach(team => {
+    generatedPersons.push(team.leader)
+    generatedPersons.push(...team.members)
+  })
+  return { teams, generatedPersons }
+})()
+
+// 将所有生成的人员添加到PERSONS数组（创建新数组）
+export const ALL_PERSONS: Person[] = [...PERSONS, ...generatedPersons]
+
+export const TEAMS: Team[] = teams
+
+// 根据人员ID查找人员（在所有人员中查找，包括生成的人员）
+export function getPersonById(id: string): Person | undefined {
+  return ALL_PERSONS.find(p => p.id === id)
+}
+
+// 根据人员名称查找人员（在所有人员中查找，包括生成的人员）
 export function getPersonByName(name: string): Person | undefined {
-  return PERSONS.find(p => p.name === name)
+  return ALL_PERSONS.find(p => p.name === name)
 }
 
 // 根据机队ID查找机队
@@ -8099,7 +8636,12 @@ export function getTeamById(id: string): Team | undefined {
   return TEAMS.find(t => t.id === id)
 }
 
-// 根据PF工号查找人员（用于统一航班数据中的pfId）
+// 根据机队名称查找机队（如 "94.0队"）
+export function getTeamByName(name: string): Team | undefined {
+  return TEAMS.find(t => t.name === name)
+}
+
+// 根据PF工号查找人员（用于统一航班数据中的pfId，在所有人员中查找）
 export function getPersonByPfId(pfId: string): Person | undefined {
-  return PERSONS.find(p => p.pfId === pfId)
+  return ALL_PERSONS.find(p => p.pfId === pfId)
 }

@@ -124,6 +124,13 @@ interface AppState {
   // 偏好设置菜单显示状态
   showPreferencesMenu: boolean
   setShowPreferencesMenu: (show: boolean) => void
+  // 时间轴相关状态
+  timelineTimeRange: 4 | 10 | 18 | 24 // 时间范围（小时）
+  setTimelineTimeRange: (range: 4 | 10 | 18 | 24) => void
+  timelineCurrentTime: Date // 当前时间轴显示的时间
+  setTimelineCurrentTime: (time: Date) => void
+  timelineIsPlaying: boolean // 是否正在播放
+  setTimelineIsPlaying: (playing: boolean) => void
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -227,6 +234,13 @@ export const useAppStore = create<AppState>((set) => ({
   // 偏好设置菜单显示状态
   showPreferencesMenu: false,
   setShowPreferencesMenu: (show) => set({ showPreferencesMenu: show }),
+  // 时间轴相关状态
+  timelineTimeRange: 10, // 默认10小时
+  setTimelineTimeRange: (range) => set({ timelineTimeRange: range }),
+  timelineCurrentTime: new Date('2024-07-25T00:00:00+08:00'), // 默认2024-07-25 00:00
+  setTimelineCurrentTime: (time) => set({ timelineCurrentTime: time }),
+  timelineIsPlaying: false, // 默认不播放
+  setTimelineIsPlaying: (playing) => set({ timelineIsPlaying: playing }),
 }))
 
 
