@@ -747,7 +747,7 @@ export function Sidebar() {
       {/* 数据提示（仅airline tab显示） */}
       {sidebarTab === 'airline' && (
         <div className="sidebar-data-hint">
-          数据仅显示未来18小时内航班
+          数据仅显示未来24小时内航班
         </div>
       )}
 
@@ -1389,7 +1389,7 @@ export function Sidebar() {
               // 显示所有机队列表
               <>
                 <div className="sidebar-data-hint">
-                  数据仅包含近10小时内有飞航班
+                  数据仅包含近24小时内有飞航班
                 </div>
                 {filteredTeams.length === 0 ? (
                   <div className="sidebar-empty">未找到匹配的机队或人员</div>

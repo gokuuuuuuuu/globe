@@ -523,13 +523,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     const activeTime = timelineCurrentTime
     
     // 情况1: 如果选中了特定航线，只显示该航线
+    // 注意：当用户明确选中航线时，应该忽略时间过滤和风险区间过滤，确保显示该航线
     if (selectedFlightRouteId) {
       const flight = FLIGHTS.find(f => f.id === selectedFlightRouteId)
       if (flight) {
-        // 仅在当前时间点处于飞行中的航班才显示
-        if (!isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)) {
-          return routes
-        }
+        // 不再检查时间过滤，因为用户已经明确选择了这条航线
+        // if (!isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)) {
+        //   return routes
+        // }
         const fromAirport = getAirportByCode(flight.fromAirport)
         const toAirport = getAirportByCode(flight.toAirport)
         
@@ -550,11 +551,11 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             const toPos = toAirportInstance.position.clone()
             const toElevated = toPos
             
-            // 根据风险区间过滤航线
-            const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
-            if (!riskZones.includes(flightRiskZone)) {
-              return
-            }
+            // 不再根据风险区间过滤航线，因为用户已经明确选择了这条航线
+            // const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+            // if (!riskZones.includes(flightRiskZone)) {
+            //   return
+            // }
             
             // 根据环境风险值设置航线颜色
             const routeColor = getRiskColor(flight.environmentRisk)

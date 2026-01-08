@@ -117,8 +117,8 @@ export function Timeline() {
     let lastTimestamp: number | null = null
     
     // 计算每毫秒应该移动的时间（毫秒）
-    // 例如：30分钟 = 1800000毫秒，在1000毫秒内完成，所以每毫秒移动1800毫秒
-    const timePerMs = (tickInterval * 60 * 1000) / 1000 // 1秒完成一个刻度间隔
+    // 例如：30分钟 = 1800000毫秒，在2000毫秒内完成，所以每毫秒移动900毫秒
+    const timePerMs = (tickInterval * 60 * 1000) / 2000 // 2秒完成一个刻度间隔（播放速度较慢）
 
     const animate = (timestamp: number) => {
       if (lastTimestamp === null) {
@@ -236,7 +236,13 @@ export function Timeline() {
 
   // 切换播放状态
   const togglePlay = () => {
-    setTimelineIsPlaying(!timelineIsPlaying)
+    // 如果当前时间已经到达或超过结束时间，且当前不在播放状态，则重置到开始时间
+    if (!timelineIsPlaying && timelineCurrentTime >= endTime) {
+      setTimelineCurrentTime(new Date(startTime))
+      setTimelineIsPlaying(true)
+    } else {
+      setTimelineIsPlaying(!timelineIsPlaying)
+    }
   }
 
   const currentPosition = getTimePosition(timelineCurrentTime)

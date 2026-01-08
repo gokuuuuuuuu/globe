@@ -302,6 +302,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     }> = []
     
     // 情况1: 如果选中了特定航线，只显示该航线
+    // 注意：当用户明确选中航线时，应该忽略风险区间过滤，确保显示该航线
     if (selectedFlightRouteId) {
       const flight = FLIGHTS.find(f => f.id === selectedFlightRouteId)
       if (flight) {
@@ -319,11 +320,11 @@ export function MapView({ world, atlas }: MapViewProps) {
             const toPos = toAirportInstance.position.clone()
             toPos.z = 0.05
             
-            // 根据风险区间过滤航线
-            const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
-            if (!riskZones.includes(flightRiskZone)) {
-              return
-            }
+            // 不再根据风险区间过滤航线，因为用户已经明确选择了这条航线
+            // const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+            // if (!riskZones.includes(flightRiskZone)) {
+            //   return
+            // }
             
             // 根据环境风险值设置航线颜色
             const routeColor = getRiskColor(flight.environmentRisk)
