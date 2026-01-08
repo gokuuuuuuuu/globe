@@ -350,13 +350,19 @@ function GlowingFlightPath({
 
   return (
     <group>
-      {/* 虚线航线 */}
+      {/* 不可见的碰撞检测区域 - 扩大点击区域 */}
       <mesh
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
+        visible={false}
       >
+        <tubeGeometry args={[curve, 32, 0.01, 8, false]} />
+        <meshBasicMaterial transparent opacity={0} side={DoubleSide} />
+      </mesh>
+      {/* 可见的航线 */}
+      <mesh>
         <tubeGeometry args={[curve, 32, 0.001, 8, false]} />
         <shaderMaterial
           ref={(ref) => {

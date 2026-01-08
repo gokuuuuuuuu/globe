@@ -307,13 +307,19 @@ function MapFlightPath({
 
   return (
     <group>
-      {/* 航线（2D地图上使用更细的线条） */}
+      {/* 不可见的碰撞检测区域 - 扩大点击区域 */}
       <mesh
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onPointerMove={handlePointerMove}
         onPointerDown={handlePointerDown}
+        visible={false}
       >
+        <tubeGeometry args={[curve, 32, 0.025, 8, false]} />
+        <meshBasicMaterial transparent opacity={0} side={DoubleSide} />
+      </mesh>
+      {/* 可见的航线（2D地图上使用更细的线条） */}
+      <mesh>
         <tubeGeometry args={[curve, 32, 0.012, 8, false]} />
         <shaderMaterial
           ref={(ref) => {

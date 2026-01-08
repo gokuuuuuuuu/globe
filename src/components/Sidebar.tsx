@@ -89,23 +89,6 @@ export function Sidebar() {
     airportCodeFormat,
   } = useAppStore()
 
-  // 根据偏好设置获取机场编码显示
-  const getAirportCode = (flight: Flight, type: 'from' | 'to'): string => {
-    if (type === 'from') {
-      if (airportCodeFormat === 'four') {
-        return flight.fromAirportCode4 || flight.fromAirport || flight.fromAirportZh || '--'
-      } else {
-        return flight.fromAirportCode3 || flight.fromAirport || flight.fromAirportZh || '--'
-      }
-    } else {
-      if (airportCodeFormat === 'four') {
-        return flight.toAirportCode4 || flight.toAirport || flight.toAirportZh || '--'
-      } else {
-        return flight.toAirportCode3 || flight.toAirport || flight.toAirportZh || '--'
-      }
-    }
-  }
-  
   // 从航班数据中构建机场三字码到四字码的映射（作为基础映射）
   const baseAirportCodeMap = useMemo(() => {
     const map: Record<string, string> = {}
@@ -213,6 +196,27 @@ export function Sidebar() {
     } else {
       // 显示三字码
       return airport.code
+    }
+  }
+  
+  // 根据偏好设置获取机场编码显示（用于航线卡片）
+  const getAirportCode = (flight: Flight, type: 'from' | 'to'): string => {
+    if (type === 'from') {
+      if (airportCodeFormat === 'four') {
+        // 优先使用航班数据中的四字码，如果没有则从airportCodeMap查找，最后回退到三字码
+        return flight.fromAirportCode4 || airportCodeMap[flight.fromAirportCode3 || flight.fromAirport] || flight.fromAirportCode3 || flight.fromAirport || flight.fromAirportZh || '--'
+      } else {
+        // 显示三字码
+        return flight.fromAirportCode3 || flight.fromAirport || flight.fromAirportZh || '--'
+      }
+    } else {
+      if (airportCodeFormat === 'four') {
+        // 优先使用航班数据中的四字码，如果没有则从airportCodeMap查找，最后回退到三字码
+        return flight.toAirportCode4 || airportCodeMap[flight.toAirportCode3 || flight.toAirport] || flight.toAirportCode3 || flight.toAirport || flight.toAirportZh || '--'
+      } else {
+        // 显示三字码
+        return flight.toAirportCode3 || flight.toAirport || flight.toAirportZh || '--'
+      }
     }
   }
   

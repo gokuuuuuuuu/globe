@@ -165,6 +165,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     setAirportCodeFormat,
     riskZones,
     timelineCurrentTime,
+    flightStatuses,
   } = useAppStore()
   const preferencesMenuRef = useRef<HTMLDivElement>(null)
   const loginStatusRef = useRef<HTMLDivElement>(null)
@@ -585,6 +586,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     }
     
     // 情况2: 如果正在查看某个机场，显示该机场的所有航线
+    // 注意：当用户明确选择机场时，应该应用状态过滤，但可以忽略时间过滤和风险区间过滤
     if (viewingAirportId) {
       const viewingAirport = AIRPORTS.find(a => a.id === viewingAirportId)
       if (!viewingAirport) return routes
@@ -593,7 +595,15 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       const relevantFlights = FLIGHTS.filter(flight => {
         const related = flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
         if (!related) return false
-        return isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)
+        
+        // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
+        if (flightStatuses.length > 0 && !flightStatuses.includes(flight.status)) {
+          return false
+        }
+        
+        // 不再检查时间过滤，因为用户已经明确选择了机场和状态，应该显示所有匹配的航线
+        // return isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)
+        return true
       })
       
       relevantFlights.forEach(flight => {
@@ -619,11 +629,11 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         const fromElevated = fromPos
         const toElevated = toPos
 
-        // 根据风险区间过滤航线
-        const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
-        if (!riskZones.includes(flightRiskZone)) {
-          return
-        }
+        // 不再根据风险区间过滤航线，因为用户已经明确选择了机场，应该显示所有匹配的航线
+        // const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+        // if (!riskZones.includes(flightRiskZone)) {
+        //   return
+        // }
         
         // 根据环境风险值设置航线颜色
         const routeColor = getRiskColor(flight.environmentRisk)
@@ -670,6 +680,12 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       if (!isFlightActiveAt(flight.scheduledDeparture, flight.scheduledArrival, activeTime)) {
         return
       }
+      
+      // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
+      if (flightStatuses.length > 0 && !flightStatuses.includes(flight.status)) {
+        return
+      }
+      
       const fromAirport = getAirportByCode(flight.fromAirport)
       const toAirport = getAirportByCode(flight.toAirport)
       
@@ -748,7 +764,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     })
     
     return routes
-  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones, timelineCurrentTime])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones, timelineCurrentTime, flightStatuses])
 
   // 使用 useMemo 缓存颜色对象，避免每次渲染创建新对象
   const baseColor = useMemo(() => new Color('#ffffff'), [])
@@ -1880,8 +1896,33 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
   const labelRef = useRef<Group>(null)
   const glowIntensityRef = useRef(1)
   const materialRefs = useRef<{ outer?: MeshBasicMaterial; middle?: MeshBasicMaterial; ring?: MeshBasicMaterial }>({})
-  const { setHoveredAirport, setTooltipPosition, viewingAirportId, setViewingAirportId, setSelectedAirportForAirline, setSidebarTab } = useAppStore()
+  const { setHoveredAirport, setTooltipPosition, viewingAirportId, setViewingAirportId, setSelectedAirportForAirline, setSidebarTab, airportCodeFormat } = useAppStore()
   const isViewing = viewingAirportId === airport.id
+  
+  // 从航班数据中构建机场三字码到四字码的映射
+  const airportCodeMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    FLIGHTS.forEach(flight => {
+      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
+        map[flight.fromAirportCode3] = flight.fromAirportCode4
+      }
+      if (flight.toAirportCode3 && flight.toAirportCode4) {
+        map[flight.toAirportCode3] = flight.toAirportCode4
+      }
+    })
+    return map
+  }, [])
+  
+  // 根据用户设置获取机场显示编码
+  const getAirportDisplayCode = useMemo(() => {
+    if (airportCodeFormat === 'four') {
+      // 查找四字码，如果找不到则显示三字码
+      return airportCodeMap[airport.code] || airport.code
+    } else {
+      // 显示三字码
+      return airport.code
+    }
+  }, [airportCodeFormat, airport.code, airportCodeMap])
   
   // 保存原始位置，避免被修改
   const basePosition = useMemo(() => airport.position.clone(), [airport.position])
@@ -1982,7 +2023,10 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     }
     
     // 更新光环效果（如果正在查看）
+    // 确保圆环始终面向相机，保持规则的圆形
     if (isViewing && ringRef.current && materialRefs.current.ring) {
+      // 让圆环始终面向相机
+      ringRef.current.lookAt(camera.position)
       const ringScale = 1.0 + Math.sin(time * 3) * 0.3
       ringRef.current.scale.setScalar(ringScale)
       materialRefs.current.ring.color.copy(currentColor)
@@ -1990,11 +2034,18 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     }
     
     // 更新标签（如果正在查看）
-    if (isViewing && labelRef.current) {
+    // 注意：标签是group的子元素，所以位置应该是相对于group的局部坐标
+    // group本身位于basePosition，标签应该沿着从group中心向外的方向偏移
+    if (isViewing && labelRef.current && groupRef.current) {
       labelRef.current.lookAt(camera.position)
+      // 计算从group中心向外的方向（即basePosition的归一化方向）
       const normalVec = basePosition.clone().normalize()
-      const labelOffset = normalVec.multiplyScalar(0.05)
-      labelRef.current.position.copy(basePosition.clone().add(labelOffset))
+      // 计算世界坐标系中的标签位置（basePosition + 偏移）
+      const worldLabelPosition = basePosition.clone().add(normalVec.multiplyScalar(0.05))
+      // 转换为group的局部坐标系
+      const localLabelPosition = new Vector3()
+      groupRef.current.worldToLocal(localLabelPosition.copy(worldLabelPosition))
+      labelRef.current.position.copy(localLabelPosition)
     }
   })
 
@@ -2035,7 +2086,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
           opacity={1.0}
         />
       </mesh>
-      {/* 正在查看时的光环效果 */}
+      {/* 正在查看时的光环效果 - 圆环始终面向相机以确保规则圆形 */}
       {isViewing && (
         <group ref={ringRef}>
           <mesh position={[0, 0, 0]}>
@@ -2055,15 +2106,15 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
         <group ref={labelRef}>
           <Text
             color="#ffffff"
-            fontSize={0.015}
+            fontSize={0.025}
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.002}
+            outlineWidth={0.003}
             outlineColor="#000000"
-            maxWidth={0.15}
+            maxWidth={0.2}
             renderOrder={100}
           >
-            {airport.code}
+            {getAirportDisplayCode}
           </Text>
         </group>
       )}

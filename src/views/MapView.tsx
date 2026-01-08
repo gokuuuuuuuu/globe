@@ -75,6 +75,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     selectedFlightRouteId,
     showLabels,
     riskZones,
+    flightStatuses,
   } = useAppStore()
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null)
 
@@ -354,12 +355,21 @@ export function MapView({ world, atlas }: MapViewProps) {
     }
     
     // 情况2: 如果正在查看某个机场，显示该机场的所有航线
+    // 注意：当用户明确选择机场时，应该应用状态过滤，但可以忽略风险区间过滤
     if (viewingAirportId) {
       const viewingAirport = AIRPORTS.find(a => a.id === viewingAirportId)
       if (!viewingAirport) return routes
       
       const relevantFlights = FLIGHTS.filter(flight => {
-        return flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+        const related = flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+        if (!related) return false
+        
+        // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
+        if (flightStatuses.length > 0 && !flightStatuses.includes(flight.status)) {
+          return false
+        }
+        
+        return true
       })
       
       relevantFlights.forEach(flight => {
@@ -383,11 +393,11 @@ export function MapView({ world, atlas }: MapViewProps) {
         const toPos = toAirportInstance.position.clone()
         toPos.z = 0.05
         
-        // 根据风险区间过滤航线
-        const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
-        if (!riskZones.includes(flightRiskZone)) {
-          return
-        }
+        // 不再根据风险区间过滤航线，因为用户已经明确选择了机场，应该显示所有匹配的航线
+        // const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
+        // if (!riskZones.includes(flightRiskZone)) {
+        //   return
+        // }
         
         // 根据环境风险值设置航线颜色
         const routeColor = getRiskColor(flight.environmentRisk)
@@ -420,6 +430,11 @@ export function MapView({ world, atlas }: MapViewProps) {
     const allFlights = FLIGHTS
     
     allFlights.forEach(flight => {
+      // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
+      if (flightStatuses.length > 0 && !flightStatuses.includes(flight.status)) {
+        return
+      }
+      
       const fromAirport = getAirportByCode(flight.fromAirport)
       const toAirport = getAirportByCode(flight.toAirport)
       
@@ -471,7 +486,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     })
     
     return routes
-  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones, flightStatuses])
 
   const baseColor = new Color('#2dd4bf')
   const hoverColor = new Color('#facc15')
@@ -760,10 +775,35 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
   const labelRef = useRef<Group>(null)
   const glowIntensityRef = useRef(1)
   const materialRefs = useRef<{ outer?: MeshBasicMaterial; inner?: MeshBasicMaterial }>({})
-  const { setHoveredAirport, setTooltipPosition, viewingAirportId } = useAppStore()
+  const { setHoveredAirport, setTooltipPosition, viewingAirportId, airportCodeFormat } = useAppStore()
   const isViewing = viewingAirportId === airport.id
   
   const basePosition = useMemo(() => airport.position.clone(), [airport.position])
+  
+  // 从航班数据中构建机场三字码到四字码的映射
+  const airportCodeMap = useMemo(() => {
+    const map: Record<string, string> = {}
+    FLIGHTS.forEach(flight => {
+      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
+        map[flight.fromAirportCode3] = flight.fromAirportCode4
+      }
+      if (flight.toAirportCode3 && flight.toAirportCode4) {
+        map[flight.toAirportCode3] = flight.toAirportCode4
+      }
+    })
+    return map
+  }, [])
+  
+  // 根据用户设置获取机场显示编码
+  const getAirportDisplayCode = useMemo(() => {
+    if (airportCodeFormat === 'four') {
+      // 查找四字码，如果找不到则显示三字码
+      return airportCodeMap[airport.code] || airport.code
+    } else {
+      // 显示三字码
+      return airport.code
+    }
+  }, [airportCodeFormat, airport.code, airportCodeMap])
   
   // 根据风险值计算闪烁参数
   const getPulseParams = useMemo(() => {
@@ -858,10 +898,10 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     }
   })
 
-  // 2D地图上的机场显示：使用扁平圆形 - 增大尺寸以增强可见性
-  const size = isViewing ? 0.12 : isSelected ? 0.10 : 0.08 // 缩小外层光晕半径
-  const innerSize = isViewing ? 0.05 : isSelected ? 0.04 : 0.03 // 缩小内层半径
-  const glowSize = size * 1.5 // 添加更大的外层光晕
+  // 2D地图上的机场显示：使用扁平圆形 - 减小尺寸以减少遮挡
+  const size = isViewing ? 0.04 : isSelected ? 0.03 : 0.02 // 减小外层光晕半径
+  const innerSize = isViewing ? 0.005 : isSelected ? 0.02 : 0.015 // 减小内层半径
+  const glowSize = size * 1.0 // 外层光晕
 
   return (
     <group ref={groupRef}>
@@ -922,15 +962,15 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
         <group ref={labelRef}>
           <Text
             color="#ffffff"
-            fontSize={0.2}
+            fontSize={0.3}
             anchorX="center"
             anchorY="middle"
-            outlineWidth={0.02}
+            outlineWidth={0.03}
             outlineColor="#000000"
-            maxWidth={2}
+            maxWidth={2.5}
             renderOrder={100}
           >
-            {airport.code}
+            {getAirportDisplayCode}
           </Text>
         </group>
       )}
