@@ -87,16 +87,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 30% 0, #22c55e, #16a34a);
-  box-shadow: 0 0 16px rgba(34, 197, 94, 0.7);
+  background: #D5E1FF;
+  box-shadow: 0 0 16px rgba(213, 225, 255, 0.7);
   color: #0b1120;
   cursor: pointer;
   transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, background 0.12s ease-out;
 }
 
 .timeline-play-button.playing {
-  background: radial-gradient(circle at 30% 0, #f97316, #ea580c);
-  box-shadow: 0 0 16px rgba(249, 115, 22, 0.8);
+  background: #D5E1FF;
+  box-shadow: 0 0 16px rgba(213, 225, 255, 0.8);
 }
 
 .timeline-play-button:hover {
@@ -162,8 +162,19 @@
   right: 0;
   height: 2px;
   transform: translateY(-50%);
-  background: linear-gradient(90deg, rgba(30, 64, 175, 0.5), rgba(56, 189, 248, 0.9), rgba(30, 64, 175, 0.5));
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+  background: rgba(213, 225, 255, 0.2);
+  box-shadow: 0 0 5px rgba(213, 225, 255, 0.3);
+}
+
+.timeline-line-progress {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  background: #D5E1FF;
+  box-shadow: 0 0 10px rgba(213, 225, 255, 0.8);
+  transition: width 0.1s linear;
 }
 
 .timeline-tick {
@@ -192,7 +203,7 @@
   height: 10px;
   margin-top: 8px;
   border-radius: 999px;
-  background: #e5e7eb;
+  background: rgba(213, 225, 255, 0.5);
   opacity: 0.7;
 }
 
@@ -229,10 +240,10 @@
   width: 14px;
   height: 14px;
   border-radius: 999px;
-  background: radial-gradient(circle at 30% 0, #f97316, #ea580c);
+  background: #D5E1FF;
   box-shadow:
-    0 0 10px rgba(234, 88, 12, 0.9),
-    0 0 20px rgba(251, 191, 36, 0.7);
+    0 0 10px rgba(213, 225, 255, 0.9),
+    0 0 20px rgba(213, 225, 255, 0.7);
   border: 2px solid rgba(15, 23, 42, 0.9);
 }
 

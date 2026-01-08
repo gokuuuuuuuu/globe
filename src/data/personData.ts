@@ -8369,6 +8369,64 @@ const CSV_TEAM_NAMES = [
   '68.0队', '69.0队', '71.0队', '74.0队', '76.0队', '89.0队', '91.0队', '92.0队', '93.0队', '94.0队', '97.0队'
 ]
 
+// 从CSV中提取的机队名称到PF工号的映射
+// 规则：每个机队的所有成员使用相同的PF工号（从data.csv中提取）
+const CSV_TEAM_TO_PFID_MAP: Record<string, string> = {
+  '94.0队': '1009',
+  '17.0队': '100F',
+  '71.0队': '1021',
+  '74.0队': '103B',
+  '20.0队': '103D',
+  '120.0队': '103F',
+  '32.0队': '104B',
+  '140.0队': '105',
+  '166.0队': '1059',
+  '92.0队': '105E',
+  '68.0队': '1068',
+  '56.0队': '1073',
+  '13.0队': '107D',
+  '122.0队': '108E',
+  '43.0队': '108F',
+  '123.0队': '1095',
+  '67.0队': '10A3',
+  '121.0队': '10A9',
+  '124.0队': '10B4',
+  '182.0队': '10CF',
+  '119.0队': '10EE',
+  '69.0队': '10F8',
+  '47.0队': '1106',
+  '33.0队': '110F',
+  '179.0队': '1121',
+  '46.0队': '1143',
+  '4.0队': '116',
+  '180.0队': '11C',
+  '62.0队': '11F7',
+  '125.0队': '1220',
+  '93.0队': '1228',
+  '39.0队': '124B',
+  '61.0队': '126E',
+  '42.0队': '12AC',
+  '3.0队': '12BE',
+  '24.0队': '12C7',
+  '51.0队': '132C',
+  '15.0队': '13BC',
+  '30.0队': '155F',
+  '89.0队': '15A3',
+  '167.0队': '15D1',
+  '76.0队': '15E',
+  '91.0队': '17DB',
+  '2.0队': '197E',
+  '127.0队': '1B10',
+  '113.0队': '2556',
+  '110.0队': '2699',
+  '111.0队': '26CB',
+  '97.0队': '27C0'
+}
+
+
+
+
+
 // 中文姓氏和名字（用于随机生成姓名）
 const SURNAMES = ['张', '李', '王', '刘', '陈', '杨', '赵', '黄', '周', '吴', '徐', '孙', '马', '朱', '胡', '林', '郭', '何', '高', '罗', '郑', '梁', '谢', '宋', '唐', '韩', '曹', '许', '邓', '萧']
 const GIVEN_NAMES = ['明', '强', '芳', '伟', '静', '军', '丽', '杰', '敏', '华', '超', '雪', '磊', '娜', '峰', '阳', '梅', '斌', '雨', '亮', '鹏', '勇', '艳', '刚', '平', '辉', '建', '文', '红', '波']
@@ -8380,12 +8438,6 @@ function generateRandomName(): string {
   return surname + givenName
 }
 
-// 随机生成PF工号（基于机队编号）
-function generatePfId(teamName: string, index: number): string {
-  const teamNum = teamName.replace('队', '').replace('.0', '')
-  const hex = (parseInt(teamNum) * 16 + index).toString(16)
-  return `0x${hex}`
-}
 
 // 随机生成年龄（根据技术等级）
 function generateAge(tech: string): number {
@@ -8461,54 +8513,24 @@ function generateRiskValue(tech: string): number {
   return base + (Math.random() * 0.8) // 添加0-0.8的随机变化
 }
 
-// 从CSV中提取的PF工号、机队和技术等级数据（简化版，每个机队只包含主要人员）
-// 注意：实际数据量很大，这里只包含每个机队的前几个人员作为示例
-// 完整数据应该从data.csv中动态加载
-const CSV_TEAM_PERSONS_DATA: Record<string, Array<{pfId: string, tech: string}>> = {
-  '94.0队': [
-    {pfId: '0x1009', tech: '教员'}, {pfId: '0x1026', tech: '教员'}, {pfId: '0x1037', tech: '机长'},
-    {pfId: '0x10D4', tech: '机长'}, {pfId: '0x1112', tech: '教员'}
-  ],
-  '17.0队': [
-    {pfId: '0x100F', tech: '教员'}, {pfId: '0x1183', tech: '教员'}, {pfId: '0x12', tech: '教员'},
-    {pfId: '0x120', tech: '机长'}, {pfId: '0x1232', tech: '教员'}
-  ],
-  '71.0队': [
-    {pfId: '0x1021', tech: '机长'}, {pfId: '0x1024', tech: '机长'}, {pfId: '0x10C', tech: '机长'},
-    {pfId: '0x114', tech: '机长'}, {pfId: '0x1318', tech: '教员'}
-  ],
-  // 其他机队使用随机生成，但使用实际的机队名称
-}
-
 // 机队数据 - 根据CSV中的PF机队名称和实际PF工号生成
 function generateTeams(): Team[] {
   const teams: Team[] = []
   let personIdCounter = 10000 // 从P10000开始，避免与现有数据冲突
-  const usedPfIds = new Set<string>() // 跟踪已使用的PF工号，避免重复
   
   CSV_TEAM_NAMES.forEach((teamName) => {
     // 生成机队ID（如 "T94.0"）
     const teamId = `T${teamName.replace('队', '')}`
     
-    // 获取该机队的实际人员数据（如果存在）
-    const actualPersons = CSV_TEAM_PERSONS_DATA[teamName] || []
+    // 从CSV映射中获取该机队的PF工号（所有成员使用相同的PF工号）
+    // 如果没有映射，使用随机数字（直接显示数字，不添加0x前缀）
+    const teamPfId = CSV_TEAM_TO_PFID_MAP[teamName] || `${1000 + Math.floor(Math.random() * 9000)}`
     
-    // 如果有机队的实际数据，使用实际数据；否则随机生成
-    let teamPersons: Array<{pfId: string, tech: string}> = []
+    // 生成机队成员（3-8人）
+    const memberCount = 3 + Math.floor(Math.random() * 6)
+    const teamPersons: Array<{pfId: string, tech: string}> = []
     
-    if (actualPersons.length > 0) {
-      // 使用实际数据，但确保PF工号不重复
-      actualPersons.forEach(p => {
-        if (!usedPfIds.has(p.pfId)) {
-          teamPersons.push(p)
-          usedPfIds.add(p.pfId)
-        }
-      })
-    }
-    
-    // 如果实际数据不足或没有，补充随机生成的人员
-    const targetCount = Math.max(actualPersons.length, 3 + Math.floor(Math.random() * 6)) // 至少3人，最多8人
-    while (teamPersons.length < targetCount) {
+    for (let i = 0; i < memberCount; i++) {
       const rand = Math.random()
       let tech: string
       if (rand < 0.2) {
@@ -8519,18 +8541,8 @@ function generateTeams(): Team[] {
         tech = '第一副驾驶'
       }
       
-      // 生成唯一的PF工号
-      let pfId = generatePfId(teamName, teamPersons.length)
-      let attempts = 0
-      while (usedPfIds.has(pfId) && attempts < 100) {
-        pfId = generatePfId(teamName, teamPersons.length + attempts)
-        attempts++
-      }
-      
-      if (!usedPfIds.has(pfId)) {
-        teamPersons.push({pfId, tech})
-        usedPfIds.add(pfId)
-      }
+      // 所有成员使用相同的PF工号（从CSV中提取的）
+      teamPersons.push({pfId: teamPfId, tech})
     }
     
     // 选择分队长：优先选择教员，然后机长
@@ -8564,8 +8576,8 @@ function generateTeams(): Team[] {
       currentAircraftType: generateCurrentAircraftType(leaderCertifiedTypes),
     }
     
-    // 生成其他成员
-    const members: Person[] = membersData.map((memberData, idx) => {
+    // 生成其他成员（所有成员使用相同的PF工号）
+    const members: Person[] = membersData.map((memberData) => {
       const memberAge = generateAge(memberData.tech)
       const memberFlightYears = generateFlightYears(memberData.tech)
       const memberTotalHours = generateTotalFlightHours(memberData.tech, memberFlightYears)
@@ -8574,7 +8586,7 @@ function generateTeams(): Team[] {
       return {
         id: `P${personIdCounter++}`,
         name: generateRandomName(),
-        pfId: memberData.pfId,
+        pfId: memberData.pfId, // 使用相同的PF工号（从CSV中提取）
         pfTechnology: memberData.tech,
         teamId: teamId,
         riskValue: generateRiskValue(memberData.tech),

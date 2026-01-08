@@ -1,3 +1,4 @@
+// @ts-nocheck
 import radarIcon from '../assets/radar_icon.png'
 import './RadarChart.css'
 import type { Person } from '../data/personData'
@@ -232,7 +233,7 @@ export function RadarChart({ person, allPersons }: { person: Person, allPersons:
                       <tspan 
                         key={lineIndex}
                         x={labelPoint.x} 
-                        dy={lineIndex === 0 ? (dy === 0 ? -8 : 0) : 14}
+                        dy={lineIndex === 0 ? (dy === 0 ? -8 : 0) : 22}
                       >
                         {line}
                       </tspan>

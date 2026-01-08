@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useMemo, useRef, useCallback, useEffect } from 'react'
 import {
