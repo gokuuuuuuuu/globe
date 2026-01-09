@@ -151,7 +151,7 @@ export const useAppStore = create<AppState>((set) => ({
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   searchQuery: '',
   setSearchQuery: (query) => set({ searchQuery: query }),
-  riskZones: ['red', 'orange'], // 默认只显示中高风险
+  riskZones: ['red', 'orange', 'yellow', 'green'], // 默认选中所有风险区间
   setRiskZones: (zones) => set({ riskZones: zones }),
   // Zoom到机场
   targetAirportId: null,
@@ -205,7 +205,7 @@ export const useAppStore = create<AppState>((set) => ({
   selectedAirportForAirline: null,
   setSelectedAirportForAirline: (id) => set({ selectedAirportForAirline: id }),
   // 航班状态筛选
-  flightStatuses: ['未起飞', '巡航中'],
+  flightStatuses: ['未起飞', '巡航中', '已落地'], // 默认选中所有状态
   setFlightStatuses: (statuses) => set({ flightStatuses: statuses }),
   // 当前选中的航线
   selectedFlightRouteId: null,

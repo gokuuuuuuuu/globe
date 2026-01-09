@@ -369,7 +369,6 @@ interface MapFlightPathsProps {
 }
 
 export function MapFlightPaths({ routes }: MapFlightPathsProps) {
-  const { viewingFlightRouteId } = useAppStore()
   const materialRefs = useRef<Map<string, ShaderMaterial>>(new Map())
   const sharedTime = useRef(0)
   
@@ -387,15 +386,13 @@ export function MapFlightPaths({ routes }: MapFlightPathsProps) {
   return (
     <group>
       {routes.map((route) => {
-        const isViewing = viewingFlightRouteId === route.id
-        const routeColor = isViewing ? '#60a5fa' : route.color
-        
+        // 移除蓝色高亮，保持原颜色（根据风险值设置的颜色）
         return (
           <MapFlightPath
             key={route.id}
             start={route.from}
             end={route.to}
-            color={routeColor}
+            color={route.color}
             flightNumber={route.flightNumber}
             fromAirport={route.fromAirport}
             toAirport={route.toAirport}

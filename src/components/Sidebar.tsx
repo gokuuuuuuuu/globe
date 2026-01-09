@@ -238,10 +238,20 @@ export function Sidebar() {
   const filteredAirports = useMemo(() => {
     const filtered = MOCK_AIRPORTS.filter(airport => {
       // 搜索过滤
-      const matchesSearch = !searchQuery || 
-        airport.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      if (!searchQuery) {
+        // 如果没有搜索查询，只检查风险区间
+        return riskZones.includes(airport.riskZone)
+      }
+      
+      const query = searchQuery.toLowerCase()
+      const airportCode3 = airport.code.toLowerCase()
+      const airportCode4 = (airportCodeMap[airport.code] || '').toLowerCase()
+      
+      const matchesSearch = 
+        airport.name.toLowerCase().includes(query) ||
         airport.nameZh.includes(searchQuery) ||
-        airport.code.toLowerCase().includes(searchQuery.toLowerCase())
+        airportCode3.includes(query) ||
+        airportCode4.includes(query)
       
       // 风险区间过滤
       const matchesRiskZone = riskZones.includes(airport.riskZone)
@@ -253,16 +263,18 @@ export function Sidebar() {
     filtered.sort((a, b) => b.environmentRisk - a.environmentRisk)
     
     return filtered
-  }, [searchQuery, riskZones])
+  }, [searchQuery, riskZones, airportCodeMap])
 
   // 处理View按钮点击（只触发镜头跟随，不进入下一级）
   const handleViewButtonClick = (airport: AirportData, e?: React.MouseEvent) => {
     if (e) {
       e.stopPropagation() // 阻止事件冒泡到卡片
     }
+    setSelectedAirportForAirline(airport.id) // 设置选中的机场，用于隐藏其他机场
     setViewingAirportId(airport.id) // 设置正在查看的机场，用于在globe上显示该机场的所有航线
     setTargetAirportId(airport.id) // 只触发镜头跟随
     setHighlightedAirportId(airport.id) // 设置高亮状态
+    // 注意：不切换tab，保持当前tab
   }
 
   // 处理卡片点击（进入下一级）
@@ -301,6 +313,11 @@ export function Sidebar() {
       e.stopPropagation() // 阻止事件冒泡到卡片
     }
     
+    // 设置选中的航线，用于隐藏其他航线
+    setSelectedFlightRouteId(flight.id)
+    // 清除viewingAirportId，确保只显示当前选中的航线
+    setViewingAirportId(null)
+    
     // 根据起降机场生成航线ID（格式：起飞机场-降落机场-航班ID，与GlobeView保持一致）
     // 需要从机场代码映射到机场ID
     const fromAirport = AIRPORTS.find(a => a.code === flight.fromAirport)
@@ -314,6 +331,7 @@ export function Sidebar() {
       setTargetFlightRouteId(routeId) // 只触发镜头跟随
       setHighlightedFlightRouteId(flight.id) // 设置高亮状态
     }
+    // 注意：不切换tab，保持当前tab
   }
 
   // 处理航线卡片点击（进入下一级）
@@ -416,14 +434,20 @@ export function Sidebar() {
       }
 
       // 搜索过滤
-      const matchesSearch = !searchQuery || 
-        flight.flightNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      if (!searchQuery) {
+        // 如果没有搜索查询，只检查状态
+        return flightStatuses.length > 0 && flightStatuses.includes(flight.status)
+      }
+      
+      const query = searchQuery.toLowerCase()
+      const matchesSearch = 
+        flight.flightNumber.toLowerCase().includes(query) ||
         flight.fromAirportZh.includes(searchQuery) ||
         flight.toAirportZh.includes(searchQuery) ||
-        (flight.fromAirportCode3 && flight.fromAirportCode3.includes(searchQuery)) ||
-        (flight.fromAirportCode4 && flight.fromAirportCode4.includes(searchQuery)) ||
-        (flight.toAirportCode3 && flight.toAirportCode3.includes(searchQuery)) ||
-        (flight.toAirportCode4 && flight.toAirportCode4.includes(searchQuery))
+        (flight.fromAirportCode3 && flight.fromAirportCode3.toLowerCase().includes(query)) ||
+        (flight.fromAirportCode4 && flight.fromAirportCode4.toLowerCase().includes(query)) ||
+        (flight.toAirportCode3 && flight.toAirportCode3.toLowerCase().includes(query)) ||
+        (flight.toAirportCode4 && flight.toAirportCode4.toLowerCase().includes(query))
 
       // 状态过滤：如果没有任何状态被选中，则不显示任何航班
       const matchesStatus = flightStatuses.length > 0 && flightStatuses.includes(flight.status)
@@ -648,6 +672,7 @@ export function Sidebar() {
           className={`sidebar-tab ${sidebarTab === 'airport' ? 'active' : ''}`}
           onClick={() => {
             setSidebarTab('airport')
+            setSearchQuery('') // 切换tab时清空搜索框
             setHighlightedAirportId(null) // 切换tab时清除高亮
             setHighlightedFlightRouteId(null) // 切换tab时清除航班高亮
           }}
@@ -661,6 +686,7 @@ export function Sidebar() {
           className={`sidebar-tab ${sidebarTab === 'airline' ? 'active' : ''}`}
           onClick={() => {
             setSidebarTab('airline')
+            setSearchQuery('') // 切换tab时清空搜索框
             setHighlightedAirportId(null) // 切换tab时清除高亮
             setHighlightedFlightRouteId(null) // 切换tab时清除航班高亮
           }}
@@ -674,6 +700,7 @@ export function Sidebar() {
           className={`sidebar-tab ${sidebarTab === 'person' ? 'active' : ''}`}
           onClick={() => {
             setSidebarTab('person')
+            setSearchQuery('') // 切换tab时清空搜索框
             setIsFromTab(true) // 从tab进入，默认展开所有机队
             setSelectedPersonId(null) // 清除选中的人员
             setExpandedTeamIds([]) // 默认折叠所有机队

@@ -413,7 +413,6 @@ interface GlowingFlightPathsProps {
 }
 
 export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) {
-  const { viewingFlightRouteId } = useAppStore()
   const materialRefs = useRef<Map<string, ShaderMaterial>>(new Map())
   const sharedTime = useRef(0)
   
@@ -431,18 +430,14 @@ export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) 
   return (
     <group>
       {routes.map((route) => {
-        const isViewing = viewingFlightRouteId === route.id
-        // 如果正在查看，使用更亮的颜色和更大的半径
-        const routeColor = isViewing ? '#60a5fa' : route.color
-        const routeRadius = isViewing ? radius * 1.2 : radius
-        
+        // 移除蓝色高亮，保持原颜色（根据风险值设置的颜色）
         return (
           <GlowingFlightPath
             key={route.id}
             start={route.from}
             end={route.to}
-            radius={routeRadius}
-            color={routeColor}
+            radius={radius}
+            color={route.color}
             flightNumber={route.flightNumber}
             fromAirport={route.fromAirport}
             toAirport={route.toAirport}

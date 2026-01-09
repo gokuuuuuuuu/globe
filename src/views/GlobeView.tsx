@@ -150,6 +150,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     tooltipPosition,
     viewingAirportId,
     selectedFlightRouteId,
+    selectedAirportForAirline,
     showWindLayer,
     showTemperatureLayer,
     showPrecipitationLayer,
@@ -488,8 +489,59 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
   }, [atlas.countries, labelCandidates])
 
   const airportInstances = useMemo(() => {
+    // 如果选中了航线，需要获取该航线的起降机场ID，确保它们可见
+    let requiredAirportIds: string[] = []
+    if (selectedFlightRouteId) {
+      const flight = FLIGHTS.find(f => f.id === selectedFlightRouteId)
+      if (flight) {
+        const fromAirport = getAirportByCode(flight.fromAirport)
+        const toAirport = getAirportByCode(flight.toAirport)
+        if (fromAirport) requiredAirportIds.push(fromAirport.id)
+        if (toAirport) requiredAirportIds.push(toAirport.id)
+      }
+    }
+    
+    // 如果正在查看某个机场，需要获取与该机场相关的航线的起降机场ID，确保它们可见
+    if (viewingAirportId && !selectedFlightRouteId) {
+      const viewingAirport = AIRPORTS.find(a => a.id === viewingAirportId)
+      if (viewingAirport) {
+        // 筛选与该机场相关的航班（起飞机场或降落机场），并根据状态筛选
+        const relevantFlights = FLIGHTS.filter(flight => {
+          const related = flight.fromAirport === viewingAirport.code || flight.toAirport === viewingAirport.code
+          if (!related) return false
+          
+          // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
+          if (flightStatuses.length > 0 && !flightStatuses.includes(flight.status)) {
+            return false
+          }
+          
+          return true
+        })
+        
+        // 收集所有相关的机场ID
+        relevantFlights.forEach(flight => {
+          const fromAirport = getAirportByCode(flight.fromAirport)
+          const toAirport = getAirportByCode(flight.toAirport)
+          if (fromAirport) requiredAirportIds.push(fromAirport.id)
+          if (toAirport) requiredAirportIds.push(toAirport.id)
+        })
+        // 去重
+        requiredAirportIds = [...new Set(requiredAirportIds)]
+      }
+    }
+    
     return DEMO_AIRPORTS
       .filter((airport) => {
+        // 如果选中了航线，只显示起降机场
+        if (selectedFlightRouteId) {
+          return requiredAirportIds.includes(airport.id)
+        }
+        
+        // 如果选中了机场，显示选中的机场和航线相关的机场
+        if (selectedAirportForAirline) {
+          return airport.id === selectedAirportForAirline || requiredAirportIds.includes(airport.id)
+        }
+        
         // 根据风险区间过滤机场
         const { riskZone } = calculateRiskFromEnvironmentRisk(airport.environmentRisk)
         return riskZones.includes(riskZone)
@@ -498,7 +550,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         const position = latLonToCartesian(airport.lat, airport.lon, GLOBE_RADIUS + 0.01)
         return { ...airport, position }
       })
-  }, [riskZones])
+  }, [riskZones, selectedAirportForAirline, selectedFlightRouteId, viewingAirportId, flightStatuses])
 
   // 计算航线：基于统一的航班数据生成航线
   const flightRoutes = useMemo(() => {
@@ -585,7 +637,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       return routes
     }
     
-    // 情况2: 如果正在查看某个机场，显示该机场的所有航线
+    // 情况2: 如果正在查看某个机场，显示该机场的所有航线（根据状态筛选）
     // 注意：当用户明确选择机场时，应该应用状态过滤，但可以忽略时间过滤和风险区间过滤
     if (viewingAirportId) {
       const viewingAirport = AIRPORTS.find(a => a.id === viewingAirportId)
@@ -661,7 +713,13 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       return routes
     }
     
-    // 情况3: 默认情况
+    // 情况3: 如果选中了机场但没有查看机场ID，不显示任何航线
+    // 当用户选中机场但没有viewingAirportId时，只显示该机场，不显示任何航线
+    if (selectedAirportForAirline && !viewingAirportId) {
+      return routes
+    }
+    
+    // 情况4: 默认情况
     // 根据是否选中国家/省份决定显示哪些航线：
     // - 未选中国家/省份：显示所有航线
     // - 选中国家：仅显示与该国家相关的航线（起飞或降落机场位于该国）
@@ -764,7 +822,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     })
     
     return routes
-  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, riskZones, timelineCurrentTime, flightStatuses])
+  }, [selectedCountry, airportInstances, viewingAirportId, selectedFlightRouteId, selectedAirportForAirline, riskZones, timelineCurrentTime, flightStatuses])
 
   // 使用 useMemo 缓存颜色对象，避免每次渲染创建新对象
   const baseColor = useMemo(() => new Color('#ffffff'), [])
