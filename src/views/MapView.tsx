@@ -1,6 +1,6 @@
 import { Line, OrthographicCamera, OrbitControls, Text } from '@react-three/drei'
 import { Canvas, useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { Suspense, useMemo, useRef, useCallback, useEffect } from 'react'
+import { Suspense, useMemo, useRef, useCallback, useEffect, useState } from 'react'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { Color, DoubleSide, Path, Shape, Vector3, Group, MeshBasicMaterial } from 'three'
 import { useAppStore } from '../store/useAppStore'
@@ -780,8 +780,8 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
   
   const basePosition = useMemo(() => airport.position.clone(), [airport.position])
   
-  // 从航班数据中构建机场三字码到四字码的映射
-  const airportCodeMap = useMemo(() => {
+  // 从航班数据中构建机场三字码到四字码的映射（作为基础映射）
+  const baseAirportCodeMap = useMemo(() => {
     const map: Record<string, string> = {}
     FLIGHTS.forEach(flight => {
       if (flight.fromAirportCode3 && flight.fromAirportCode4) {
@@ -793,6 +793,91 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     })
     return map
   }, [])
+  
+  // 完整的机场编码映射（从CSV加载，包含所有机场）
+  const [fullAirportCodeMap, setFullAirportCodeMap] = useState<Record<string, string>>({})
+  
+  // 异步加载完整的机场编码映射
+  useEffect(() => {
+    const loadFullCodeMap = async () => {
+      try {
+        const response = await fetch('/data.csv')
+        const text = await response.text()
+        const lines = text.split('\n')
+        
+        if (lines.length < 2) return
+        
+        const headers = lines[0].split(',')
+        const fromCode3Idx = headers.findIndex(h => h.includes('起飞机场三字码'))
+        const fromCode4Idx = headers.findIndex(h => h.includes('起飞机场四字码'))
+        const toCode3Idx = headers.findIndex(h => h.includes('降落机场三字码'))
+        const toCode4Idx = headers.findIndex(h => h.includes('降落机场四字码'))
+        
+        if (fromCode3Idx === -1 || fromCode4Idx === -1 || toCode3Idx === -1 || toCode4Idx === -1) {
+          return
+        }
+        
+        const map: Record<string, string> = {}
+        
+        // 解析CSV数据
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim()
+          if (!line) continue
+          
+          // 简单的CSV解析（处理引号）
+          const row: string[] = []
+          let current = ''
+          let inQuotes = false
+          
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j]
+            if (char === '"') {
+              inQuotes = !inQuotes
+            } else if (char === ',' && !inQuotes) {
+              row.push(current)
+              current = ''
+            } else {
+              current += char
+            }
+          }
+          row.push(current)
+          
+          if (row.length <= Math.max(fromCode3Idx, fromCode4Idx, toCode3Idx, toCode4Idx)) {
+            continue
+          }
+          
+          // 处理起飞机场编码
+          const fromCode3 = row[fromCode3Idx]?.trim()
+          const fromCode4 = row[fromCode4Idx]?.trim()
+          if (fromCode3 && fromCode4 && fromCode3 !== 'nan' && fromCode4 !== 'nan') {
+            if (!map[fromCode3]) {
+              map[fromCode3] = fromCode4
+            }
+          }
+          
+          // 处理降落机场编码
+          const toCode3 = row[toCode3Idx]?.trim()
+          const toCode4 = row[toCode4Idx]?.trim()
+          if (toCode3 && toCode4 && toCode3 !== 'nan' && toCode4 !== 'nan') {
+            if (!map[toCode3]) {
+              map[toCode3] = toCode4
+            }
+          }
+        }
+        
+        setFullAirportCodeMap(map)
+      } catch (error) {
+        console.error('加载完整机场编码映射失败:', error)
+      }
+    }
+    
+    loadFullCodeMap()
+  }, [])
+  
+  // 合并基础映射和完整映射（完整映射优先）
+  const airportCodeMap = useMemo(() => {
+    return { ...baseAirportCodeMap, ...fullAirportCodeMap }
+  }, [baseAirportCodeMap, fullAirportCodeMap])
   
   // 根据用户设置获取机场显示编码
   const getAirportDisplayCode = useMemo(() => {
