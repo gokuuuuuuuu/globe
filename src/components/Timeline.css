@@ -10,6 +10,7 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   padding: 16px;
   border-radius: 8px;
+  overflow: visible; /* 确保时间范围面板在缩放时可见 */
 }
 
 .timeline-range-title {
@@ -36,6 +37,8 @@
   color: #1e293b;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 21;
+  pointer-events: auto; /* 确保可以交互 */
+  transform-origin: top left; /* 设置变换原点，使缩放时定位更稳定 */
 }
 
 .timeline-range-section {
@@ -305,10 +308,12 @@
   .timeline-container {
     left: 350px;
     right: 400px;
+    overflow: visible; /* 确保在响应式布局中也可见 */
   }
 
   .timeline-range-panel {
-    display: none;
+    /* 不再隐藏，保持可见 */
+    display: block;
   }
 }
 

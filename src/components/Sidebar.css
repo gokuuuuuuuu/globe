@@ -2,7 +2,7 @@
   position: fixed;
   top: var(--title-height, 100px);
   right: 0;
-  width: 400px;
+  width: 380px;
   height: calc(100vh - var(--title-height, 100px));
   background: transparent;
   border-left: none;

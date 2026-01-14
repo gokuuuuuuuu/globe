@@ -2,7 +2,7 @@
   position: fixed;
   top: var(--title-height, 100px);
   left: 0;
-  width: 350px;
+  width: 400px;
   height: calc(100vh - var(--title-height, 100px));
   background: transparent;
   border-right: none;
@@ -101,7 +101,7 @@
   gap: 8px;
   flex: 1;
   width: 100%;
-  max-width: calc(5 * 50px + 4 * 8px); /* 5个图标 + 4个gap */
+  max-width: calc(7 * 50px + 6 * 8px); /* 7个图标 + 6个gap，适应400px宽度 */
 }
 
 .toolbar-icon-box {
