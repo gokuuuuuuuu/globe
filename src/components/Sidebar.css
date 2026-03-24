@@ -1,9 +1,9 @@
 .sidebar {
-  position: fixed;
+  position: absolute;
   top: var(--title-height, 100px);
   right: 0;
   width: 380px;
-  height: calc(100vh - var(--title-height, 100px));
+  height: calc(100% - var(--title-height, 100px));
   background: transparent;
   border-left: none;
   backdrop-filter: none;
@@ -51,7 +51,9 @@
 .collapse-icon.collapse-clickable {
   cursor: pointer;
   opacity: 0.8;
-  transition: opacity 0.2s ease, transform 0.3s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s ease;
 }
 
 .collapse-icon.collapse-clickable:hover {
@@ -441,7 +443,7 @@
 }
 
 .risk-zone-checkbox-input:checked::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -532,7 +534,7 @@
 }
 
 .sidebar-item.highlighted::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
@@ -544,7 +546,8 @@
 }
 
 @keyframes highlightGlow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.6;
   }
   50% {
@@ -559,19 +562,26 @@
 }
 
 .sidebar-item.highlighted-red::before {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.3),
+    rgba(239, 68, 68, 0.1)
+  );
 }
 
 @keyframes highlightPulseRed {
-  0%, 100% {
-    box-shadow: 0 0 16px rgba(239, 68, 68, 0.8), 
-                0 0 32px rgba(239, 68, 68, 0.5),
-                inset 0 0 12px rgba(239, 68, 68, 0.15);
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px rgba(239, 68, 68, 0.8),
+      0 0 32px rgba(239, 68, 68, 0.5),
+      inset 0 0 12px rgba(239, 68, 68, 0.15);
   }
   50% {
-    box-shadow: 0 0 20px rgba(239, 68, 68, 1), 
-                0 0 40px rgba(239, 68, 68, 0.7),
-                inset 0 0 16px rgba(239, 68, 68, 0.25);
+    box-shadow:
+      0 0 20px rgba(239, 68, 68, 1),
+      0 0 40px rgba(239, 68, 68, 0.7),
+      inset 0 0 16px rgba(239, 68, 68, 0.25);
   }
 }
 
@@ -582,19 +592,26 @@
 }
 
 .sidebar-item.highlighted-orange::before {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(249, 115, 22, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.3),
+    rgba(249, 115, 22, 0.1)
+  );
 }
 
 @keyframes highlightPulseOrange {
-  0%, 100% {
-    box-shadow: 0 0 16px rgba(249, 115, 22, 0.8), 
-                0 0 32px rgba(249, 115, 22, 0.5),
-                inset 0 0 12px rgba(249, 115, 22, 0.15);
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px rgba(249, 115, 22, 0.8),
+      0 0 32px rgba(249, 115, 22, 0.5),
+      inset 0 0 12px rgba(249, 115, 22, 0.15);
   }
   50% {
-    box-shadow: 0 0 20px rgba(249, 115, 22, 1), 
-                0 0 40px rgba(249, 115, 22, 0.7),
-                inset 0 0 16px rgba(249, 115, 22, 0.25);
+    box-shadow:
+      0 0 20px rgba(249, 115, 22, 1),
+      0 0 40px rgba(249, 115, 22, 0.7),
+      inset 0 0 16px rgba(249, 115, 22, 0.25);
   }
 }
 
@@ -605,19 +622,26 @@
 }
 
 .sidebar-item.highlighted-yellow::before {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.3), rgba(234, 179, 8, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(234, 179, 8, 0.3),
+    rgba(234, 179, 8, 0.1)
+  );
 }
 
 @keyframes highlightPulseYellow {
-  0%, 100% {
-    box-shadow: 0 0 16px rgba(234, 179, 8, 0.8), 
-                0 0 32px rgba(234, 179, 8, 0.5),
-                inset 0 0 12px rgba(234, 179, 8, 0.15);
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px rgba(234, 179, 8, 0.8),
+      0 0 32px rgba(234, 179, 8, 0.5),
+      inset 0 0 12px rgba(234, 179, 8, 0.15);
   }
   50% {
-    box-shadow: 0 0 20px rgba(234, 179, 8, 1), 
-                0 0 40px rgba(234, 179, 8, 0.7),
-                inset 0 0 16px rgba(234, 179, 8, 0.25);
+    box-shadow:
+      0 0 20px rgba(234, 179, 8, 1),
+      0 0 40px rgba(234, 179, 8, 0.7),
+      inset 0 0 16px rgba(234, 179, 8, 0.25);
   }
 }
 
@@ -628,19 +652,26 @@
 }
 
 .sidebar-item.highlighted-green::before {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.3),
+    rgba(34, 197, 94, 0.1)
+  );
 }
 
 @keyframes highlightPulseGreen {
-  0%, 100% {
-    box-shadow: 0 0 16px rgba(34, 197, 94, 0.8), 
-                0 0 32px rgba(34, 197, 94, 0.5),
-                inset 0 0 12px rgba(34, 197, 94, 0.15);
+  0%,
+  100% {
+    box-shadow:
+      0 0 16px rgba(34, 197, 94, 0.8),
+      0 0 32px rgba(34, 197, 94, 0.5),
+      inset 0 0 12px rgba(34, 197, 94, 0.15);
   }
   50% {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 1), 
-                0 0 40px rgba(34, 197, 94, 0.7),
-                inset 0 0 16px rgba(34, 197, 94, 0.25);
+    box-shadow:
+      0 0 20px rgba(34, 197, 94, 1),
+      0 0 40px rgba(34, 197, 94, 0.7),
+      inset 0 0 16px rgba(34, 197, 94, 0.25);
   }
 }
 
@@ -723,7 +754,7 @@
 }
 
 .sidebar-selected-airport::after {
-  content: '';
+  content: "";
   position: absolute;
   right: 0;
   top: 50%;
@@ -891,7 +922,7 @@
 }
 
 .sidebar-flight-item.highlighted::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -2px;
   left: -2px;
@@ -909,7 +940,11 @@
 }
 
 .sidebar-flight-item.highlighted-red::before {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(239, 68, 68, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.3),
+    rgba(239, 68, 68, 0.1)
+  );
 }
 
 /* 橙色风险区间高亮 */
@@ -919,7 +954,11 @@
 }
 
 .sidebar-flight-item.highlighted-orange::before {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.3), rgba(249, 115, 22, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.3),
+    rgba(249, 115, 22, 0.1)
+  );
 }
 
 /* 黄色风险区间高亮 */
@@ -929,7 +968,11 @@
 }
 
 .sidebar-flight-item.highlighted-yellow::before {
-  background: linear-gradient(135deg, rgba(234, 179, 8, 0.3), rgba(234, 179, 8, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(234, 179, 8, 0.3),
+    rgba(234, 179, 8, 0.1)
+  );
 }
 
 /* 绿色风险区间高亮 */
@@ -939,7 +982,11 @@
 }
 
 .sidebar-flight-item.highlighted-green::before {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(34, 197, 94, 0.1));
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.3),
+    rgba(34, 197, 94, 0.1)
+  );
 }
 
 .flight-item-header {
@@ -1370,7 +1417,7 @@
   font-size: 0.85rem;
   font-weight: 500;
   color: #94a3b8;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   margin-left: 8px;
 }
 
@@ -1395,7 +1442,7 @@
 
 /* 确保背景图片上的内容可读 */
 .detail-risk-section-box::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1420,7 +1467,7 @@
   color: #cbd5e1;
   margin-bottom: 12px;
   padding-left: 10px;
-  background-image: url('../assets/title_second.png');
+  background-image: url("../assets/title_second.png");
   background-repeat: no-repeat;
   background-position: bottom left;
 }
@@ -1560,7 +1607,7 @@
 
 .person-detail-card {
   position: relative;
-  background-image: url('../assets/personBg1.png');
+  background-image: url("../assets/personBg1.png");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1573,7 +1620,11 @@
 .person-detail-card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0.7) 100%);
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.35) 0%,
+    rgba(15, 23, 42, 0.7) 100%
+  );
   pointer-events: none;
 }
 
@@ -2009,4 +2060,3 @@
   font-weight: 500;
   color: #f1f5f9;
 }
-

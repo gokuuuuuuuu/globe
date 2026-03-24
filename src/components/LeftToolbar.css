@@ -1,9 +1,9 @@
 .left-toolbar {
-  position: fixed;
+  position: absolute;
   top: var(--title-height, 100px);
   left: 0;
   width: 400px;
-  height: calc(100vh - var(--title-height, 100px));
+  height: calc(100% - var(--title-height, 100px));
   background: transparent;
   border-right: none;
   backdrop-filter: none;
@@ -68,7 +68,9 @@
 .collapse-icon.collapse-clickable {
   cursor: pointer;
   opacity: 0.8;
-  transition: opacity 0.2s ease, transform 0.3s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.3s ease;
 }
 
 .collapse-icon.collapse-clickable:hover {
@@ -89,7 +91,6 @@
   pointer-events: auto;
   transition: all 0.3s ease;
 }
-
 
 .toolbar-header.collapsed {
   width: auto;
@@ -270,7 +271,6 @@
   display: none;
 }
 
-
 .toolbar-content > * {
   direction: ltr; /* 恢复内容方向 */
 }
@@ -299,7 +299,7 @@
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: 8px;
   overflow: hidden;
-  max-height: calc(100vh - var(--title-height, 100px) - 200px);
+  max-height: calc(100% - var(--title-height, 100px) - 200px);
 }
 
 .filter-section-header {
@@ -564,7 +564,9 @@
   justify-content: center;
   z-index: 10;
   pointer-events: auto;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .globe-rotation-btn:hover {
@@ -591,5 +593,3 @@
     transform: rotate(360deg);
   }
 }
-
-

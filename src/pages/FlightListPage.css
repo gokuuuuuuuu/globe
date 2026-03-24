@@ -1,0 +1,530 @@
+.fl-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* Breadcrumb */
+.fl-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.fl-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.fl-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Page Header */
+.fl-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  flex-shrink: 0;
+}
+
+.fl-page-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fl-page-title h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.fl-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  cursor: pointer;
+}
+
+.fl-toggle-switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 10px;
+  background: #3b82f6;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.fl-toggle-knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  transition: right 0.2s;
+}
+
+.fl-page-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.fl-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.fl-action-btn:hover {
+  background: rgba(51, 65, 85, 0.7);
+  color: #f1f5f9;
+}
+
+/* Filters */
+.fl-filters {
+  padding: 12px 24px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.fl-filter-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.fl-filter-row:last-child {
+  margin-bottom: 0;
+}
+
+.fl-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+  flex: 1;
+}
+
+.fl-filter-item label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.fl-select,
+.fl-input {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.8);
+  color: #e2e8f0;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.fl-select:focus,
+.fl-input:focus {
+  border-color: #3b82f6;
+}
+
+.fl-filter-multi {
+  position: relative;
+}
+
+.fl-multi-select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.8);
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  position: relative;
+}
+
+.fl-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
+  z-index: 50;
+  padding: 4px 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.fl-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #cbd5e1;
+  transition: background 0.1s;
+}
+
+.fl-dropdown-item:hover {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+.fl-filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  padding-bottom: 1px;
+}
+
+.fl-btn-search {
+  padding: 6px 20px;
+  border-radius: 4px;
+  border: none;
+  background: #1d4ed8;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.fl-btn-search:hover {
+  background: #2563eb;
+}
+
+.fl-btn-reset {
+  padding: 6px 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.fl-btn-reset:hover {
+  background: rgba(51, 65, 85, 0.7);
+}
+
+/* Table */
+.fl-table-wrapper {
+  flex: 1;
+  overflow: auto;
+  padding: 0 24px;
+}
+
+.fl-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1200px;
+}
+
+.fl-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.fl-table th {
+  padding: 10px 12px;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.fl-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.fl-table tbody tr:hover {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+.fl-th-check,
+.fl-td-check {
+  width: 36px;
+  text-align: center;
+}
+
+.fl-td-flight-no {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.fl-airport-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fl-airport-code {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.fl-airport-name {
+  font-size: 10px;
+  color: #64748b;
+}
+
+/* Risk badges */
+.fl-risk-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fl-risk-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.fl-risk-medium {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+}
+
+.fl-risk-low {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+.fl-risk-vlow {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+/* Score cells with background color */
+.fl-score {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 600;
+  font-size: 12px;
+  min-width: 32px;
+  text-align: center;
+}
+
+.fl-score-red {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+}
+
+.fl-score-orange {
+  background: rgba(249, 115, 22, 0.25);
+  color: #fdba74;
+}
+
+.fl-score-yellow {
+  background: rgba(234, 179, 8, 0.25);
+  color: #fde047;
+}
+
+.fl-score-green {
+  background: rgba(34, 197, 94, 0.2);
+  color: #86efac;
+}
+
+/* Tags */
+.fl-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fl-tag {
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+  white-space: nowrap;
+}
+
+/* Governance status */
+.fl-gov-badge {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fl-gov-not {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.fl-gov-progress {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.fl-gov-closed {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+/* Actions */
+.fl-actions-cell {
+  position: relative;
+}
+
+.fl-actions-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.fl-actions-toggle:hover {
+  background: rgba(51, 65, 85, 0.5);
+  color: #e2e8f0;
+}
+
+.fl-actions-menu {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  z-index: 50;
+  padding: 4px 0;
+  min-width: 160px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.fl-actions-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.fl-actions-menu button:hover {
+  background: rgba(51, 65, 85, 0.5);
+}
+
+/* Pagination */
+.fl-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 10px 24px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.fl-page-info {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.fl-page-btns {
+  display: flex;
+  gap: 2px;
+}
+
+.fl-page-btns button {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(30, 41, 59, 0.6);
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.fl-page-btns button:hover:not(:disabled) {
+  background: rgba(51, 65, 85, 0.7);
+  color: #e2e8f0;
+}
+
+.fl-page-btns button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.fl-page-active {
+  background: #1d4ed8 !important;
+  border-color: #3b82f6 !important;
+  color: #fff !important;
+}
+
+/* Scrollbar */
+.fl-table-wrapper::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.fl-table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fl-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.fl-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
