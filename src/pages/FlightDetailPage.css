@@ -1,0 +1,524 @@
+.fd-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.fd-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.fd-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.fd-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Page Header */
+.fd-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  flex-shrink: 0;
+}
+
+.fd-page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.fd-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.fd-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.fd-btn:hover {
+  background: rgba(51, 65, 85, 0.7);
+  color: #f1f5f9;
+}
+
+.fd-btn-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.fd-btn-danger:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #fff;
+}
+
+/* Flight Info Bar */
+.fd-info-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 0 24px;
+  padding: 14px 0;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.fd-info-item {
+  flex: 1;
+  padding: 0 20px;
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+  min-width: 0;
+}
+
+.fd-info-item:last-child {
+  border-right: none;
+}
+
+.fd-info-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fd-info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fd-info-value-high {
+  color: #f97316;
+}
+
+.fd-info-value-red {
+  color: #ef4444;
+}
+
+.fd-info-value-green {
+  color: #22c55e;
+}
+
+.fd-gov-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fd-gov-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+/* Tabs */
+.fd-tabs {
+  display: flex;
+  gap: 0;
+  margin: 20px 24px 0;
+  flex-shrink: 0;
+}
+
+.fd-tab {
+  padding: 8px 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  cursor: pointer;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: none;
+  background: transparent;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.15s;
+}
+
+.fd-tab:hover {
+  color: #e2e8f0;
+}
+
+.fd-tab-active {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Content area */
+.fd-content {
+  padding: 0 24px 24px;
+  flex: 1;
+}
+
+/* Flight Phases */
+.fd-phases {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.fd-phase-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.fd-phase-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fd-phase-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.fd-phase-scores {
+  display: flex;
+  gap: 20px;
+}
+
+.fd-phase-score-item {
+  text-align: right;
+}
+
+.fd-phase-score-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.fd-phase-score-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+/* Mini bar chart in phase card */
+.fd-phase-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 50px;
+  margin-bottom: 12px;
+}
+
+.fd-phase-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-width: 8px;
+  transition: height 0.3s;
+}
+
+.fd-phase-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.fd-phase-tags-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-right: 4px;
+}
+
+.fd-phase-tag {
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+/* Top-Factor Contribution */
+.fd-section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 24px 0 16px;
+}
+
+.fd-factors {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.fd-factor-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.fd-factor-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 12px;
+}
+
+.fd-factor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.fd-factor-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fd-factor-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fd-factor-name {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.fd-factor-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fd-factor-score-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.fd-factor-score {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  min-width: 24px;
+  text-align: right;
+}
+
+/* Major Risk Event Section */
+.fd-risk-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0 16px;
+}
+
+.fd-risk-section-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.fd-risk-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fd-risk-table th {
+  padding: 10px 16px;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+}
+
+.fd-risk-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  vertical-align: middle;
+  font-size: 12px;
+}
+
+.fd-risk-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.fd-risk-table tbody tr:hover {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+/* Priority badges */
+.fd-priority {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.fd-priority-critical-red {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.fd-priority-high {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+}
+
+.fd-priority-critical-high {
+  background: rgba(249, 115, 22, 0.25);
+  color: #f97316;
+}
+
+/* Governance Section */
+.fd-gov-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 24px 0 16px;
+}
+
+.fd-gov-cards {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.fd-gov-card {
+  padding: 16px;
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.fd-gov-card:last-child {
+  border-right: none;
+}
+
+.fd-gov-card-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.fd-gov-card-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.fd-gov-card-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.fd-gov-person {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fd-gov-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.fd-pending-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+  margin-left: 6px;
+}
+
+/* Scrollbar */
+.fd-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fd-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fd-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.fd-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Color helpers for factor dots */
+.fd-dot-red {
+  background: #ef4444;
+}
+.fd-dot-orange {
+  background: #f97316;
+}
+.fd-dot-yellow {
+  background: #eab308;
+}
+.fd-dot-green {
+  background: #22c55e;
+}

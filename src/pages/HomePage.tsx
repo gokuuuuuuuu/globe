@@ -12,7 +12,7 @@ import {
   calculateRiskFromEnvironmentRisk,
 } from "../data/flightData";
 import { ALL_PERSONS } from "../data/personData";
-import type { Person } from "../data/personData";
+// import type { Person } from "../data/personData";
 import { AnalysisPage } from "./AnalysisPage";
 
 type ObjectTab = "flights" | "airports" | "personnel";
@@ -161,15 +161,13 @@ export function HomePage() {
       if (riskFilter === "red") return riskZone === "red";
       if (riskFilter === "orange") return riskZone === "orange";
       return riskZone === "red" || riskZone === "orange";
-    })
-      .sort(
-        (a, b) =>
-          b.humanRisk +
-          b.machineRisk +
-          b.environmentRisk -
-          (a.humanRisk + a.machineRisk + a.environmentRisk),
-      )
-      .slice(0, 30);
+    }).sort(
+      (a, b) =>
+        b.humanRisk +
+        b.machineRisk +
+        b.environmentRisk -
+        (a.humanRisk + a.machineRisk + a.environmentRisk),
+    );
   }, [riskFilter]);
 
   const highRiskAirports = useMemo(() => {
@@ -178,13 +176,10 @@ export function HomePage() {
       if (riskFilter === "orange")
         return a.environmentRisk >= 5 && a.environmentRisk < 7;
       return a.environmentRisk >= 5;
-    })
-      .sort(
-        (a, b) =>
-          b.environmentRisk - a.environmentRisk ||
-          b.flightCount - a.flightCount,
-      )
-      .slice(0, 30);
+    }).sort(
+      (a, b) =>
+        b.environmentRisk - a.environmentRisk || b.flightCount - a.flightCount,
+    );
   }, [riskFilter]);
 
   const highRiskPersonnel = useMemo(() => {
@@ -195,8 +190,7 @@ export function HomePage() {
         if (riskFilter === "orange") return rv >= 2.0 && rv < 2.5;
         return rv >= 2.0;
       })
-      .sort((a, b) => (b.riskValue ?? 0) - (a.riskValue ?? 0))
-      .slice(0, 30);
+      .sort((a, b) => (b.riskValue ?? 0) - (a.riskValue ?? 0));
   }, [riskFilter]);
 
   const riskListRef = useRef<HTMLDivElement>(null);
@@ -229,9 +223,9 @@ export function HomePage() {
       {/* ===== Header ===== */}
       <header className="hp-header">
         <div className="hp-header-left">
-          <span className="hp-logo">▲ ARVIS</span>
+          <span className="hp-logo">▲ 重大风险智能预警平台</span>
           <span className="hp-header-title">
-            Aviation Risk Prediction and Governance System · P0 Home Workbench
+            Aviation Risk Prediction and Governance System · Home Workbench
           </span>
         </div>
         <div className="hp-header-right">
@@ -542,10 +536,11 @@ export function HomePage() {
                 2D Map
               </button>
               <button
-                className={`hp-btn hp-btn-sm hp-btn-danger ${redOrangeOnly ? "hp-btn-active" : ""}`}
+                className={`hp-btn hp-btn-sm ${redOrangeOnly ? "hp-btn-active" : ""}`}
                 onClick={toggleRedOrangeOnly}
               >
-                Red and Orange Only
+                <span style={{ color: "#ef4444" }}>Red</span> and{" "}
+                <span style={{ color: "#f97316" }}>Orange</span> Only
               </button>
               <button
                 className={`hp-btn hp-btn-sm ${timelineIsPlaying ? "hp-btn-active" : ""}`}

@@ -2,6 +2,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AdminLayout } from "./layouts/AdminLayout";
 import { HomePage } from "./pages/HomePage";
 import { FlightListPage } from "./pages/FlightListPage";
+import { FlightDetailPage } from "./pages/FlightDetailPage";
+import { FlightReportPage } from "./pages/FlightReportPage";
+import { FactorExplanationPage } from "./pages/FactorExplanationPage";
+import { EvidenceChainPage } from "./pages/EvidenceChainPage";
 
 function App() {
   return (
@@ -10,6 +14,22 @@ function App() {
         <Route element={<AdminLayout />}>
           <Route index element={<HomePage />} />
           <Route path="risk-monitoring/flights" element={<FlightListPage />} />
+          <Route
+            path="risk-monitoring/flight-detail"
+            element={<FlightDetailPage />}
+          />
+          <Route
+            path="risk-monitoring/flight-report"
+            element={<FlightReportPage />}
+          />
+          <Route
+            path="risk-monitoring/factor-explanation"
+            element={<FactorExplanationPage />}
+          />
+          <Route
+            path="risk-monitoring/evidence-chain"
+            element={<EvidenceChainPage />}
+          />
           <Route path="*" element={<PlaceholderPage />} />
         </Route>
       </Routes>

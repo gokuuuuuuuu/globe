@@ -13,6 +13,7 @@ import {
   useEffect,
   useCallback,
   useState,
+  memo,
 } from "react";
 import { GlowingFlightPaths } from "../components/GlowingFlightPaths";
 import { Sidebar } from "../components/Sidebar";
@@ -578,6 +579,108 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       })
       .filter((value): value is CountryLabel => value !== null);
   }, [atlas.countries, labelCandidates]);
+
+  // 共享的机场编码映射（从航班数据 + CSV 加载），避免每个 AirportParticle 独立加载
+  const baseAirportCodeMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    FLIGHTS.forEach((flight) => {
+      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
+        map[flight.fromAirportCode3] = flight.fromAirportCode4;
+      }
+      if (flight.toAirportCode3 && flight.toAirportCode4) {
+        map[flight.toAirportCode3] = flight.toAirportCode4;
+      }
+    });
+    return map;
+  }, []);
+
+  const [sharedFullCodeMap, setSharedFullCodeMap] = useState<
+    Record<string, string>
+  >({});
+
+  useEffect(() => {
+    const loadFullCodeMap = async () => {
+      try {
+        const response = await fetch("/data.csv");
+        const text = await response.text();
+        const lines = text.split("\n");
+        if (lines.length < 2) return;
+
+        const headers = lines[0].split(",");
+        const fromCode3Idx = headers.findIndex((h) =>
+          h.includes("起飞机场三字码"),
+        );
+        const fromCode4Idx = headers.findIndex((h) =>
+          h.includes("起飞机场四字码"),
+        );
+        const toCode3Idx = headers.findIndex((h) =>
+          h.includes("降落机场三字码"),
+        );
+        const toCode4Idx = headers.findIndex((h) =>
+          h.includes("降落机场四字码"),
+        );
+
+        if (
+          fromCode3Idx === -1 ||
+          fromCode4Idx === -1 ||
+          toCode3Idx === -1 ||
+          toCode4Idx === -1
+        )
+          return;
+
+        const map: Record<string, string> = {};
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const row: string[] = [];
+          let current = "";
+          let inQuotes = false;
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              row.push(current);
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          row.push(current);
+
+          if (
+            row.length <=
+            Math.max(fromCode3Idx, fromCode4Idx, toCode3Idx, toCode4Idx)
+          )
+            continue;
+
+          const fromCode3 = row[fromCode3Idx]?.trim();
+          const fromCode4 = row[fromCode4Idx]?.trim();
+          if (
+            fromCode3 &&
+            fromCode4 &&
+            fromCode3 !== "nan" &&
+            fromCode4 !== "nan"
+          ) {
+            if (!map[fromCode3]) map[fromCode3] = fromCode4;
+          }
+          const toCode3 = row[toCode3Idx]?.trim();
+          const toCode4 = row[toCode4Idx]?.trim();
+          if (toCode3 && toCode4 && toCode3 !== "nan" && toCode4 !== "nan") {
+            if (!map[toCode3]) map[toCode3] = toCode4;
+          }
+        }
+        setSharedFullCodeMap(map);
+      } catch (error) {
+        console.error("加载完整机场编码映射失败:", error);
+      }
+    };
+    loadFullCodeMap();
+  }, []);
+
+  const sharedAirportCodeMap = useMemo(() => {
+    return { ...baseAirportCodeMap, ...sharedFullCodeMap };
+  }, [baseAirportCodeMap, sharedFullCodeMap]);
 
   const airportInstances = useMemo(() => {
     // 如果选中了航线，需要获取该航线的起降机场ID，确保它们可见
@@ -1371,6 +1474,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
                     key={airport.id}
                     airport={airport}
                     isSelected={isSelected}
+                    airportCodeMap={sharedAirportCodeMap}
                   />
                 );
               })}
@@ -2250,9 +2354,14 @@ function StarLights() {
 interface AirportParticleProps {
   airport: AirportParticle & { position: Vector3 };
   isSelected: boolean;
+  airportCodeMap: Record<string, string>;
 }
 
-function AirportParticle({ airport, isSelected }: AirportParticleProps) {
+const AirportParticle = memo(function AirportParticle({
+  airport,
+  isSelected,
+  airportCodeMap,
+}: AirportParticleProps) {
   const { gl, camera } = useThree();
   const groupRef = useRef<Group>(null);
   const ringRef = useRef<Group>(null);
@@ -2273,128 +2382,6 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     airportCodeFormat,
   } = useAppStore();
   const isViewing = viewingAirportId === airport.id;
-
-  // 从航班数据中构建机场三字码到四字码的映射（作为基础映射）
-  const baseAirportCodeMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    FLIGHTS.forEach((flight) => {
-      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
-        map[flight.fromAirportCode3] = flight.fromAirportCode4;
-      }
-      if (flight.toAirportCode3 && flight.toAirportCode4) {
-        map[flight.toAirportCode3] = flight.toAirportCode4;
-      }
-    });
-    return map;
-  }, []);
-
-  // 完整的机场编码映射（从CSV加载，包含所有机场）
-  const [fullAirportCodeMap, setFullAirportCodeMap] = useState<
-    Record<string, string>
-  >({});
-
-  // 异步加载完整的机场编码映射
-  useEffect(() => {
-    const loadFullCodeMap = async () => {
-      try {
-        const response = await fetch("/data.csv");
-        const text = await response.text();
-        const lines = text.split("\n");
-
-        if (lines.length < 2) return;
-
-        const headers = lines[0].split(",");
-        const fromCode3Idx = headers.findIndex((h) =>
-          h.includes("起飞机场三字码"),
-        );
-        const fromCode4Idx = headers.findIndex((h) =>
-          h.includes("起飞机场四字码"),
-        );
-        const toCode3Idx = headers.findIndex((h) =>
-          h.includes("降落机场三字码"),
-        );
-        const toCode4Idx = headers.findIndex((h) =>
-          h.includes("降落机场四字码"),
-        );
-
-        if (
-          fromCode3Idx === -1 ||
-          fromCode4Idx === -1 ||
-          toCode3Idx === -1 ||
-          toCode4Idx === -1
-        ) {
-          return;
-        }
-
-        const map: Record<string, string> = {};
-
-        // 解析CSV数据
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-
-          // 简单的CSV解析（处理引号）
-          const row: string[] = [];
-          let current = "";
-          let inQuotes = false;
-
-          for (let j = 0; j < line.length; j++) {
-            const char = line[j];
-            if (char === '"') {
-              inQuotes = !inQuotes;
-            } else if (char === "," && !inQuotes) {
-              row.push(current);
-              current = "";
-            } else {
-              current += char;
-            }
-          }
-          row.push(current);
-
-          if (
-            row.length <=
-            Math.max(fromCode3Idx, fromCode4Idx, toCode3Idx, toCode4Idx)
-          ) {
-            continue;
-          }
-
-          // 处理起飞机场编码
-          const fromCode3 = row[fromCode3Idx]?.trim();
-          const fromCode4 = row[fromCode4Idx]?.trim();
-          if (
-            fromCode3 &&
-            fromCode4 &&
-            fromCode3 !== "nan" &&
-            fromCode4 !== "nan"
-          ) {
-            if (!map[fromCode3]) {
-              map[fromCode3] = fromCode4;
-            }
-          }
-
-          // 处理降落机场编码
-          const toCode3 = row[toCode3Idx]?.trim();
-          const toCode4 = row[toCode4Idx]?.trim();
-          if (toCode3 && toCode4 && toCode3 !== "nan" && toCode4 !== "nan") {
-            if (!map[toCode3]) {
-              map[toCode3] = toCode4;
-            }
-          }
-        }
-
-        setFullAirportCodeMap(map);
-      } catch (error) {
-        console.error("加载完整机场编码映射失败:", error);
-      }
-    };
-
-    loadFullCodeMap();
-  }, []);
-
-  // 合并基础映射和完整映射（完整映射优先）
-  const airportCodeMap = useMemo(() => {
-    return { ...baseAirportCodeMap, ...fullAirportCodeMap };
-  }, [baseAirportCodeMap, fullAirportCodeMap]);
 
   // 根据用户设置获取机场显示编码
   const getAirportDisplayCode = useMemo(() => {
@@ -2450,6 +2437,12 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       };
     }
   }, [airport.environmentRisk]);
+
+  // 预分配复用对象，避免每帧 GC
+  const tempColor = useMemo(() => new Color(), []);
+  const tempNormal = useMemo(() => new Vector3(), []);
+  const tempWorldPos = useMemo(() => new Vector3(), []);
+  const tempLocalPos = useMemo(() => new Vector3(), []);
 
   // 处理鼠标事件
   const handlePointerOver = useCallback(
@@ -2531,11 +2524,12 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
 
     // 闪烁颜色动画 - 根据风险值动态调整颜色
     const pulse = Math.sin(time * getPulseParams.speed) * 0.5 + 0.5; // 0 到 1 之间
-    const currentColor = new Color().lerpColors(
+    tempColor.lerpColors(
       getPulseParams.baseColor,
       getPulseParams.brightColor,
       pulse * getPulseParams.intensity,
     );
+    const currentColor = tempColor;
 
     // 增强材质颜色和透明度 - 提高发光亮度
     if (materialRefs.current.outer) {
@@ -2568,17 +2562,13 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
     if (isViewing && labelRef.current && groupRef.current) {
       labelRef.current.lookAt(camera.position);
       // 计算从group中心向外的方向（即basePosition的归一化方向）
-      const normalVec = basePosition.clone().normalize();
+      tempNormal.copy(basePosition).normalize();
       // 计算世界坐标系中的标签位置（basePosition + 偏移）
-      const worldLabelPosition = basePosition
-        .clone()
-        .add(normalVec.multiplyScalar(0.05));
+      tempWorldPos.copy(basePosition).add(tempNormal.multiplyScalar(0.05));
       // 转换为group的局部坐标系
-      const localLabelPosition = new Vector3();
-      groupRef.current.worldToLocal(
-        localLabelPosition.copy(worldLabelPosition),
-      );
-      labelRef.current.position.copy(localLabelPosition);
+      tempLocalPos.copy(tempWorldPos);
+      groupRef.current.worldToLocal(tempLocalPos);
+      labelRef.current.position.copy(tempLocalPos);
     }
   });
 
@@ -2593,7 +2583,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
         onPointerDown={handlePointerDown}
       >
         <sphereGeometry
-          args={[isViewing ? 0.016 : isSelected ? 0.013 : 0.01, 16, 16]}
+          args={[isViewing ? 0.016 : isSelected ? 0.013 : 0.01, 8, 8]}
         />
         <meshBasicMaterial
           ref={(ref) => {
@@ -2607,7 +2597,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       {/* 中层光晕 - 增强亮度 */}
       <mesh position={[0, 0, 0]}>
         <sphereGeometry
-          args={[isViewing ? 0.01 : isSelected ? 0.008 : 0.006, 16, 16]}
+          args={[isViewing ? 0.01 : isSelected ? 0.008 : 0.006, 8, 8]}
         />
         <meshBasicMaterial
           ref={(ref) => {
@@ -2621,7 +2611,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       {/* 内层亮点 - 增强亮度 */}
       <mesh position={[0, 0, 0]}>
         <sphereGeometry
-          args={[isViewing ? 0.005 : isSelected ? 0.004 : 0.003, 8, 8]}
+          args={[isViewing ? 0.005 : isSelected ? 0.004 : 0.003, 6, 6]}
         />
         <meshBasicMaterial color="#ffffff" transparent opacity={1.0} />
       </mesh>
@@ -2629,7 +2619,7 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       {isViewing && (
         <group ref={ringRef}>
           <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[0.01, 0.016, 32]} />
+            <ringGeometry args={[0.01, 0.016, 16]} />
             <meshBasicMaterial
               ref={(ref) => {
                 if (ref) materialRefs.current.ring = ref;
@@ -2661,4 +2651,4 @@ function AirportParticle({ airport, isSelected }: AirportParticleProps) {
       )}
     </group>
   );
-}
+});

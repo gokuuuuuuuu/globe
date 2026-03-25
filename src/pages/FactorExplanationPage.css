@@ -1,0 +1,529 @@
+.fe-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.fe-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.fe-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.fe-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Page Header */
+.fe-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 24px 12px;
+  flex-shrink: 0;
+}
+
+.fe-header-left {
+  flex: 1;
+}
+
+.fe-page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 4px;
+}
+
+.fe-page-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.fe-header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.fe-meta-item {
+  text-align: right;
+}
+
+.fe-meta-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.fe-meta-value {
+  font-size: 13px;
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.fe-risk-badge {
+  padding: 6px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.fe-risk-high {
+  background: #dc2626;
+}
+
+.fe-risk-medium {
+  background: #f97316;
+}
+
+.fe-risk-low {
+  background: #22c55e;
+}
+
+/* Content */
+.fe-content {
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Top Factor Card */
+.fe-factor-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.fe-factor-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 12px;
+}
+
+.fe-factor-card-body {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.fe-factor-field {
+  flex: 1;
+  padding-right: 20px;
+}
+
+.fe-factor-field:not(:last-child) {
+  border-right: 1px solid rgba(148, 163, 184, 0.15);
+  margin-right: 20px;
+}
+
+.fe-factor-field-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.fe-factor-field-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.fe-factor-field-value-sm {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.fe-contribution-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.fe-contribution-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 8px;
+  color: #fff;
+}
+
+.fe-badge-high {
+  background: #dc2626;
+}
+
+.fe-badge-medium {
+  background: #f97316;
+}
+
+.fe-badge-low {
+  background: #22c55e;
+}
+
+.fe-factor-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.fe-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.fe-btn:hover {
+  background: rgba(51, 65, 85, 0.6);
+  color: #f8fafc;
+}
+
+.fe-factor-description {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+/* Two column layout */
+.fe-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Card */
+.fe-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.fe-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0 0 14px;
+}
+
+/* Applied Logic */
+.fe-logic-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 10px;
+}
+
+.fe-logic-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.fe-logic-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.fe-logic-keyword {
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 16px;
+}
+
+.fe-logic-condition {
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 4px;
+  padding: 4px 10px;
+  color: #e2e8f0;
+  font-size: 12px;
+  font-family: "SF Mono", "Fira Code", monospace;
+}
+
+.fe-logic-then {
+  color: #64748b;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.fe-logic-result {
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: #dc2626;
+}
+
+.fe-logic-result-triggered {
+  background: #dc2626;
+}
+
+/* Table */
+.fe-table-wrapper {
+  overflow-x: auto;
+}
+
+.fe-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.fe-table th {
+  text-align: left;
+  padding: 8px 12px;
+  color: #94a3b8;
+  font-weight: 500;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  white-space: nowrap;
+}
+
+.fe-table td {
+  padding: 8px 12px;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.fe-table tr:last-child td {
+  border-bottom: none;
+}
+
+.fe-table-desc {
+  color: #94a3b8;
+}
+
+.fe-table-threshold {
+  color: #94a3b8;
+}
+
+/* Trends card */
+.fe-trend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fe-trend-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.fe-trend-select {
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #e2e8f0;
+  font-size: 11px;
+  cursor: pointer;
+  outline: none;
+}
+
+.fe-trend-select:focus {
+  border-color: #60a5fa;
+}
+
+.fe-chart-container {
+  width: 100%;
+  height: 180px;
+}
+
+.fe-peer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 16px 0 10px;
+}
+
+.fe-peer-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.fe-peer-percentile {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.fe-peer-chart-container {
+  width: 100%;
+  height: 180px;
+}
+
+/* Tabs */
+.fe-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  margin-bottom: 16px;
+}
+
+.fe-tab {
+  padding: 8px 16px;
+  font-size: 13px;
+  color: #94a3b8;
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+}
+
+.fe-tab:hover {
+  color: #e2e8f0;
+}
+
+.fe-tab-active {
+  color: #60a5fa;
+  border-bottom-color: #60a5fa;
+}
+
+/* Related Context */
+.fe-related-section {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.fe-related-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+.fe-related-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.fe-related-block-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.fe-btn-sm {
+  padding: 4px 10px;
+  font-size: 11px;
+}
+
+.fe-score-high {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.fe-score-medium {
+  color: #f97316;
+  font-weight: 600;
+}
+
+.fe-status-high {
+  color: #ef4444;
+}
+
+.fe-status-similar {
+  color: #f97316;
+}
+
+/* Related Rules */
+.fe-rules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fe-rule-item {
+  padding: 8px 12px;
+  background: rgba(51, 65, 85, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+/* Scrollbar */
+.fe-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fe-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fe-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.fe-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Custom tooltip for recharts */
+.fe-tooltip {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.fe-tooltip .recharts-tooltip-label {
+  color: #94a3b8 !important;
+  font-size: 11px !important;
+}
+
+.fe-tooltip .recharts-tooltip-item {
+  color: #e2e8f0 !important;
+  font-size: 12px !important;
+}
+
+/* Threshold annotation */
+.fe-threshold-line {
+  stroke: #94a3b8;
+  stroke-dasharray: 4 4;
+}

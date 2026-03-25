@@ -83,7 +83,7 @@ const riskTypeData = [
   { name: "Maintenance", value: 11.2 },
 ];
 
-const PIE_COLORS = ["#1e3a5f", "#2d5a87", "#c0392b", "#e67e22"];
+const PIE_COLORS = ["#3b82f6", "#60a5fa", "#ef4444", "#f97316"];
 
 const humanFactorData = [
   { factor: "Fatigue", topN: 180, risk: 297 },
@@ -137,6 +137,23 @@ const compositeData = [
   },
 ];
 
+// Dark theme chart axis/grid styles
+const AXIS_TICK = { fontSize: 11, fill: "#94a3b8" };
+const AXIS_TICK_SM = { fontSize: 10, fill: "#94a3b8" };
+const AXIS_TICK_XS = { fontSize: 9, fill: "#94a3b8" };
+const GRID_STROKE = "rgba(148, 163, 184, 0.1)";
+
+const darkTooltipStyle = {
+  contentStyle: {
+    background: "#1e293b",
+    border: "1px solid rgba(148,163,184,0.2)",
+    borderRadius: 6,
+    color: "#e2e8f0",
+    fontSize: 12,
+  },
+  itemStyle: { color: "#cbd5e1" },
+};
+
 // ===== Stat Card =====
 function StatCard({
   label,
@@ -152,22 +169,48 @@ function StatCard({
   trend?: "up" | "down";
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 px-4 py-3 flex flex-col gap-1">
-      <div className="flex items-center gap-2">
+    <div
+      style={{
+        background: "rgba(30, 41, 59, 0.5)",
+        border: "1px solid rgba(148, 163, 184, 0.12)",
+        borderRadius: 8,
+        padding: "12px 16px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 4,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {color && (
           <span
-            className="w-2.5 h-2.5 rounded-sm"
-            style={{ backgroundColor: color }}
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: 2,
+              backgroundColor: color,
+              flexShrink: 0,
+            }}
           />
         )}
-        <span className="text-sm text-gray-500">{label}</span>
+        <span style={{ fontSize: 12, color: "#94a3b8" }}>{label}</span>
       </div>
-      <div className="flex items-end gap-2">
-        <span className="text-2xl font-bold text-gray-900">{value}</span>
-        {change && <span className="text-xs text-gray-400 mb-1">{change}</span>}
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
+        <span style={{ fontSize: 24, fontWeight: 700, color: "#f8fafc" }}>
+          {value}
+        </span>
+        {change && (
+          <span style={{ fontSize: 11, color: "#64748b", marginBottom: 3 }}>
+            {change}
+          </span>
+        )}
         {trend && (
           <svg
-            className={`w-8 h-4 mb-1 ${trend === "up" ? "text-red-500" : "text-blue-500"}`}
+            style={{
+              width: 32,
+              height: 16,
+              marginBottom: 3,
+              color: trend === "up" ? "#ef4444" : "#3b82f6",
+            }}
             viewBox="0 0 32 16"
             fill="none"
             stroke="currentColor"
@@ -198,36 +241,112 @@ function FactorTable({
   barMax: number;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col">
-      <h3 className="text-sm font-semibold text-gray-800 mb-3">{title}</h3>
-      <table className="w-full text-xs">
+    <div
+      style={{
+        background: "rgba(30, 41, 59, 0.5)",
+        border: "1px solid rgba(148, 163, 184, 0.12)",
+        borderRadius: 8,
+        padding: 16,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <h3
+        style={{
+          fontSize: 13,
+          fontWeight: 600,
+          color: "#f8fafc",
+          marginBottom: 12,
+        }}
+      >
+        {title}
+      </h3>
+      <table
+        style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}
+      >
         <thead>
-          <tr className="text-gray-500 border-b border-gray-100">
-            <th className="text-left py-1.5 font-medium">
+          <tr>
+            <th
+              style={{
+                textAlign: "left",
+                padding: "6px 0",
+                fontWeight: 500,
+                color: "#64748b",
+                fontSize: 11,
+                borderBottom: "1px solid rgba(148,163,184,0.15)",
+              }}
+            >
               {nameKey === "cause" ? "Cause" : "Factor"}
             </th>
-            <th className="text-left py-1.5 font-medium">Top N</th>
-            <th className="text-right py-1.5 font-medium">% Risk</th>
+            <th
+              style={{
+                textAlign: "left",
+                padding: "6px 0",
+                fontWeight: 500,
+                color: "#64748b",
+                fontSize: 11,
+                borderBottom: "1px solid rgba(148,163,184,0.15)",
+              }}
+            >
+              Top N
+            </th>
+            <th
+              style={{
+                textAlign: "right",
+                padding: "6px 0",
+                fontWeight: 500,
+                color: "#64748b",
+                fontSize: 11,
+                borderBottom: "1px solid rgba(148,163,184,0.15)",
+              }}
+            >
+              % Risk
+            </th>
           </tr>
         </thead>
         <tbody>
           {data.map((item, i) => (
-            <tr key={i} className="border-b border-gray-50">
-              <td className="py-1.5 text-gray-700 max-w-[120px] truncate">
+            <tr key={i}>
+              <td
+                style={{
+                  padding: "6px 0",
+                  color: "#cbd5e1",
+                  maxWidth: 120,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  borderBottom: "1px solid rgba(148,163,184,0.06)",
+                }}
+              >
                 {String(item[nameKey])}
               </td>
-              <td className="py-1.5">
-                <div className="flex items-center gap-1">
+              <td
+                style={{
+                  padding: "6px 0",
+                  borderBottom: "1px solid rgba(148,163,184,0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   <div
-                    className="h-2.5 bg-blue-600 rounded-sm"
                     style={{
+                      height: 10,
+                      background: "#3b82f6",
+                      borderRadius: 2,
                       width: `${(Number(item.topN) / barMax) * 100}%`,
                       minWidth: 4,
                     }}
                   />
                 </div>
               </td>
-              <td className="py-1.5 text-right text-gray-700 font-medium">
+              <td
+                style={{
+                  padding: "6px 0",
+                  textAlign: "right",
+                  color: "#e2e8f0",
+                  fontWeight: 600,
+                  borderBottom: "1px solid rgba(148,163,184,0.06)",
+                }}
+              >
                 {String(item.risk)}
               </td>
             </tr>
@@ -238,16 +357,90 @@ function FactorTable({
   );
 }
 
+// ===== Chart Card wrapper =====
+function ChartCard({
+  title,
+  children,
+  extra,
+}: {
+  title: string;
+  children: React.ReactNode;
+  extra?: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        background: "rgba(30, 41, 59, 0.5)",
+        border: "1px solid rgba(148, 163, 184, 0.12)",
+        borderRadius: 8,
+        padding: 16,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 12,
+        }}
+      >
+        <h3
+          style={{ fontSize: 13, fontWeight: 600, color: "#f8fafc", margin: 0 }}
+        >
+          {title}
+        </h3>
+        {extra}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 // ===== Main Page =====
 export function AnalysisPage() {
   return (
-    <div className="h-full overflow-auto bg-gray-100 text-gray-900">
+    <div
+      style={{
+        height: "100%",
+        overflowY: "auto",
+        background: "#0b1120",
+        color: "#e2e8f0",
+      }}
+    >
+      {/* Breadcrumb */}
+      <div
+        style={{
+          padding: "10px 24px",
+          fontSize: 12,
+          color: "#64748b",
+          borderBottom: "1px solid rgba(148,163,184,0.1)",
+        }}
+      >
+        <span>MRIWP</span>
+        <span style={{ margin: "0 8px", color: "#475569" }}>&gt;</span>
+        <span style={{ color: "#e2e8f0" }}>Summary Analysis</span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-3 bg-white border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900">
-          ARVIS P1 Summary Analysis
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 24px",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: 22,
+            fontWeight: 700,
+            color: "#f8fafc",
+            margin: 0,
+          }}
+        >
+          Summary Analysis
         </h1>
-        <div className="flex gap-2">
+        <div style={{ display: "flex", gap: 8 }}>
           {[
             "View High-Risk Flights",
             "View High-Risk Airports",
@@ -257,7 +450,26 @@ export function AnalysisPage() {
           ].map((btn) => (
             <button
               key={btn}
-              className="px-3 py-1.5 text-xs font-medium text-white bg-[#1a3a5c] rounded hover:bg-[#244d73] transition-colors"
+              style={{
+                padding: "6px 14px",
+                fontSize: 12,
+                fontWeight: 500,
+                color: "#cbd5e1",
+                background: "rgba(30, 41, 59, 0.6)",
+                border: "1px solid rgba(148, 163, 184, 0.25)",
+                borderRadius: 4,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+                transition: "all 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(51, 65, 85, 0.7)";
+                e.currentTarget.style.color = "#f1f5f9";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(30, 41, 59, 0.6)";
+                e.currentTarget.style.color = "#cbd5e1";
+              }}
             >
               {btn}
             </button>
@@ -265,15 +477,28 @@ export function AnalysisPage() {
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div
+        style={{
+          padding: "0 24px 24px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
         {/* Stat Cards Row */}
-        <div className="grid grid-cols-7 gap-3">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(7, 1fr)",
+            gap: 12,
+          }}
+        >
           <StatCard label="Total Flights" value="14,872" trend="up" />
           <StatCard
             label="Red risk"
             value="215"
             change="(1.4%)"
-            color="#dc2626"
+            color="#ef4444"
             trend="up"
           />
           <StatCard
@@ -302,176 +527,194 @@ export function AnalysisPage() {
         </div>
 
         {/* Row 2: Risk Forecast + Distribution by Division + Distribution by Squadron */}
-        <div className="grid grid-cols-12 gap-3">
-          {/* Risk Forecast Changes */}
-          <div className="col-span-6 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-semibold text-gray-800">
-                Risk Forecast Changes (4h, 10h, 18h, 24h)
-              </h3>
-              <select className="text-xs border border-gray-300 rounded px-2 py-1 text-gray-600">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "6fr 3fr 3fr",
+            gap: 12,
+          }}
+        >
+          <ChartCard
+            title="Risk Forecast Changes (4h, 10h, 18h, 24h)"
+            extra={
+              <select
+                style={{
+                  fontSize: 11,
+                  border: "1px solid rgba(148,163,184,0.25)",
+                  borderRadius: 4,
+                  padding: "4px 8px",
+                  background: "rgba(30,41,59,0.8)",
+                  color: "#94a3b8",
+                  outline: "none",
+                }}
+              >
                 <option>Current Snapshot (Last 24 Hours)</option>
               </select>
-            </div>
+            }
+          >
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart data={riskForecastData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="time" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
-                <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis dataKey="time" tick={AXIS_TICK} stroke={GRID_STROKE} />
+                <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} />
+                <Tooltip {...darkTooltipStyle} />
+                <Legend
+                  iconSize={10}
+                  wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}
+                />
                 <Area
                   type="monotone"
                   dataKey="green"
                   stackId="1"
                   stroke="#22c55e"
-                  fill="#bbf7d0"
+                  fill="rgba(34,197,94,0.3)"
                 />
                 <Area
                   type="monotone"
                   dataKey="yellow"
                   stackId="1"
                   stroke="#eab308"
-                  fill="#fef08a"
+                  fill="rgba(234,179,8,0.3)"
                 />
                 <Area
                   type="monotone"
                   dataKey="orange"
                   stackId="1"
                   stroke="#f97316"
-                  fill="#fed7aa"
+                  fill="rgba(249,115,22,0.3)"
                 />
                 <Area
                   type="monotone"
                   dataKey="red"
                   stackId="1"
-                  stroke="#dc2626"
-                  fill="#fecaca"
+                  stroke="#ef4444"
+                  fill="rgba(239,68,68,0.3)"
                 />
               </AreaChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
 
-          {/* Distribution by Division */}
-          <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              Distribution by Division
-            </h3>
+          <ChartCard title="Distribution by Division">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={divisionData} layout="vertical" barSize={14}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis type="number" tick={AXIS_TICK_SM} stroke={GRID_STROKE} />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  tick={{ fontSize: 10 }}
+                  tick={AXIS_TICK_SM}
                   width={55}
+                  stroke={GRID_STROKE}
                 />
-                <Tooltip />
-                <Legend iconSize={10} wrapperStyle={{ fontSize: 10 }} />
-                <Bar dataKey="red" fill="#dc2626" />
+                <Tooltip {...darkTooltipStyle} />
+                <Legend
+                  iconSize={10}
+                  wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
+                />
+                <Bar dataKey="red" fill="#ef4444" />
                 <Bar dataKey="orange" fill="#f97316" />
                 <Bar dataKey="yellow" fill="#eab308" />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
 
-          {/* Distribution by Squadron */}
-          <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              Distribution by Squadron
-            </h3>
+          <ChartCard title="Distribution by Squadron">
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={squadronData} layout="horizontal" barSize={12}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 9 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Legend iconSize={10} wrapperStyle={{ fontSize: 10 }} />
-                <Bar dataKey="red" fill="#dc2626" />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_TICK_XS}
+                  stroke={GRID_STROKE}
+                />
+                <YAxis tick={AXIS_TICK_SM} stroke={GRID_STROKE} />
+                <Tooltip {...darkTooltipStyle} />
+                <Legend
+                  iconSize={10}
+                  wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
+                />
+                <Bar dataKey="red" fill="#ef4444" />
                 <Bar dataKey="voll" fill="#f97316" />
-                <Bar dataKey="risk" fill="#1e3a5f" />
+                <Bar dataKey="risk" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
         </div>
 
         {/* Row 3: Trend + Airport + Aircraft Type + Risk Type */}
-        <div className="grid grid-cols-12 gap-3">
-          {/* New High-Risk Trends */}
-          <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              New High-Risk Trends (Last 7 Days)
-            </h3>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 12,
+          }}
+        >
+          <ChartCard title="New High-Risk Trends (Last 7 Days)">
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis dataKey="day" tick={AXIS_TICK} stroke={GRID_STROKE} />
+                <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} />
+                <Tooltip {...darkTooltipStyle} />
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke="#1e3a5f"
+                  stroke="#60a5fa"
                   strokeWidth={2}
-                  dot={{ fill: "#1e3a5f", r: 3 }}
+                  dot={{ fill: "#60a5fa", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
 
-          {/* Distribution by Airport */}
-          <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              Distribution by Airport
-            </h3>
+          <ChartCard title="Distribution by Airport">
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={airportData} layout="vertical" barSize={10}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis type="number" tick={{ fontSize: 10 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis type="number" tick={AXIS_TICK_SM} stroke={GRID_STROKE} />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  tick={{ fontSize: 9 }}
+                  tick={AXIS_TICK_XS}
                   width={80}
+                  stroke={GRID_STROKE}
                 />
-                <Tooltip />
-                <Legend iconSize={10} wrapperStyle={{ fontSize: 10 }} />
-                <Bar dataKey="red" stackId="a" fill="#1e3a5f" />
-                <Bar dataKey="voll" stackId="a" fill="#dc2626" />
+                <Tooltip {...darkTooltipStyle} />
+                <Legend
+                  iconSize={10}
+                  wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
+                />
+                <Bar dataKey="red" stackId="a" fill="#3b82f6" />
+                <Bar dataKey="voll" stackId="a" fill="#ef4444" />
                 <Bar dataKey="risk" stackId="a" fill="#22c55e" />
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
 
-          {/* Distribution by Aircraft Type */}
-          <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              Distribution by Aircraft Type
-            </h3>
+          <ChartCard title="Distribution by Aircraft Type">
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={aircraftTypeData} barSize={30}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} />
-                <Tooltip />
-                <Bar dataKey="value" fill="#1e3a5f">
+                <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                <XAxis
+                  dataKey="name"
+                  tick={AXIS_TICK_SM}
+                  stroke={GRID_STROKE}
+                />
+                <YAxis tick={AXIS_TICK_SM} stroke={GRID_STROKE} />
+                <Tooltip {...darkTooltipStyle} />
+                <Bar dataKey="value" fill="#3b82f6">
                   {aircraftTypeData.map((_, index) => (
                     <Cell
                       key={index}
-                      fill={index % 2 === 0 ? "#1e3a5f" : "#2d5a87"}
+                      fill={index % 2 === 0 ? "#3b82f6" : "#60a5fa"}
                     />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
 
-          {/* Distribution by Risk Type (Pie) */}
-          <div className="col-span-3 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">
-              Distribution by Risk Type
-            </h3>
+          <ChartCard title="Distribution by Risk Type">
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
@@ -491,14 +734,20 @@ export function AnalysisPage() {
                     />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip {...darkTooltipStyle} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
+          </ChartCard>
         </div>
 
         {/* Row 4: Factor Tables */}
-        <div className="grid grid-cols-4 gap-3">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 12,
+          }}
+        >
           <FactorTable
             title="Human Factor Top N"
             data={humanFactorData}
@@ -526,9 +775,18 @@ export function AnalysisPage() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between text-xs text-gray-400 px-2 pb-2">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            fontSize: 11,
+            color: "#475569",
+            padding: "0 8px 8px",
+          }}
+        >
           <span>System ID: 192.168.10.904</span>
-          <div className="flex gap-4">
+          <div style={{ display: "flex", gap: 16 }}>
             <span>Laster it:Sendioin</span>
             <span>RYSV</span>
             <span>1920x1080</span>

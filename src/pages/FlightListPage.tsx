@@ -4,32 +4,60 @@ import { FLIGHTS, calculateRiskFromEnvironmentRisk } from "../data/flightData";
 import type { Flight } from "../data/flightData";
 import "./FlightListPage.css";
 
-const RISK_LEVELS = ["High Risk", "Medium Risk", "Low Risk", "Very Low Risk"];
-const GOVERNANCE_STATUSES = ["Not Addressed", "In Progress", "Closed"];
-const RISK_TYPES = [
-  "Severe Weather",
-  "Engine Fault",
-  "Pilot Fatigue",
-  "Bird Strike",
-  "Turbulence",
-];
 const PAGE_SIZE = 15;
 
-// Map risk tags from flight data
+// Extract unique values from flight data for filter dropdowns
+function getUniqueValues(key: keyof Flight): string[] {
+  const set = new Set<string>();
+  FLIGHTS.forEach((f) => {
+    const v = f[key];
+    if (v && typeof v === "string") set.add(v);
+  });
+  return Array.from(set).sort();
+}
+
+const ALL_DEPARTURE_AIRPORTS = getUniqueValues("fromAirport");
+const ALL_ARRIVAL_AIRPORTS = getUniqueValues("toAirport");
+const ALL_OPERATING_UNITS = getUniqueValues("operatingUnit");
+const ALL_AIRCRAFT_TYPES = getUniqueValues("aircraftType");
+
+const RISK_LEVELS = ["High Risk", "Medium Risk", "Low Risk"];
+const FLIGHT_STATUSES = ["未起飞", "巡航中", "已落地"];
+
+// Map Chinese risk level to English display
+function riskLevelToEn(riskLevel: string): string {
+  if (riskLevel === "高风险") return "High Risk";
+  if (riskLevel === "中风险") return "Medium Risk";
+  return "Low Risk";
+}
+
+// Get risk tags from flight data
 function getRiskTags(flight: Flight): string[] {
   const tags: string[] = [];
-  if (flight.environmentRisk >= 7) tags.push("Severe Weather");
-  if (flight.machineRisk >= 5) tags.push("Engine Fault");
-  if (flight.humanRisk >= 5) tags.push("Pilot Fatigue");
-  if (flight.predictedRisks) {
+  if (flight.predictedRisks && flight.predictedRisks.length > 0) {
     flight.predictedRisks.forEach((r) => {
       if (!tags.includes(r.type)) tags.push(r.type);
     });
   }
-  return tags.length ? tags : ["—"];
+  if (flight.environmentRisk >= 7) tags.push("Severe Weather");
+  if (flight.machineRisk >= 5) tags.push("Engine Fault");
+  if (flight.humanRisk >= 5) tags.push("Pilot Fatigue");
+  // deduplicate
+  return [...new Set(tags)].length ? [...new Set(tags)] : ["—"];
 }
 
-// Mock governance status based on risk
+// Get all unique risk tag types
+const ALL_RISK_TYPES = (() => {
+  const set = new Set<string>();
+  FLIGHTS.forEach((f) => {
+    getRiskTags(f).forEach((t) => {
+      if (t !== "—") set.add(t);
+    });
+  });
+  return Array.from(set).sort();
+})();
+
+// Governance status derived from composite risk
 function getGovernanceStatus(flight: Flight): string {
   const composite =
     flight.humanRisk + flight.machineRisk + flight.environmentRisk;
@@ -38,20 +66,16 @@ function getGovernanceStatus(flight: Flight): string {
   return "Closed";
 }
 
-// Composite risk label
+const GOVERNANCE_STATUSES = ["Not Addressed", "In Progress", "Closed"];
+
 function getCompositeRiskLabel(flight: Flight): string {
-  const { riskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk);
-  if (riskZone === "red") return "High Risk";
-  if (riskZone === "orange") return "Medium Risk";
-  if (riskZone === "yellow") return "Low Risk";
-  return "Very Low Risk";
+  return riskLevelToEn(flight.riskLevel);
 }
 
 function riskLabelClass(label: string): string {
   if (label === "High Risk") return "fl-risk-high";
   if (label === "Medium Risk") return "fl-risk-medium";
-  if (label === "Low Risk") return "fl-risk-low";
-  return "fl-risk-vlow";
+  return "fl-risk-low";
 }
 
 function govStatusClass(status: string): string {
@@ -70,6 +94,11 @@ function scoreColorClass(score: number): string {
 export function FlightListPage() {
   // Filters
   const [flightNumberFilter, setFlightNumberFilter] = useState("");
+  const [departureFilter, setDepartureFilter] = useState("");
+  const [arrivalFilter, setArrivalFilter] = useState("");
+  const [operatingUnitFilter, setOperatingUnitFilter] = useState("");
+  const [aircraftTypeFilter, setAircraftTypeFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [riskLevelFilter, setRiskLevelFilter] = useState<string[]>([]);
   const [govStatusFilter, setGovStatusFilter] = useState<string[]>([]);
   const [riskTypeFilter, setRiskTypeFilter] = useState<string[]>([]);
@@ -80,27 +109,53 @@ export function FlightListPage() {
   const [showRiskLevelDD, setShowRiskLevelDD] = useState(false);
   const [showGovStatusDD, setShowGovStatusDD] = useState(false);
   const [showRiskTypeDD, setShowRiskTypeDD] = useState(false);
+  const [showStatusDD, setShowStatusDD] = useState(false);
 
   // Filtered data
   const filteredFlights = useMemo(() => {
     return FLIGHTS.filter((f) => {
+      // Flight number filter
       if (
         flightNumberFilter &&
         !f.flightNumber.toLowerCase().includes(flightNumberFilter.toLowerCase())
       )
         return false;
+
+      // Departure airport filter
+      if (departureFilter && f.fromAirport !== departureFilter) return false;
+
+      // Arrival airport filter
+      if (arrivalFilter && f.toAirport !== arrivalFilter) return false;
+
+      // Operating unit filter
+      if (operatingUnitFilter && f.operatingUnit !== operatingUnitFilter)
+        return false;
+
+      // Aircraft type filter
+      if (aircraftTypeFilter && f.aircraftType !== aircraftTypeFilter)
+        return false;
+
+      // Flight status filter
+      if (statusFilter.length && !statusFilter.includes(f.status)) return false;
+
+      // Risk level filter
       if (riskLevelFilter.length) {
         const label = getCompositeRiskLabel(f);
         if (!riskLevelFilter.includes(label)) return false;
       }
+
+      // Governance status filter
       if (govStatusFilter.length) {
         const status = getGovernanceStatus(f);
         if (!govStatusFilter.includes(status)) return false;
       }
+
+      // Risk type filter
       if (riskTypeFilter.length) {
         const tags = getRiskTags(f);
         if (!riskTypeFilter.some((t) => tags.includes(t))) return false;
       }
+
       return true;
     }).sort(
       (a, b) =>
@@ -109,7 +164,17 @@ export function FlightListPage() {
         b.environmentRisk -
         (a.humanRisk + a.machineRisk + a.environmentRisk),
     );
-  }, [flightNumberFilter, riskLevelFilter, govStatusFilter, riskTypeFilter]);
+  }, [
+    flightNumberFilter,
+    departureFilter,
+    arrivalFilter,
+    operatingUnitFilter,
+    aircraftTypeFilter,
+    statusFilter,
+    riskLevelFilter,
+    govStatusFilter,
+    riskTypeFilter,
+  ]);
 
   const totalPages = Math.ceil(filteredFlights.length / PAGE_SIZE);
   const pageFlights = filteredFlights.slice(
@@ -120,6 +185,11 @@ export function FlightListPage() {
   const handleSearch = () => setPage(1);
   const handleReset = () => {
     setFlightNumberFilter("");
+    setDepartureFilter("");
+    setArrivalFilter("");
+    setOperatingUnitFilter("");
+    setAircraftTypeFilter("");
+    setStatusFilter([]);
     setRiskLevelFilter([]);
     setGovStatusFilter([]);
     setRiskTypeFilter([]);
@@ -138,27 +208,32 @@ export function FlightListPage() {
     );
   };
 
+  // Close dropdowns when clicking outside
+  const closeAllDropdowns = () => {
+    setShowRiskLevelDD(false);
+    setShowGovStatusDD(false);
+    setShowRiskTypeDD(false);
+    setShowStatusDD(false);
+  };
+
   return (
-    <div className="fl-root">
+    <div className="fl-root" onClick={closeAllDropdowns}>
       {/* Breadcrumb */}
       <div className="fl-breadcrumb">
-        <span>ARVIS</span>
+        <span>MRIWP</span>
         <span className="fl-breadcrumb-sep">&gt;</span>
         <span>Risk Monitoring</span>
         <span className="fl-breadcrumb-sep">&gt;</span>
-        <span className="fl-breadcrumb-active">Flight List (P2)</span>
+        <span className="fl-breadcrumb-active">Flight List</span>
       </div>
 
       {/* Page Header */}
       <div className="fl-page-header">
         <div className="fl-page-title">
-          <h1>Flight List (P2)</h1>
-          <label className="fl-toggle">
-            <span>Common view switching</span>
-            <div className="fl-toggle-switch">
-              <div className="fl-toggle-knob" />
-            </div>
-          </label>
+          <h1>Flight List</h1>
+          <span className="fl-flight-count">
+            {filteredFlights.length} flights
+          </span>
         </div>
         <div className="fl-page-actions">
           <button className="fl-action-btn">
@@ -212,14 +287,6 @@ export function FlightListPage() {
       <div className="fl-filters">
         <div className="fl-filter-row">
           <div className="fl-filter-item">
-            <label>Time Window</label>
-            <select className="fl-select">
-              <option>Last 7 Days</option>
-              <option>Last 24 Hours</option>
-              <option>Last 30 Days</option>
-            </select>
-          </div>
-          <div className="fl-filter-item">
             <label>Flight Number</label>
             <input
               className="fl-input"
@@ -230,46 +297,79 @@ export function FlightListPage() {
           </div>
           <div className="fl-filter-item">
             <label>Departure Airport</label>
-            <select className="fl-select">
+            <select
+              className="fl-select"
+              value={departureFilter}
+              onChange={(e) => setDepartureFilter(e.target.value)}
+            >
               <option value="">All</option>
+              {ALL_DEPARTURE_AIRPORTS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
             </select>
           </div>
           <div className="fl-filter-item">
             <label>Arrival Airport</label>
-            <select className="fl-select">
+            <select
+              className="fl-select"
+              value={arrivalFilter}
+              onChange={(e) => setArrivalFilter(e.target.value)}
+            >
               <option value="">All</option>
+              {ALL_ARRIVAL_AIRPORTS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
             </select>
           </div>
           <div className="fl-filter-item">
-            <label>Division</label>
-            <select className="fl-select">
+            <label>Aircraft Type</label>
+            <select
+              className="fl-select"
+              value={aircraftTypeFilter}
+              onChange={(e) => setAircraftTypeFilter(e.target.value)}
+            >
               <option value="">All</option>
-            </select>
-          </div>
-          <div className="fl-filter-item">
-            <label>Squadron</label>
-            <select className="fl-select">
-              <option value="">All</option>
+              {ALL_AIRCRAFT_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
             </select>
           </div>
           <div className="fl-filter-item">
             <label>Operating Unit</label>
-            <select className="fl-select">
+            <select
+              className="fl-select"
+              value={operatingUnitFilter}
+              onChange={(e) => setOperatingUnitFilter(e.target.value)}
+            >
               <option value="">All</option>
+              {ALL_OPERATING_UNITS.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
             </select>
           </div>
         </div>
         <div className="fl-filter-row">
+          {/* Risk Level multi-select */}
           <div className="fl-filter-item fl-filter-multi">
             <label>Risk Level</label>
             <div
               className="fl-multi-select"
-              onClick={() => setShowRiskLevelDD(!showRiskLevelDD)}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                setShowRiskLevelDD(!showRiskLevelDD);
+              }}
             >
               <span>
-                {riskLevelFilter.length
-                  ? riskLevelFilter.join(", ")
-                  : "Multi-select"}
+                {riskLevelFilter.length ? riskLevelFilter.join(", ") : "All"}
               </span>
               <svg
                 width="12"
@@ -306,16 +406,20 @@ export function FlightListPage() {
               )}
             </div>
           </div>
+
+          {/* Flight Status multi-select */}
           <div className="fl-filter-item fl-filter-multi">
-            <label>Risk Level</label>
+            <label>Flight Status</label>
             <div
               className="fl-multi-select"
-              onClick={() => setShowRiskLevelDD(!showRiskLevelDD)}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                setShowStatusDD(!showStatusDD);
+              }}
             >
               <span>
-                {riskLevelFilter.length
-                  ? riskLevelFilter.join(", ")
-                  : "Multi-select"}
+                {statusFilter.length ? statusFilter.join(", ") : "All"}
               </span>
               <svg
                 width="12"
@@ -327,18 +431,41 @@ export function FlightListPage() {
               >
                 <polyline points="6 9 12 15 18 9" />
               </svg>
+              {showStatusDD && (
+                <div
+                  className="fl-dropdown"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {FLIGHT_STATUSES.map((s) => (
+                    <label key={s} className="fl-dropdown-item">
+                      <input
+                        type="checkbox"
+                        checked={statusFilter.includes(s)}
+                        onChange={() =>
+                          toggleMultiSelect(s, statusFilter, setStatusFilter)
+                        }
+                      />
+                      <span>{s}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Major Risk Type multi-select */}
           <div className="fl-filter-item fl-filter-multi">
             <label>Major Risk Type</label>
             <div
               className="fl-multi-select"
-              onClick={() => setShowRiskTypeDD(!showRiskTypeDD)}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                setShowRiskTypeDD(!showRiskTypeDD);
+              }}
             >
               <span>
-                {riskTypeFilter.length
-                  ? riskTypeFilter.join(", ")
-                  : "Multi-select"}
+                {riskTypeFilter.length ? riskTypeFilter.join(", ") : "All"}
               </span>
               <svg
                 width="12"
@@ -355,7 +482,7 @@ export function FlightListPage() {
                   className="fl-dropdown"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {RISK_TYPES.map((r) => (
+                  {ALL_RISK_TYPES.map((r) => (
                     <label key={r} className="fl-dropdown-item">
                       <input
                         type="checkbox"
@@ -375,16 +502,20 @@ export function FlightListPage() {
               )}
             </div>
           </div>
+
+          {/* Governance Status multi-select */}
           <div className="fl-filter-item fl-filter-multi">
             <label>Governance Status</label>
             <div
               className="fl-multi-select"
-              onClick={() => setShowGovStatusDD(!showGovStatusDD)}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeAllDropdowns();
+                setShowGovStatusDD(!showGovStatusDD);
+              }}
             >
               <span>
-                {govStatusFilter.length
-                  ? govStatusFilter.join(", ")
-                  : "Multi-select"}
+                {govStatusFilter.length ? govStatusFilter.join(", ") : "All"}
               </span>
               <svg
                 width="12"
@@ -421,6 +552,7 @@ export function FlightListPage() {
               )}
             </div>
           </div>
+
           <div className="fl-filter-actions">
             <button className="fl-btn-search" onClick={handleSearch}>
               Search
@@ -446,6 +578,7 @@ export function FlightListPage() {
               <th>Arrival</th>
               <th>Scheduled Time</th>
               <th>Estimated Time</th>
+              <th>Status</th>
               <th>Composite Risk Level</th>
               <th>Human Factor Score</th>
               <th>Aircraft Factor Score</th>
@@ -494,6 +627,13 @@ export function FlightListPage() {
                   <td>{flight.estimatedDeparture || "—"}</td>
                   <td>
                     <span
+                      className={`fl-status-badge fl-status-${flight.status === "已落地" ? "landed" : flight.status === "巡航中" ? "cruise" : "pending"}`}
+                    >
+                      {flight.status}
+                    </span>
+                  </td>
+                  <td>
+                    <span
                       className={`fl-risk-badge ${riskLabelClass(riskLabel)}`}
                     >
                       {riskLabel}
@@ -540,11 +680,12 @@ export function FlightListPage() {
                     <div className="fl-actions-cell">
                       <button
                         className="fl-actions-toggle"
-                        onClick={() =>
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setOpenActions(
                             openActions === flight.id ? null : flight.id,
-                          )
-                        }
+                          );
+                        }}
                       >
                         <svg
                           width="16"
@@ -620,7 +761,7 @@ export function FlightListPage() {
       {/* Pagination */}
       <div className="fl-pagination">
         <span className="fl-page-info">
-          Page {page} of {totalPages}
+          {filteredFlights.length} results | Page {page} of {totalPages || 1}
         </span>
         <div className="fl-page-btns">
           <button disabled={page === 1} onClick={() => setPage(1)}>
@@ -644,13 +785,13 @@ export function FlightListPage() {
             );
           })}
           <button
-            disabled={page === totalPages}
+            disabled={page === totalPages || totalPages === 0}
             onClick={() => setPage(page + 1)}
           >
             &rsaquo;
           </button>
           <button
-            disabled={page === totalPages}
+            disabled={page === totalPages || totalPages === 0}
             onClick={() => setPage(totalPages)}
           >
             &raquo;

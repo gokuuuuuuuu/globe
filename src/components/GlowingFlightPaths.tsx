@@ -1,5 +1,5 @@
-import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
-import { useMemo, useRef, useCallback, useEffect } from 'react'
+import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useMemo, useRef, useCallback, useEffect, memo } from "react";
 import {
   Color,
   DoubleSide,
@@ -7,9 +7,9 @@ import {
   ShaderMaterial,
   Vector3,
   // Group, // 已隐藏飞机图标，暂时不需要
-} from 'three'
+} from "three";
 // import { Text } from '@react-three/drei' // 已隐藏飞机图标，暂时不需要
-import { useAppStore } from '../store/useAppStore'
+import { useAppStore } from "../store/useAppStore";
 // import { getMachineRiskColor } from '../data/flightData' // 已隐藏飞机图标，暂时不需要
 
 // 顶点着色器
@@ -19,7 +19,7 @@ const vertexShader = `
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
-`
+`;
 
 // 片元着色器 - 发光实线效果
 const fragmentShader = `
@@ -51,28 +51,28 @@ const fragmentShader = `
 
     gl_FragColor = vec4(finalColor, alpha);
   }
-`
+`;
 
 interface FlightRouteInfo {
-  flightNumber: string
-  fromAirport: string
-  toAirport: string
-  status: string
-  scheduledDeparture: string
-  scheduledArrival: string
-  humanRisk: number
-  machineRisk: number
-  environmentRisk: number
-  riskLevel?: string // 风险等级（文字：高风险、中风险、低风险）
+  flightNumber: string;
+  fromAirport: string;
+  toAirport: string;
+  status: string;
+  scheduledDeparture: string;
+  scheduledArrival: string;
+  humanRisk: number;
+  machineRisk: number;
+  environmentRisk: number;
+  riskLevel?: string; // 风险等级（文字：高风险、中风险、低风险）
 }
 
 interface GlowingFlightPathProps extends FlightRouteInfo {
-  start: Vector3
-  end: Vector3
-  radius: number
-  color?: string
-  materialRefs?: React.MutableRefObject<Map<string, ShaderMaterial>>
-  routeId?: string
+  start: Vector3;
+  end: Vector3;
+  radius: number;
+  color?: string;
+  materialRefs?: React.MutableRefObject<Map<string, ShaderMaterial>>;
+  routeId?: string;
 }
 
 // 飞机组件
@@ -232,11 +232,11 @@ interface GlowingFlightPathProps extends FlightRouteInfo {
   // )
 } */
 
-function GlowingFlightPath({ 
-  start, 
-  end, 
-  radius, 
-  color = '#4ff0ff',
+const GlowingFlightPath = memo(function GlowingFlightPath({
+  start,
+  end,
+  radius,
+  color = "#4ff0ff",
   flightNumber,
   fromAirport,
   toAirport,
@@ -248,59 +248,87 @@ function GlowingFlightPath({
   environmentRisk,
   riskLevel,
   materialRefs,
-  routeId
+  routeId,
 }: GlowingFlightPathProps) {
-  const materialRef = useRef<ShaderMaterial>(null)
-  const { gl } = useThree()
-  const { setHoveredFlightRoute, setTooltipPosition, setSelectedFlightRouteId, setSidebarTab } = useAppStore()
-  
+  const materialRef = useRef<ShaderMaterial>(null);
+  const { gl } = useThree();
+  const {
+    setHoveredFlightRoute,
+    setTooltipPosition,
+    setSelectedFlightRouteId,
+    setSidebarTab,
+  } = useAppStore();
+
   // 清理材质引用
   useEffect(() => {
-    if (!materialRefs || !routeId) return
-    const refsMap = materialRefs.current
+    if (!materialRefs || !routeId) return;
+    const refsMap = materialRefs.current;
     return () => {
-      refsMap.delete(routeId)
-    }
-  }, [materialRefs, routeId])
-  
-  
+      refsMap.delete(routeId);
+    };
+  }, [materialRefs, routeId]);
+
   // 创建曲线几何
   const curve = useMemo(() => {
     // 1. 起点和终点
-    const vStart = start.clone()
-    const vEnd = end.clone()
-    
+    const vStart = start.clone();
+    const vEnd = end.clone();
+
     // 2. 计算控制点 (中点并向外挤出)
     // 中点
-    const vMid = new Vector3().addVectors(vStart, vEnd).multiplyScalar(0.5)
+    const vMid = new Vector3().addVectors(vStart, vEnd).multiplyScalar(0.5);
     // 归一化并延伸到更高的高度
-    const dist = vStart.distanceTo(vEnd)
-    const midLen = vMid.length()
-    
+    const dist = vStart.distanceTo(vEnd);
+    const midLen = vMid.length();
+
     // 越远的航线，拱起越高 - 降低外凸高度
-    const heightOffset = radius * 0.5 + dist * 0.5 
-    vMid.normalize().multiplyScalar(midLen + heightOffset)
-    
+    const heightOffset = radius * 0.5 + dist * 0.5;
+    vMid.normalize().multiplyScalar(midLen + heightOffset);
+
     // 重新调整控制点高度逻辑 - 降低倍数以减少外凸
-    const controlPoint = vMid.clone().normalize().multiplyScalar(radius * 1.13)
-    
-    return new QuadraticBezierCurve3(vStart, controlPoint, vEnd)
-  }, [start, end, radius])
+    const controlPoint = vMid
+      .clone()
+      .normalize()
+      .multiplyScalar(radius * 1.13);
+
+    return new QuadraticBezierCurve3(vStart, controlPoint, vEnd);
+  }, [start, end, radius]);
 
   // 颜色 uniform - 使用共享的时间值（在父组件中统一更新）
-  const uniforms = useMemo(() => ({
-    uTime: { value: 0 },
-    uColor: { value: new Color(color) },
-  }), [color])
+  const uniforms = useMemo(
+    () => ({
+      uTime: { value: 0 },
+      uColor: { value: new Color(color) },
+    }),
+    [color],
+  );
 
   // 移除单独的 useFrame，改为在父组件中统一更新
 
   // 交互事件处理
-  const handlePointerOver = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
-    setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
-    setHoveredFlightRoute({
+  const handlePointerOver = useCallback(
+    (event: ThreeEvent<PointerEvent>) => {
+      event.stopPropagation();
+      const nativeEvent =
+        event.nativeEvent || (event as unknown as PointerEvent);
+      setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY });
+      setHoveredFlightRoute({
+        flightNumber,
+        fromAirport,
+        toAirport,
+        status,
+        scheduledDeparture,
+        scheduledArrival,
+        humanRisk,
+        machineRisk,
+        environmentRisk,
+        riskLevel,
+      });
+      if (gl.domElement) {
+        gl.domElement.style.cursor = "pointer";
+      }
+    },
+    [
       flightNumber,
       fromAirport,
       toAirport,
@@ -311,42 +339,52 @@ function GlowingFlightPath({
       machineRisk,
       environmentRisk,
       riskLevel,
-    })
-    if (gl.domElement) {
-      gl.domElement.style.cursor = 'pointer'
-    }
-  }, [flightNumber, fromAirport, toAirport, status, scheduledDeparture, scheduledArrival, humanRisk, machineRisk, environmentRisk, riskLevel, setHoveredFlightRoute, setTooltipPosition, gl])
+      setHoveredFlightRoute,
+      setTooltipPosition,
+      gl,
+    ],
+  );
 
-  const handlePointerOut = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    setHoveredFlightRoute(null)
-    setTooltipPosition(null)
-    if (gl.domElement) {
-      gl.domElement.style.cursor = 'default'
-    }
-  }, [setHoveredFlightRoute, setTooltipPosition, gl])
+  const handlePointerOut = useCallback(
+    (event: ThreeEvent<PointerEvent>) => {
+      event.stopPropagation();
+      setHoveredFlightRoute(null);
+      setTooltipPosition(null);
+      if (gl.domElement) {
+        gl.domElement.style.cursor = "default";
+      }
+    },
+    [setHoveredFlightRoute, setTooltipPosition, gl],
+  );
 
-  const handlePointerMove = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    const nativeEvent = event.nativeEvent || (event as unknown as PointerEvent)
-    setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY })
-  }, [setTooltipPosition])
+  const handlePointerMove = useCallback(
+    (event: ThreeEvent<PointerEvent>) => {
+      event.stopPropagation();
+      const nativeEvent =
+        event.nativeEvent || (event as unknown as PointerEvent);
+      setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY });
+    },
+    [setTooltipPosition],
+  );
 
   // 处理航线点击
-  const handlePointerDown = useCallback((event: ThreeEvent<PointerEvent>) => {
-    event.stopPropagation()
-    // 根据 routeId 找到对应的航班
-    if (routeId) {
-      // routeId 格式是 `${fromAirport.id}-${toAirport.id}-${flight.id}`
-      // 提取航班ID（最后一个部分）
-      const parts = routeId.split('-')
-      if (parts.length >= 3) {
-        const flightId = parts.slice(2).join('-') // 处理航班ID可能包含'-'的情况
-        setSelectedFlightRouteId(flightId)
-        setSidebarTab('airline') // 切换到航线标签页
+  const handlePointerDown = useCallback(
+    (event: ThreeEvent<PointerEvent>) => {
+      event.stopPropagation();
+      // 根据 routeId 找到对应的航班
+      if (routeId) {
+        // routeId 格式是 `${fromAirport.id}-${toAirport.id}-${flight.id}`
+        // 提取航班ID（最后一个部分）
+        const parts = routeId.split("-");
+        if (parts.length >= 3) {
+          const flightId = parts.slice(2).join("-"); // 处理航班ID可能包含'-'的情况
+          setSelectedFlightRouteId(flightId);
+          setSidebarTab("airline"); // 切换到航线标签页
+        }
       }
-    }
-  }, [routeId, setSelectedFlightRouteId, setSidebarTab])
+    },
+    [routeId, setSelectedFlightRouteId, setSidebarTab],
+  );
 
   return (
     <group>
@@ -358,19 +396,19 @@ function GlowingFlightPath({
         onPointerDown={handlePointerDown}
         visible={false}
       >
-        <tubeGeometry args={[curve, 32, 0.01, 8, false]} />
+        <tubeGeometry args={[curve, 8, 0.008, 3, false]} />
         <meshBasicMaterial transparent opacity={0} side={DoubleSide} />
       </mesh>
       {/* 可见的航线 */}
       <mesh>
-        <tubeGeometry args={[curve, 32, 0.001, 8, false]} />
+        <tubeGeometry args={[curve, 16, 0.001, 4, false]} />
         <shaderMaterial
           ref={(ref) => {
             if (ref) {
-              materialRef.current = ref
+              materialRef.current = ref;
               // 立即添加到共享 Map
               if (materialRefs && routeId) {
-                materialRefs.current.set(routeId, ref)
+                materialRefs.current.set(routeId, ref);
               }
             }
           }}
@@ -397,36 +435,39 @@ function GlowingFlightPath({
         environmentRisk={environmentRisk}
       /> */}
     </group>
-  )
-}
+  );
+});
 
 interface FlightRouteData extends FlightRouteInfo {
-  id: string
-  from: Vector3
-  to: Vector3
-  color?: string
+  id: string;
+  from: Vector3;
+  to: Vector3;
+  color?: string;
 }
 
 interface GlowingFlightPathsProps {
-  routes: FlightRouteData[]
-  radius: number
+  routes: FlightRouteData[];
+  radius: number;
 }
 
-export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) {
-  const materialRefs = useRef<Map<string, ShaderMaterial>>(new Map())
-  const sharedTime = useRef(0)
-  
+export function GlowingFlightPaths({
+  routes,
+  radius,
+}: GlowingFlightPathsProps) {
+  const materialRefs = useRef<Map<string, ShaderMaterial>>(new Map());
+  const sharedTime = useRef(0);
+
   // 统一更新所有航线的动画时间
   useFrame((_state, delta) => {
-    sharedTime.current += delta * 0.5
+    sharedTime.current += delta * 0.5;
     // 批量更新所有材质的 uniform
     materialRefs.current.forEach((material) => {
       if (material && material.uniforms) {
-        material.uniforms.uTime.value = sharedTime.current
+        material.uniforms.uTime.value = sharedTime.current;
       }
-    })
-  })
-  
+    });
+  });
+
   return (
     <group>
       {routes.map((route) => {
@@ -451,9 +492,8 @@ export function GlowingFlightPaths({ routes, radius }: GlowingFlightPathsProps) 
             materialRefs={materialRefs}
             routeId={route.id}
           />
-        )
+        );
       })}
     </group>
-  )
+  );
 }
-
