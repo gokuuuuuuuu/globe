@@ -1,0 +1,681 @@
+/* MaintenanceInfoPage - P20 */
+.mt-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.mt-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.mt-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.mt-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Top Cards */
+.mt-top-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  padding: 20px 24px;
+  flex-shrink: 0;
+}
+
+.mt-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.mt-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 2px;
+}
+
+.mt-card-subtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.mt-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.mt-card-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.mt-card-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mt-card-value-green {
+  color: #22c55e;
+}
+
+/* Restrictions Card */
+.mt-restriction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.mt-restriction-item:last-child {
+  border-bottom: none;
+}
+
+.mt-warning-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #eab308;
+  font-size: 16px;
+  margin-top: 1px;
+}
+
+.mt-restriction-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mt-restriction-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+/* Risk Profile Card */
+.mt-risk-bar-group {
+  margin-bottom: 12px;
+}
+
+.mt-risk-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.mt-risk-bar-name {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.mt-risk-bar-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.mt-risk-bar-track {
+  height: 8px;
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mt-risk-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* Repeated Faults Card */
+.mt-fault-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.mt-fault-item:last-child {
+  border-bottom: none;
+}
+
+.mt-fault-name {
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.mt-fault-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+/* Middle Section Header */
+.mt-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  margin-bottom: 16px;
+}
+
+.mt-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.mt-section-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mt-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.mt-btn:hover {
+  background: rgba(51, 65, 85, 0.7);
+  color: #f1f5f9;
+}
+
+.mt-btn-primary {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.mt-btn-primary:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+.mt-btn-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Timeline Section */
+.mt-timeline-container {
+  margin: 0 24px 20px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+  position: relative;
+}
+
+.mt-timeline-scroll {
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.mt-timeline-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.mt-timeline-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mt-timeline-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.mt-timeline-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+.mt-timeline-inner {
+  min-width: 900px;
+  position: relative;
+}
+
+/* Timeline axis */
+.mt-timeline-axis {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 28px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  margin-bottom: 0;
+}
+
+.mt-timeline-tick {
+  font-size: 11px;
+  color: #64748b;
+  text-align: center;
+  flex: 1;
+}
+
+/* Timeline event rows */
+.mt-timeline-rows {
+  position: relative;
+  padding: 12px 0;
+}
+
+.mt-timeline-row {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  position: relative;
+}
+
+.mt-timeline-row-label {
+  width: 100px;
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.mt-timeline-row-track {
+  flex: 1;
+  position: relative;
+  height: 36px;
+}
+
+/* Timeline event icons */
+.mt-timeline-event {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 2;
+  transition: transform 0.15s;
+}
+
+.mt-timeline-event:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.mt-timeline-event-unscheduled {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1.5px solid #ef4444;
+  color: #ef4444;
+}
+
+.mt-timeline-event-scheduled {
+  background: rgba(59, 130, 246, 0.2);
+  border: 1.5px solid #3b82f6;
+  color: #3b82f6;
+}
+
+/* Risk badge on timeline */
+.mt-timeline-badge {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.mt-badge-red {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.mt-badge-orange {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.mt-badge-yellow {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+.mt-badge-green {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.mt-badge-open {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+}
+
+/* Dashed connector lines */
+.mt-timeline-connector {
+  position: absolute;
+  width: 1px;
+  border-left: 1px dashed rgba(148, 163, 184, 0.3);
+  z-index: 1;
+}
+
+/* Timeline legend */
+.mt-timeline-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.mt-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.mt-legend-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+}
+
+/* Timeline tooltip */
+.mt-timeline-tooltip {
+  position: fixed;
+  background: #1e293b;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #e2e8f0;
+  white-space: nowrap;
+  z-index: 99999;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* arrow removed - tooltip is now fixed positioned */
+
+.mt-tooltip-title {
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 4px;
+}
+
+.mt-tooltip-desc {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* Data Table */
+.mt-table-container {
+  margin: 0 24px 20px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.mt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.mt-table th {
+  position: sticky;
+  top: 0;
+  padding: 12px 16px;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  cursor: pointer;
+  user-select: none;
+  z-index: 3;
+}
+
+.mt-table th:hover {
+  color: #e2e8f0;
+}
+
+.mt-th-sortable {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mt-sort-icon {
+  font-size: 10px;
+  color: #475569;
+}
+
+.mt-sort-icon-active {
+  color: #60a5fa;
+}
+
+.mt-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  vertical-align: middle;
+  font-size: 12px;
+  color: #e2e8f0;
+}
+
+.mt-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.mt-table tbody tr {
+  transition: background 0.15s;
+}
+
+.mt-table tbody tr:hover {
+  background: rgba(51, 65, 85, 0.3);
+}
+
+.mt-table-row-highlighted {
+  border-left: 3px solid #eab308 !important;
+  background: rgba(234, 179, 8, 0.05);
+}
+
+.mt-table-row-highlighted td:first-child {
+  padding-left: 13px;
+}
+
+/* Status text */
+.mt-status-closed {
+  color: #64748b;
+}
+
+.mt-status-open {
+  color: #22c55e;
+}
+
+/* Criticality badges */
+.mt-criticality {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mt-criticality-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.mt-criticality-orange {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+}
+
+.mt-criticality-yellow {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+.mt-criticality-green {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.mt-criticality-red {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* Affected flight phases dots */
+.mt-phase-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mt-phase-dot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.mt-phase-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mt-phase-dot-takeoff {
+  background: #3b82f6;
+}
+
+.mt-phase-dot-landing {
+  background: #22c55e;
+}
+
+.mt-phase-dot-cruise {
+  background: #a855f7;
+}
+
+.mt-phase-dot-preflight {
+  background: #eab308;
+}
+
+/* Repeated badge */
+.mt-repeated-yes {
+  color: #eab308;
+  font-weight: 600;
+}
+
+.mt-repeated-no {
+  color: #64748b;
+}
+
+/* Action Buttons Bar */
+.mt-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(15, 23, 42, 0.8);
+  flex-shrink: 0;
+}
+
+/* Scrollbar for root */
+.mt-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mt-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mt-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.mt-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .mt-top-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .mt-top-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .mt-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .mt-action-bar {
+    flex-wrap: wrap;
+  }
+}

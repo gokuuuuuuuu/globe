@@ -1,0 +1,496 @@
+.acd-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.acd-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.acd-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.acd-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Aircraft Info Card */
+.acd-info-bar {
+  display: flex;
+  align-items: stretch;
+  margin: 16px 24px 0;
+  padding: 16px 0;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.acd-info-item {
+  flex: 1;
+  padding: 0 24px;
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.acd-info-item:last-child {
+  border-right: none;
+}
+
+.acd-info-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(96, 165, 250, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.acd-info-icon svg {
+  width: 18px;
+  height: 18px;
+  color: #60a5fa;
+}
+
+.acd-info-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+.acd-info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+/* Action Buttons */
+.acd-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 16px 24px 0;
+}
+
+.acd-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: #334155;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.acd-action-btn:hover {
+  background: #475569;
+  color: #f8fafc;
+}
+
+.acd-action-btn svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+/* Cards Grid */
+.acd-cards-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 16px 24px 0;
+}
+
+.acd-cards-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 16px;
+  margin: 16px 24px 0;
+}
+
+.acd-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.acd-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 16px;
+}
+
+/* Gauge / Speedometer */
+.acd-gauge-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.acd-gauge-svg {
+  overflow: visible;
+}
+
+.acd-gauge-score {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f8fafc;
+  text-anchor: middle;
+}
+
+.acd-gauge-label {
+  font-size: 11px;
+  fill: #94a3b8;
+  text-anchor: middle;
+}
+
+.acd-risk-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.acd-risk-badge-high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.acd-risk-badge-medium {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+}
+
+.acd-risk-badge-low {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.acd-risk-status {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* Factor ranges list */
+.acd-factor-ranges {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.acd-factor-range-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.acd-factor-range-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.acd-factor-range-name {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.acd-factor-range-value {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.acd-factor-range-bar {
+  height: 3px;
+  border-radius: 2px;
+  width: 100%;
+}
+
+/* Top Aircraft Factors - horizontal bars */
+.acd-top-factors {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.acd-top-factor-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.acd-top-factor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.acd-top-factor-name {
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.acd-top-factor-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.acd-top-factor-bar-bg {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.1);
+  overflow: hidden;
+}
+
+.acd-top-factor-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+/* Related Flights Card */
+.acd-flights-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.acd-flights-big-number {
+  font-size: 48px;
+  font-weight: 700;
+  color: #f8fafc;
+  line-height: 1;
+}
+
+.acd-flights-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.acd-flights-breakdown-item {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.acd-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.acd-dot-red {
+  background: #ef4444;
+}
+.acd-dot-orange {
+  background: #f97316;
+}
+.acd-dot-yellow {
+  background: #eab308;
+}
+.acd-dot-green {
+  background: #22c55e;
+}
+
+.acd-flights-chart {
+  margin-top: 16px;
+  height: 120px;
+}
+
+.acd-flights-legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.acd-flights-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.acd-legend-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Repeated Abnormal Summary */
+.acd-abnormal-layout {
+  display: flex;
+  gap: 20px;
+}
+
+.acd-abnormal-counts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 80px;
+}
+
+.acd-abnormal-count-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.acd-abnormal-count-value {
+  font-weight: 600;
+  color: #f8fafc;
+  min-width: 16px;
+}
+
+/* Abnormal items list */
+.acd-abnormal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  flex: 1;
+}
+
+.acd-abnormal-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.acd-abnormal-item:last-child {
+  border-bottom: none;
+}
+
+.acd-abnormal-item-text {
+  font-size: 12px;
+  color: #cbd5e1;
+  flex: 1;
+  margin-right: 12px;
+}
+
+.acd-abnormal-item-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #e2e8f0;
+  min-width: 24px;
+  text-align: center;
+  margin-right: 12px;
+}
+
+.acd-status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.acd-status-elevated {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+}
+
+.acd-status-occurred {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.acd-status-critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.acd-status-warning {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+/* Scrollbar */
+.acd-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.acd-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.acd-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.acd-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .acd-cards-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .acd-cards-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 800px) {
+  .acd-info-bar {
+    flex-direction: column;
+  }
+  .acd-info-item {
+    border-right: none;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    padding: 12px 24px;
+  }
+  .acd-info-item:last-child {
+    border-bottom: none;
+  }
+  .acd-cards-row {
+    grid-template-columns: 1fr;
+  }
+  .acd-actions {
+    grid-template-columns: 1fr;
+  }
+}

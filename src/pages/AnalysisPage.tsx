@@ -15,6 +15,7 @@ import {
   Area,
   ResponsiveContainer,
 } from "recharts";
+import { useLanguage } from "../i18n/useLanguage";
 
 // ===== Mock Data =====
 
@@ -28,17 +29,6 @@ const riskForecastData = [
   { time: "18h", red: 215, orange: 5, yellow: 215, green: 1000 },
   { time: "21h", red: 101, orange: 5, yellow: 215, green: 900 },
   { time: "24h", red: 181, orange: 5, yellow: 215, green: 850 },
-];
-
-const trendData = [
-  { day: "Sun", value: 20 },
-  { day: "Mon", value: 56 },
-  { day: "Tue", value: 34 },
-  { day: "Wed", value: 33 },
-  { day: "Thu", value: 77 },
-  { day: "Fri", value: 78 },
-  { day: "Sat", value: 53 },
-  { day: "Sun", value: 32 },
 ];
 
 const divisionData = [
@@ -398,6 +388,27 @@ function ChartCard({
 
 // ===== Main Page =====
 export function AnalysisPage() {
+  const { t } = useLanguage();
+
+  const trendData = [
+    { day: t("日", "Sun"), value: 20 },
+    { day: t("一", "Mon"), value: 56 },
+    { day: t("二", "Tue"), value: 34 },
+    { day: t("三", "Wed"), value: 33 },
+    { day: t("四", "Thu"), value: 77 },
+    { day: t("五", "Fri"), value: 78 },
+    { day: t("六", "Sat"), value: 53 },
+    { day: t("日", "Sun"), value: 32 },
+  ];
+
+  const headerButtons = [
+    t("查看高风险航班", "View High-Risk Flights"),
+    t("查看高风险机场", "View High-Risk Airports"),
+    t("查看高风险人员", "View High-Risk Personnel"),
+    t("更多分析", "More Analysis"),
+    t("导出综合报告", "Export Summary Report"),
+  ];
+
   return (
     <div
       style={{
@@ -418,7 +429,9 @@ export function AnalysisPage() {
       >
         <span>MRIWP</span>
         <span style={{ margin: "0 8px", color: "#475569" }}>&gt;</span>
-        <span style={{ color: "#e2e8f0" }}>Summary Analysis</span>
+        <span style={{ color: "#e2e8f0" }}>
+          {t("综合分析", "Summary Analysis")}
+        </span>
       </div>
 
       {/* Header */}
@@ -438,16 +451,10 @@ export function AnalysisPage() {
             margin: 0,
           }}
         >
-          Summary Analysis
+          {t("综合分析", "Summary Analysis")}
         </h1>
         <div style={{ display: "flex", gap: 8 }}>
-          {[
-            "View High-Risk Flights",
-            "View High-Risk Airports",
-            "View High-Risk Personnel",
-            "More Analysis",
-            "Export Summary Report",
-          ].map((btn) => (
+          {headerButtons.map((btn) => (
             <button
               key={btn}
               style={{
@@ -493,37 +500,48 @@ export function AnalysisPage() {
             gap: 12,
           }}
         >
-          <StatCard label="Total Flights" value="14,872" trend="up" />
           <StatCard
-            label="Red risk"
+            label={t("总航班数", "Total Flights")}
+            value="14,872"
+            trend="up"
+          />
+          <StatCard
+            label={t("红色风险", "Red risk")}
             value="215"
             change="(1.4%)"
             color="#ef4444"
             trend="up"
           />
           <StatCard
-            label="Orange risk"
+            label={t("橙色风险", "Orange risk")}
             value="137"
             change="(1.4%)"
             color="#f97316"
             trend="down"
           />
           <StatCard
-            label="Yellow risk"
+            label={t("黄色风险", "Yellow risk")}
             value="130"
             change="(1.6%)"
             color="#eab308"
             trend="down"
           />
           <StatCard
-            label="Green risk"
+            label={t("绿色风险", "Green risk")}
             value="148"
             change="(1.2%)"
             color="#22c55e"
             trend="up"
           />
-          <StatCard label="High-Risk Airports" value="28" trend="up" />
-          <StatCard label="High-Risk Personnel" value="112" />
+          <StatCard
+            label={t("高风险机场", "High-Risk Airports")}
+            value="28"
+            trend="up"
+          />
+          <StatCard
+            label={t("高风险人员", "High-Risk Personnel")}
+            value="112"
+          />
         </div>
 
         {/* Row 2: Risk Forecast + Distribution by Division + Distribution by Squadron */}
@@ -535,7 +553,10 @@ export function AnalysisPage() {
           }}
         >
           <ChartCard
-            title="Risk Forecast Changes (4h, 10h, 18h, 24h)"
+            title={t(
+              "风险预测变化 (4h, 10h, 18h, 24h)",
+              "Risk Forecast Changes (4h, 10h, 18h, 24h)",
+            )}
             extra={
               <select
                 style={{
@@ -548,7 +569,12 @@ export function AnalysisPage() {
                   outline: "none",
                 }}
               >
-                <option>Current Snapshot (Last 24 Hours)</option>
+                <option>
+                  {t(
+                    "当前快照（近24小时）",
+                    "Current Snapshot (Last 24 Hours)",
+                  )}
+                </option>
               </select>
             }
           >
@@ -594,7 +620,7 @@ export function AnalysisPage() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Distribution by Division">
+          <ChartCard title={t("按部门分布", "Distribution by Division")}>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={divisionData} layout="vertical" barSize={14}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -618,7 +644,7 @@ export function AnalysisPage() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Distribution by Squadron">
+          <ChartCard title={t("按中队分布", "Distribution by Squadron")}>
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={squadronData} layout="horizontal" barSize={12}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -649,7 +675,12 @@ export function AnalysisPage() {
             gap: 12,
           }}
         >
-          <ChartCard title="New High-Risk Trends (Last 7 Days)">
+          <ChartCard
+            title={t(
+              "新增高风险趋势（近7天）",
+              "New High-Risk Trends (Last 7 Days)",
+            )}
+          >
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -667,7 +698,7 @@ export function AnalysisPage() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Distribution by Airport">
+          <ChartCard title={t("按机场分布", "Distribution by Airport")}>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={airportData} layout="vertical" barSize={10}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -691,7 +722,7 @@ export function AnalysisPage() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Distribution by Aircraft Type">
+          <ChartCard title={t("按机型分布", "Distribution by Aircraft Type")}>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={aircraftTypeData} barSize={30}>
                 <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
@@ -714,7 +745,7 @@ export function AnalysisPage() {
             </ResponsiveContainer>
           </ChartCard>
 
-          <ChartCard title="Distribution by Risk Type">
+          <ChartCard title={t("按风险类型分布", "Distribution by Risk Type")}>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie
@@ -749,25 +780,25 @@ export function AnalysisPage() {
           }}
         >
           <FactorTable
-            title="Human Factor Top N"
+            title={t("人为因素 Top N", "Human Factor Top N")}
             data={humanFactorData}
             nameKey="factor"
             barMax={200}
           />
           <FactorTable
-            title="Aircraft Factor Top N"
+            title={t("飞机因素 Top N", "Aircraft Factor Top N")}
             data={aircraftFactorData}
             nameKey="factor"
             barMax={20}
           />
           <FactorTable
-            title="Environmental Factor Top N"
+            title={t("环境因素 Top N", "Environmental Factor Top N")}
             data={envFactorData}
             nameKey="factor"
             barMax={40}
           />
           <FactorTable
-            title="Composite Cause Top N"
+            title={t("综合原因 Top N", "Composite Cause Top N")}
             data={compositeData}
             nameKey="cause"
             barMax={120}

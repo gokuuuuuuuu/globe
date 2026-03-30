@@ -7,6 +7,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { useLanguage } from "../i18n/useLanguage";
 import "./EvidenceChainPage.css";
 
 // ===== Mock Data =====
@@ -123,75 +124,106 @@ const evidenceItems: EvidenceItem[] = [
   },
 ];
 
+const categoryTranslations: Record<string, string> = {
+  "QAR / Flight Data": "QAR / 飞行数据",
+  "Training Records": "训练记录",
+  "Maintenance Records": "维修记录",
+  Messages: "消息",
+  Notices: "通知",
+  "Rule Clauses": "规章条款",
+  "Manual Feedback": "人工反馈",
+};
+
 const AXIS_TICK = { fill: "#64748b", fontSize: 11 };
 const GRID_STROKE = "rgba(148,163,184,0.1)";
 
 // ===== Component =====
 
 export function EvidenceChainPage() {
+  const { t } = useLanguage();
+
   return (
     <div className="ec-root">
       {/* Breadcrumb */}
       <div className="ec-breadcrumb">
         MRIWP
         <span className="ec-breadcrumb-sep">&gt;</span>
-        Risk Monitoring
+        {t("风险监控", "Risk Monitoring")}
         <span className="ec-breadcrumb-sep">&gt;</span>
-        <span className="ec-breadcrumb-active">Evidence Chain</span>
+        <span className="ec-breadcrumb-active">
+          {t("证据链", "Evidence Chain")}
+        </span>
       </div>
 
       {/* Page Header */}
       <div className="ec-page-header">
-        <h1 className="ec-page-title">Evidence Chain</h1>
+        <h1 className="ec-page-title">{t("证据链", "Evidence Chain")}</h1>
         <button className="ec-btn-primary">
-          <span>&#8595;</span> Download Full Evidence Package
+          <span>&#8595;</span>{" "}
+          {t("下载完整证据包", "Download Full Evidence Package")}
         </button>
       </div>
 
       <div className="ec-content">
         {/* Assessment Summary */}
         <div className="ec-summary-card">
-          <div className="ec-summary-title">Assessment Summary</div>
+          <div className="ec-summary-title">
+            {t("评估摘要", "Assessment Summary")}
+          </div>
           <div className="ec-summary-body">
             <div className="ec-summary-fields">
               <div className="ec-field-row">
-                <span className="ec-field-label">Assessment ID:</span>
+                <span className="ec-field-label">
+                  {t("评估ID：", "Assessment ID:")}
+                </span>
                 <span className="ec-field-value">{assessment.id}</span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Date:</span>
+                <span className="ec-field-label">{t("日期：", "Date:")}</span>
                 <span className="ec-field-value">{assessment.date}</span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Subject:</span>
+                <span className="ec-field-label">
+                  {t("主题：", "Subject:")}
+                </span>
                 <span className="ec-field-value">{assessment.subject}</span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Last Updated By:</span>
+                <span className="ec-field-label">
+                  {t("最后更新人：", "Last Updated By:")}
+                </span>
                 <span className="ec-field-value">
                   {assessment.lastUpdatedBy}
                 </span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Created By:</span>
+                <span className="ec-field-label">
+                  {t("创建人：", "Created By:")}
+                </span>
                 <span className="ec-field-value">{assessment.createdBy}</span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Status:</span>
+                <span className="ec-field-label">{t("状态：", "Status:")}</span>
                 <span className="ec-field-value ec-status-verified">
-                  {assessment.status}
+                  {t("已验证", "Verified")}
                 </span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Last Updated:</span>
+                <span className="ec-field-label">
+                  {t("最后更新：", "Last Updated:")}
+                </span>
                 <span className="ec-field-value">{assessment.lastUpdated}</span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Risk Level:</span>
+                <span className="ec-field-label">
+                  {t("风险等级：", "Risk Level:")}
+                </span>
                 <span className="ec-field-value">{assessment.riskLevel}</span>
               </div>
               <div className="ec-field-row">
-                <span className="ec-field-label">Risk Level:</span>
+                <span className="ec-field-label">
+                  {t("风险等级：", "Risk Level:")}
+                </span>
                 <span className="ec-risk-badge-inline ec-badge-red">
                   Red / High Risk
                 </span>
@@ -216,8 +248,10 @@ export function EvidenceChainPage() {
 
         {/* Verified status bar */}
         <div className="ec-verified-bar">
-          Last Verified: Status on |{" "}
-          <span className="ec-verified-link">Full audit Log</span>
+          {t("最后验证：状态开启 | ", "Last Verified: Status on | ")}
+          <span className="ec-verified-link">
+            {t("完整审计日志", "Full audit Log")}
+          </span>
         </div>
 
         {/* Evidence Cards Grid */}
@@ -225,9 +259,14 @@ export function EvidenceChainPage() {
           {evidenceItems.map((item, i) => (
             <div key={i} className="ec-evidence-card">
               <div className="ec-evidence-card-header">
-                <span className="ec-evidence-card-title">{item.category}</span>
+                <span className="ec-evidence-card-title">
+                  {t(
+                    categoryTranslations[item.category] || item.category,
+                    item.category,
+                  )}
+                </span>
                 <div className="ec-evidence-status">
-                  <span>Status:</span>
+                  <span>{t("状态：", "Status:")}</span>
                   <span className="ec-status-icon ec-status-icon-ok">
                     &#10003;
                   </span>
@@ -238,7 +277,9 @@ export function EvidenceChainPage() {
                 <div className="ec-evidence-item-header">
                   <div className="ec-evidence-icon">{item.icon}</div>
                   <div>
-                    <div className="ec-evidence-summary-label">Summary</div>
+                    <div className="ec-evidence-summary-label">
+                      {t("摘要", "Summary")}
+                    </div>
                     <div className="ec-evidence-summary-text">
                       {item.summary}
                     </div>
@@ -246,7 +287,7 @@ export function EvidenceChainPage() {
                 </div>
                 <div className="ec-evidence-time">{item.time}</div>
                 <div className="ec-evidence-relation">
-                  Relation to Risk Item
+                  {t("与风险项的关系", "Relation to Risk Item")}
                 </div>
                 <div className="ec-evidence-relation-text">
                   {item.relation}
@@ -259,16 +300,20 @@ export function EvidenceChainPage() {
                   )}
                 </div>
                 <div className="ec-evidence-added">
-                  <span>&#9775;</span> Added By
+                  <span>&#9775;</span> {t("添加人", "Added By")}
                 </div>
               </div>
 
               <div className="ec-evidence-actions">
-                <button className="ec-btn">View Original Source</button>
-                <button className="ec-btn">View Related Rule</button>
+                <button className="ec-btn">
+                  {t("查看原始来源", "View Original Source")}
+                </button>
+                <button className="ec-btn">
+                  {t("查看相关规则", "View Related Rule")}
+                </button>
                 {item.hasDownload && (
                   <button className="ec-btn ec-btn-download">
-                    &#8595; Download Evidence Package
+                    &#8595; {t("下载证据包", "Download Evidence Package")}
                   </button>
                 )}
               </div>
@@ -278,8 +323,10 @@ export function EvidenceChainPage() {
 
         {/* Bottom verified bar */}
         <div className="ec-verified-bar">
-          Last Verified |{" "}
-          <span className="ec-verified-link">Full audit Log</span>
+          {t("最后验证：状态开启 | ", "Last Verified | ")}
+          <span className="ec-verified-link">
+            {t("完整审计日志", "Full audit Log")}
+          </span>
         </div>
       </div>
     </div>

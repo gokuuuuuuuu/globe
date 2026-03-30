@@ -13,6 +13,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { useLanguage } from "../i18n/useLanguage";
 import "./FactorExplanationPage.css";
 
 // ===== Mock Data =====
@@ -171,8 +172,16 @@ const darkTooltipStyle = {
 // ===== Component =====
 
 export function FactorExplanationPage() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState(0);
   const [trendRange, setTrendRange] = useState("30");
+
+  const riskLevelText =
+    factorInfo.level === "High"
+      ? t("高风险", "High Risk")
+      : factorInfo.level === "Medium"
+        ? t("中风险", "Medium Risk")
+        : t("低风险", "Low Risk");
 
   return (
     <div className="fe-root">
@@ -180,32 +189,41 @@ export function FactorExplanationPage() {
       <div className="fe-breadcrumb">
         MRIWP
         <span className="fe-breadcrumb-sep">&gt;</span>
-        Risk Monitoring
+        {t("风险监控", "Risk Monitoring")}
         <span className="fe-breadcrumb-sep">&gt;</span>
-        <span className="fe-breadcrumb-active">Factor Explanation</span>
+        <span className="fe-breadcrumb-active">
+          {t("因子解释", "Factor Explanation")}
+        </span>
       </div>
 
       {/* Page Header */}
       <div className="fe-page-header">
         <div className="fe-header-left">
           <h1 className="fe-page-title">
-            Detailed Risk Factor Explanation: {factorInfo.factor}
+            {t("风险因子详细解释：", "Detailed Risk Factor Explanation: ")}
+            {factorInfo.factor}
           </h1>
-          <p className="fe-page-subtitle">Flight {factorInfo.flightNumber}</p>
+          <p className="fe-page-subtitle">
+            {t("航班", "Flight")} {factorInfo.flightNumber}
+          </p>
         </div>
         <div className="fe-header-right">
           <div className="fe-meta-item">
-            <div className="fe-meta-label">Last Analysis Time</div>
+            <div className="fe-meta-label">
+              {t("最近分析时间", "Last Analysis Time")}
+            </div>
             <div className="fe-meta-value">{factorInfo.lastAnalysisTime}</div>
           </div>
           <div className="fe-meta-item">
-            <div className="fe-meta-label">Analysis Method</div>
+            <div className="fe-meta-label">
+              {t("分析方法", "Analysis Method")}
+            </div>
             <div className="fe-meta-value">{factorInfo.analysisMethod}</div>
           </div>
           <span
             className={`fe-risk-badge fe-risk-${factorInfo.level.toLowerCase()}`}
           >
-            {factorInfo.level} Risk
+            {riskLevelText}
           </span>
         </div>
       </div>
@@ -213,38 +231,50 @@ export function FactorExplanationPage() {
       <div className="fe-content">
         {/* Top Factor Card */}
         <div className="fe-factor-card">
-          <div className="fe-factor-card-title">Top Factor Card</div>
+          <div className="fe-factor-card-title">
+            {t("首要因子卡片", "Top Factor Card")}
+          </div>
           <div className="fe-factor-card-body">
             <div className="fe-factor-field">
-              <div className="fe-factor-field-label">Factor</div>
+              <div className="fe-factor-field-label">{t("因子", "Factor")}</div>
               <div className="fe-factor-field-value">{factorInfo.factor}</div>
             </div>
             <div className="fe-factor-field">
-              <div className="fe-factor-field-label">ID</div>
+              <div className="fe-factor-field-label">{t("ID", "ID")}</div>
               <div className="fe-factor-field-value-sm">{factorInfo.id}</div>
             </div>
             <div className="fe-factor-field">
-              <div className="fe-factor-field-label">Dimension</div>
+              <div className="fe-factor-field-label">
+                {t("维度", "Dimension")}
+              </div>
               <div className="fe-factor-field-value-sm">
                 {factorInfo.dimension}
               </div>
             </div>
             <div className="fe-factor-field">
               <div className="fe-factor-field-label">
-                Current Contribution Value
+                {t("当前贡献值", "Current Contribution Value")}
               </div>
               <div className="fe-contribution-value">
                 {factorInfo.contributionValue} / {factorInfo.maxValue}
                 <span
                   className={`fe-contribution-badge fe-badge-${factorInfo.level.toLowerCase()}`}
                 >
-                  {factorInfo.level}
+                  {factorInfo.level === "High"
+                    ? t("高风险", "High")
+                    : factorInfo.level === "Medium"
+                      ? t("中风险", "Medium")
+                      : t("低风险", "Low")}
                 </span>
               </div>
             </div>
             <div className="fe-factor-card-actions">
-              <button className="fe-btn">View Evidence</button>
-              <button className="fe-btn">View Historical Changes</button>
+              <button className="fe-btn">
+                {t("查看证据", "View Evidence")}
+              </button>
+              <button className="fe-btn">
+                {t("查看历史变化", "View Historical Changes")}
+              </button>
             </div>
           </div>
           <div className="fe-factor-description">{factorInfo.description}</div>
@@ -255,32 +285,36 @@ export function FactorExplanationPage() {
           {/* Decision Logic & Model Inputs */}
           <div className="fe-card">
             <div className="fe-card-title">
-              Decision Logic &amp; Model Inputs
+              {t("决策逻辑与模型输入", "Decision Logic & Model Inputs")}
             </div>
 
-            <div className="fe-logic-section-title">Applied Logic</div>
+            <div className="fe-logic-section-title">
+              {t("应用逻辑", "Applied Logic")}
+            </div>
             <div className="fe-logic-rules">
               {appliedRules.map((rule, i) => (
                 <div key={i} className="fe-logic-rule">
-                  <span className="fe-logic-keyword">IF</span>
+                  <span className="fe-logic-keyword">{t("如果", "IF")}</span>
                   <span className="fe-logic-condition">{rule.condition}</span>
-                  <span className="fe-logic-then">THEN</span>
+                  <span className="fe-logic-then">{t("则", "THEN")}</span>
                   <span className="fe-logic-result fe-logic-result-triggered">
-                    {rule.result}
+                    {t("已触发", "Triggered")}
                   </span>
                 </div>
               ))}
             </div>
 
-            <div className="fe-logic-section-title">Model Features</div>
+            <div className="fe-logic-section-title">
+              {t("模型特征", "Model Features")}
+            </div>
             <div className="fe-table-wrapper">
               <table className="fe-table">
                 <thead>
                   <tr>
-                    <th>Feature Name</th>
-                    <th>Description</th>
-                    <th>Current Value</th>
-                    <th>Threshold/Range</th>
+                    <th>{t("特征名称", "Feature Name")}</th>
+                    <th>{t("描述", "Description")}</th>
+                    <th>{t("当前值", "Current Value")}</th>
+                    <th>{t("阈值/范围", "Threshold/Range")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -300,20 +334,22 @@ export function FactorExplanationPage() {
           {/* Trends & Comparative Analysis */}
           <div className="fe-card">
             <div className="fe-card-title">
-              Trends &amp; Comparative Analysis
+              {t("趋势与对比分析", "Trends & Comparative Analysis")}
             </div>
 
             {/* Contribution Trend Chart */}
             <div className="fe-trend-header">
-              <span className="fe-trend-title">Contribution Trend Chart</span>
+              <span className="fe-trend-title">
+                {t("贡献趋势图", "Contribution Trend Chart")}
+              </span>
               <select
                 className="fe-trend-select"
                 value={trendRange}
                 onChange={(e) => setTrendRange(e.target.value)}
               >
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 90 days</option>
+                <option value="7">{t("近7天", "Last 7 days")}</option>
+                <option value="30">{t("近30天", "Last 30 days")}</option>
+                <option value="90">{t("近90天", "Last 90 days")}</option>
               </select>
             </div>
             <div className="fe-chart-container">
@@ -333,7 +369,7 @@ export function FactorExplanationPage() {
                     stroke="#94a3b8"
                     strokeDasharray="4 4"
                     label={{
-                      value: "Threshold",
+                      value: t("阈值", "Threshold"),
                       position: "left",
                       fill: "#94a3b8",
                       fontSize: 11,
@@ -391,8 +427,12 @@ export function FactorExplanationPage() {
 
             {/* Peer Sample Comparison */}
             <div className="fe-peer-header">
-              <span className="fe-peer-title">Peer Sample Comparison</span>
-              <span className="fe-peer-percentile">99th Percentile</span>
+              <span className="fe-peer-title">
+                {t("同类样本对比", "Peer Sample Comparison")}
+              </span>
+              <span className="fe-peer-percentile">
+                {t("第99百分位", "99th Percentile")}
+              </span>
             </div>
             <div className="fe-peer-chart-container">
               <ResponsiveContainer width="100%" height="100%">
@@ -432,13 +472,13 @@ export function FactorExplanationPage() {
               className={`fe-tab ${activeTab === 0 ? "fe-tab-active" : ""}`}
               onClick={() => setActiveTab(0)}
             >
-              Related Context
+              {t("相关上下文", "Related Context")}
             </button>
             <button
               className={`fe-tab ${activeTab === 1 ? "fe-tab-active" : ""}`}
               onClick={() => setActiveTab(1)}
             >
-              Related Context
+              {t("相关上下文", "Related Context")}
             </button>
           </div>
 
@@ -446,16 +486,18 @@ export function FactorExplanationPage() {
             {/* Related Flights */}
             <div>
               <div className="fe-related-block-header">
-                <span className="fe-related-block-title">Related Flights</span>
+                <span className="fe-related-block-title">
+                  {t("相关航班", "Related Flights")}
+                </span>
               </div>
               <table className="fe-table">
                 <thead>
                   <tr>
-                    <th>Flight ID</th>
-                    <th>Date</th>
-                    <th>Route</th>
-                    <th>Factor Score</th>
-                    <th>Status</th>
+                    <th>{t("航班ID", "Flight ID")}</th>
+                    <th>{t("日期", "Date")}</th>
+                    <th>{t("航线", "Route")}</th>
+                    <th>{t("因子分数", "Factor Score")}</th>
+                    <th>{t("状态", "Status")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -485,17 +527,19 @@ export function FactorExplanationPage() {
             {/* Related Objects */}
             <div>
               <div className="fe-related-block-header">
-                <span className="fe-related-block-title">Related Objects</span>
+                <span className="fe-related-block-title">
+                  {t("相关对象", "Related Objects")}
+                </span>
                 <button className="fe-btn fe-btn-sm">
-                  View Related Object
+                  {t("查看相关对象", "View Related Object")}
                 </button>
               </div>
               <table className="fe-table">
                 <thead>
                   <tr>
-                    <th>Object ID</th>
-                    <th>Type</th>
-                    <th>Association</th>
+                    <th>{t("对象ID", "Object ID")}</th>
+                    <th>{t("类型", "Type")}</th>
+                    <th>{t("关联", "Association")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -513,7 +557,9 @@ export function FactorExplanationPage() {
             {/* Related Rules */}
             <div>
               <div className="fe-related-block-header">
-                <span className="fe-related-block-title">Related Rules</span>
+                <span className="fe-related-block-title">
+                  {t("相关规则", "Related Rules")}
+                </span>
               </div>
               <div className="fe-rules-list">
                 {relatedRules.map((rule, i) => (

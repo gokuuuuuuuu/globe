@@ -1,0 +1,384 @@
+.ad-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.ad-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.ad-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.ad-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Header Card */
+.ad-header-card {
+  margin: 16px 24px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: flex;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.ad-header-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.ad-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 16px 0;
+}
+
+.ad-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.ad-risk-level-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.ad-risk-level-box.ad-risk-high {
+  background: #dc2626;
+}
+
+.ad-risk-level-box.ad-risk-medium {
+  background: #ea580c;
+}
+
+.ad-risk-level-box.ad-risk-low {
+  background: #22c55e;
+}
+
+.ad-header-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.ad-header-stats .ad-stat-red {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.ad-header-stats .ad-stat-orange {
+  color: #ea580c;
+  font-weight: 600;
+}
+
+.ad-risk-types {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ad-risk-types-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.ad-risk-types-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ad-risk-type-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  background: rgba(51, 65, 85, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  color: #e2e8f0;
+}
+
+.ad-risk-type-tag .ad-tag-icon {
+  font-size: 12px;
+}
+
+.ad-env-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.ad-env-summary-label {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.ad-env-summary-text {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+/* Header Right Buttons */
+.ad-header-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ad-action-btn {
+  padding: 8px 20px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.6);
+  color: #cbd5e1;
+  white-space: nowrap;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.ad-action-btn:hover {
+  background: rgba(51, 65, 85, 0.7);
+  color: #f1f5f9;
+}
+
+.ad-action-btn-primary {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+.ad-action-btn-primary:hover {
+  background: rgba(59, 130, 246, 0.25);
+}
+
+/* Chart Grid */
+.ad-chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 0 24px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.ad-chart-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ad-chart-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 12px;
+}
+
+.ad-chart-legend {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.ad-chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.ad-chart-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Gauge */
+.ad-gauge-row {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 12px;
+}
+
+.ad-gauge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ad-gauge-label {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+.ad-gauge-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.ad-env-alerts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.ad-env-alert-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #e2e8f0;
+}
+
+.ad-env-alert-icon {
+  color: #eab308;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* Flight Table Card */
+.ad-table-card {
+  margin: 0 24px 24px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+  flex-shrink: 0;
+}
+
+.ad-table-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin-bottom: 12px;
+}
+
+.ad-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ad-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: #94a3b8;
+  font-weight: 500;
+  font-size: 11px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  white-space: nowrap;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.ad-table td {
+  padding: 8px 10px;
+  color: #e2e8f0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  vertical-align: middle;
+}
+
+.ad-table tr:hover td {
+  background: rgba(51, 65, 85, 0.2);
+}
+
+/* Risk badges */
+.ad-risk-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.ad-badge-red {
+  background: #dc2626;
+}
+
+.ad-badge-orange {
+  background: #ea580c;
+}
+
+.ad-badge-yellow {
+  background: #eab308;
+  color: #1e293b;
+}
+
+.ad-badge-green {
+  background: #22c55e;
+}
+
+.ad-view-link {
+  color: #60a5fa;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ad-view-link:hover {
+  text-decoration: underline;
+  color: #93c5fd;
+}
+
+/* Scrollbar */
+.ad-root::-webkit-scrollbar {
+  width: 5px;
+}
+
+.ad-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ad-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 3px;
+}

@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 import { useMemo, useState, useRef, useEffect } from "react";
 import "../App.css";
@@ -14,21 +15,23 @@ import {
 import { ALL_PERSONS } from "../data/personData";
 // import type { Person } from "../data/personData";
 import { AnalysisPage } from "./AnalysisPage";
+import { useLanguage } from "../i18n/useLanguage";
 
 type ObjectTab = "flights" | "airports" | "personnel";
 
 const LAYERS = [
-  { key: "wind", label: "Wind" },
-  { key: "temperature", label: "Temp" },
-  { key: "precipitation", label: "Precip" },
-  { key: "fog", label: "Fog" },
-  { key: "moisture", label: "Moisture" },
-  { key: "lightning", label: "Lightning" },
-  { key: "cat", label: "CAT" },
-  { key: "visibility", label: "Visibility" },
+  { key: "wind", labelZh: "风", labelEn: "Wind" },
+  { key: "temperature", labelZh: "温度", labelEn: "Temp" },
+  { key: "precipitation", labelZh: "降水", labelEn: "Precip" },
+  { key: "fog", labelZh: "雾", labelEn: "Fog" },
+  { key: "moisture", labelZh: "湿度", labelEn: "Moisture" },
+  { key: "lightning", labelZh: "闪电", labelEn: "Lightning" },
+  { key: "cat", labelZh: "晴空湍流", labelEn: "CAT" },
+  { key: "visibility", labelZh: "能见度", labelEn: "Visibility" },
 ] as const;
 
 export function HomePage() {
+  const { t } = useLanguage();
   const { atlas, world, isLoading, error } = useAtlasData();
   const {
     view,
@@ -223,52 +226,64 @@ export function HomePage() {
       {/* ===== Header ===== */}
       <header className="hp-header">
         <div className="hp-header-left">
-          <span className="hp-logo">▲ 重大风险智能预警平台</span>
+          <span className="hp-logo">
+            {t("▲ 重大风险智能预警平台", "▲ MRIWP")}
+          </span>
           <span className="hp-header-title">
-            Aviation Risk Prediction and Governance System · Home Workbench
+            {t(
+              "航空风险预测与治理系统 · 首页工作台",
+              "Aviation Risk Prediction and Governance System · Home Workbench",
+            )}
           </span>
         </div>
         <div className="hp-header-right">
           <span className="hp-header-time">
-            Data Refresh Time
+            {t("数据刷新时间", "Data Refresh Time")}
             <br />
             <strong>2026-03-23 02:20</strong>
           </span>
           <span className="hp-header-login">
-            Login Status:
+            {t("登录状态：", "Login Status:")}
             <br />
-            <strong>admin (Senior Administrator)</strong>
+            <strong>
+              {t("admin (高级管理员)", "admin (Senior Administrator)")}
+            </strong>
           </span>
         </div>
       </header>
 
       <div className="hp-toolbar">
         <div className="hp-toolbar-section">
-          <span className="hp-toolbar-label">Object Switching</span>
+          <span className="hp-toolbar-label">
+            {t("对象切换", "Object Switching")}
+          </span>
           <div className="hp-btn-group">
             <button
               className={`hp-btn ${objectTab === "flights" ? "hp-btn-active" : ""}`}
               onClick={() => setObjectTab("flights")}
             >
-              Flights
+              {t("航班", "Flights")}
             </button>
             <button
               className={`hp-btn ${objectTab === "airports" ? "hp-btn-active" : ""}`}
               onClick={() => setObjectTab("airports")}
             >
-              Airports
+              {t("机场", "Airports")}
             </button>
             <button
               className={`hp-btn ${objectTab === "personnel" ? "hp-btn-active" : ""}`}
               onClick={() => setObjectTab("personnel")}
             >
-              Personnel
+              {t("人员", "Personnel")}
             </button>
           </div>
         </div>
         <div className="hp-toolbar-section">
           <span className="hp-toolbar-label">
-            Forecast time window and Quick action
+            {t(
+              "预测时间窗口与快捷操作",
+              "Forecast time window and Quick action",
+            )}
           </span>
           <div className="hp-btn-group">
             {[4, 10, 18, 24].map((h) => (
@@ -277,7 +292,7 @@ export function HomePage() {
                 className={`hp-btn ${timelineTimeRange === h ? "hp-btn-active" : ""}`}
                 onClick={() => setTimelineTimeRange(h as 4 | 10 | 18 | 24)}
               >
-                {h} Hours
+                {h} {t("小时", "Hours")}
               </button>
             ))}
           </div>
@@ -286,10 +301,14 @@ export function HomePage() {
               className={`hp-btn ${showAnalysis ? "hp-btn-active" : ""}`}
               onClick={() => setShowAnalysis(!showAnalysis)}
             >
-              Summary Analysis
+              {t("综合分析", "Summary Analysis")}
             </button>
-            <button className="hp-btn">Statistical Analysis</button>
-            <button className="hp-btn">Governance Workflow</button>
+            <button className="hp-btn">
+              {t("统计分析", "Statistical Analysis")}
+            </button>
+            <button className="hp-btn">
+              {t("治理工作流", "Governance Workflow")}
+            </button>
           </div>
         </div>
       </div>
@@ -298,134 +317,137 @@ export function HomePage() {
         {objectTab === "flights" && (
           <>
             <StatCard
-              label="Forecast Flights"
+              label={t("预测航班", "Forecast Flights")}
               value={flightStats.total.toLocaleString()}
               trend="up"
             />
             <StatCard
-              label="Red"
+              label={t("红色", "Red")}
               value={flightStats.red.toString()}
               change="+6.3%"
               color="#ef4444"
               trend="up"
             />
             <StatCard
-              label="Orange"
+              label={t("橙色", "Orange")}
               value={flightStats.orange.toString()}
               change="+12"
               color="#f97316"
               trend="up"
             />
             <StatCard
-              label="Yellow"
+              label={t("黄色", "Yellow")}
               value={flightStats.yellow.toString()}
               change="-18"
               color="#eab308"
               trend="down"
             />
             <StatCard
-              label="Green"
+              label={t("绿色", "Green")}
               value={flightStats.green.toString()}
               change="+55"
               color="#22c55e"
               trend="up"
             />
             <StatCard
-              label="High-Risk Airports"
+              label={t("高风险机场", "High-Risk Airports")}
               value={airportStats.red.toString()}
             />
             <StatCard
-              label="High-Risk Personnel"
+              label={t("高风险人员", "High-Risk Personnel")}
               value={personnelStats.highRisk.toString()}
               change="+3"
               trend="up"
             />
-            <StatCard label="New High-Risk (1h)" value="17" />
+            <StatCard
+              label={t("新增高风险(1h)", "New High-Risk (1h)")}
+              value="17"
+            />
           </>
         )}
         {objectTab === "airports" && (
           <>
             <StatCard
-              label="Monitored Airports"
+              label={t("监控机场", "Monitored Airports")}
               value={airportStats.total.toString()}
             />
             <StatCard
-              label="Red"
+              label={t("红色", "Red")}
               value={airportStats.red.toString()}
               color="#ef4444"
               trend="up"
             />
             <StatCard
-              label="Orange"
+              label={t("橙色", "Orange")}
               value={airportStats.orange.toString()}
               color="#f97316"
             />
             <StatCard
-              label="Green"
+              label={t("绿色", "Green")}
               value={airportStats.green.toString()}
               color="#22c55e"
             />
             <StatCard
-              label="High-Risk Flights"
+              label={t("高风险航班", "High-Risk Flights")}
               value={flightStats.red.toString()}
               color="#ef4444"
               trend="up"
             />
             <StatCard
-              label="Operators"
+              label={t("运营人员", "Operators")}
               value={new Set(
                 AIRPORTS.map((a) => a.operatorCount),
               ).size.toString()}
             />
             <StatCard
-              label="Total Flights"
+              label={t("总航班数", "Total Flights")}
               value={AIRPORTS.reduce(
                 (s, a) => s + a.flightCount,
                 0,
               ).toLocaleString()}
             />
-            <StatCard label="New Alerts (1h)" value="8" />
+            <StatCard label={t("新增告警(1h)", "New Alerts (1h)")} value="8" />
           </>
         )}
         {objectTab === "personnel" && (
           <>
             <StatCard
-              label="Monitored Personnel"
+              label={t("监控人员", "Monitored Personnel")}
               value={personnelStats.total.toLocaleString()}
             />
             <StatCard
-              label="High Risk"
+              label={t("高风险", "High Risk")}
               value={personnelStats.highRisk.toString()}
               color="#ef4444"
               trend="up"
             />
             <StatCard
-              label="Medium Risk"
+              label={t("中风险", "Medium Risk")}
               value={personnelStats.mediumRisk.toString()}
               color="#f97316"
             />
             <StatCard
-              label="Low Risk"
+              label={t("低风险", "Low Risk")}
               value={personnelStats.lowRisk.toString()}
               color="#22c55e"
             />
             <StatCard
-              label="Instructor"
+              label={t("教员", "Instructor")}
               value={(personnelStats.techCounts["教员"] || 0).toString()}
             />
             <StatCard
-              label="Captain"
+              label={t("机长", "Captain")}
               value={(personnelStats.techCounts["机长"] || 0).toString()}
             />
             <StatCard
-              label="First Officer"
+              label={t("副驾驶", "First Officer")}
               value={(
                 (personnelStats.techCounts["第一副驾驶"] || 0) +
                 (personnelStats.techCounts["第二副驾驶"] || 0)
               ).toString()}
             />
             <StatCard
-              label="Cruise Captain"
+              label={t("巡航机长", "Cruise Captain")}
               value={(personnelStats.techCounts["巡航机长"] || 0).toString()}
             />
           </>
@@ -436,77 +458,116 @@ export function HomePage() {
       <div className="hp-body">
         {/* --- Left Filter Panel --- */}
         <aside className="hp-left-panel">
-          <h2 className="hp-panel-title">Filters & Duty Control</h2>
+          <h2 className="hp-panel-title">
+            {t("筛选与值班控制", "Filters & Duty Control")}
+          </h2>
           <div className="hp-filter-list">
             {objectTab === "flights" && (
               <>
                 <FilterItem
-                  label="Object View"
-                  value="Flights - Primary Object"
+                  label={t("对象视图", "Object View")}
+                  value={t("航班 - 主要对象", "Flights - Primary Object")}
                 />
                 <FilterItem
-                  label="Airline Division / Squadron"
-                  value="All Divisions · All Squadrons"
+                  label={t("航空部门 / 中队", "Airline Division / Squadron")}
+                  value={t(
+                    "所有部门 · 所有中队",
+                    "All Divisions · All Squadrons",
+                  )}
                 />
                 <FilterItem
-                  label="Region / Airport"
-                  value="East China · All Airports"
+                  label={t("区域 / 机场", "Region / Airport")}
+                  value={t("华东 · 所有机场", "East China · All Airports")}
                 />
                 <FilterItem
-                  label="Flight No. / Tail No."
-                  value="All Flights · All Aircraft"
+                  label={t("航班号 / 机尾号", "Flight No. / Tail No.")}
+                  value={t("所有航班 · 所有飞机", "All Flights · All Aircraft")}
                 />
                 <FilterItem
-                  label="Risk Level"
-                  value="Red · Orange"
+                  label={t("风险等级", "Risk Level")}
+                  value={t("红色 · 橙色", "Red · Orange")}
                   valueColor
                 />
-                <FilterItem label="Risk Type" value="All · Human/Mech/Env" />
                 <FilterItem
-                  label="Governance Status"
-                  value="Open Tickets Only"
+                  label={t("风险类型", "Risk Type")}
+                  value={t("全部 · 人为/机械/环境", "All · Human/Mech/Env")}
+                />
+                <FilterItem
+                  label={t("治理状态", "Governance Status")}
+                  value={t("仅开放工单", "Open Tickets Only")}
                 />
               </>
             )}
             {objectTab === "airports" && (
               <>
                 <FilterItem
-                  label="Object View"
-                  value="Airports - Primary Object"
+                  label={t("对象视图", "Object View")}
+                  value={t("机场 - 主要对象", "Airports - Primary Object")}
                 />
-                <FilterItem label="Region" value="East China · All Provinces" />
-                <FilterItem label="Airport Code / Name" value="All Airports" />
                 <FilterItem
-                  label="Env Risk Level"
-                  value="Red · Orange"
+                  label={t("区域", "Region")}
+                  value={t("华东 · 所有省份", "East China · All Provinces")}
+                />
+                <FilterItem
+                  label={t("机场代码 / 名称", "Airport Code / Name")}
+                  value={t("所有机场", "All Airports")}
+                />
+                <FilterItem
+                  label={t("环境风险等级", "Env Risk Level")}
+                  value={t("红色 · 橙色", "Red · Orange")}
                   valueColor
                 />
-                <FilterItem label="Flight Count Range" value="Unlimited" />
-                <FilterItem label="Operator Count" value="Unlimited" />
+                <FilterItem
+                  label={t("航班数量范围", "Flight Count Range")}
+                  value={t("不限", "Unlimited")}
+                />
+                <FilterItem
+                  label={t("运营人员数", "Operator Count")}
+                  value={t("不限", "Unlimited")}
+                />
               </>
             )}
             {objectTab === "personnel" && (
               <>
                 <FilterItem
-                  label="Object View"
-                  value="Personnel - Primary Object"
+                  label={t("对象视图", "Object View")}
+                  value={t("人员 - 主要对象", "Personnel - Primary Object")}
                 />
                 <FilterItem
-                  label="Tech Level"
-                  value="All · Instructor/Captain/FO"
+                  label={t("技术等级", "Tech Level")}
+                  value={t(
+                    "全部 · 教员/机长/副驾",
+                    "All · Instructor/Captain/FO",
+                  )}
                 />
-                <FilterItem label="Fleet" value="All Fleets" />
-                <FilterItem label="Risk Value Range" value="≥2.0" />
-                <FilterItem label="Flight Years" value="Unlimited" />
-                <FilterItem label="Current Aircraft" value="All Types" />
+                <FilterItem
+                  label={t("机队", "Fleet")}
+                  value={t("所有机队", "All Fleets")}
+                />
+                <FilterItem
+                  label={t("风险值范围", "Risk Value Range")}
+                  value="≥2.0"
+                />
+                <FilterItem
+                  label={t("飞行年限", "Flight Years")}
+                  value={t("不限", "Unlimited")}
+                />
+                <FilterItem
+                  label={t("当前机型", "Current Aircraft")}
+                  value={t("所有机型", "All Types")}
+                />
               </>
             )}
           </div>
           <div className="hp-filter-actions">
-            <button className="hp-btn hp-btn-primary">Apply</button>
-            <button className="hp-btn">Reset</button>
+            <button className="hp-btn hp-btn-primary">
+              {t("应用", "Apply")}
+            </button>
+            <button className="hp-btn">{t("重置", "Reset")}</button>
           </div>
-          <button className="hp-link-btn">Switch to List View</button>
+          <button className="hp-link-btn">
+            {t("切换到列表视图", "Switch to List View")}
+          </button>
         </aside>
 
         {/* --- Center Map Area --- */}
@@ -514,39 +575,49 @@ export function HomePage() {
           {/* Map Top Toolbar */}
           <div className="hp-map-toolbar">
             <h3 className="hp-map-title">
-              Spatial Distribution (
+              {t("空间分布", "Spatial Distribution")} (
               {objectTab === "flights"
-                ? "Flights"
+                ? t("航班", "Flights")
                 : objectTab === "airports"
-                  ? "Airports"
-                  : "Personnel"}{" "}
-              Mode)
+                  ? t("机场", "Airports")
+                  : t("人员", "Personnel")}{" "}
+              {t("模式", "Mode")})
             </h3>
             <div className="hp-map-actions">
               <button
                 className={`hp-btn hp-btn-sm ${view === "globe" ? "hp-btn-active" : ""}`}
                 onClick={() => setView("globe")}
               >
-                3D Globe
+                {t("3D 地球", "3D Globe")}
               </button>
               <button
                 className={`hp-btn hp-btn-sm ${view === "map" ? "hp-btn-active" : ""}`}
                 onClick={() => setView("map")}
               >
-                2D Map
+                {t("2D 地图", "2D Map")}
               </button>
               <button
                 className={`hp-btn hp-btn-sm ${redOrangeOnly ? "hp-btn-active" : ""}`}
                 onClick={toggleRedOrangeOnly}
               >
-                <span style={{ color: "#ef4444" }}>Red</span> and{" "}
-                <span style={{ color: "#f97316" }}>Orange</span> Only
+                {t(
+                  <>
+                    仅显示<span style={{ color: "#ef4444" }}>红色</span>和
+                    <span style={{ color: "#f97316" }}>橙色</span>
+                  </>,
+                  <>
+                    <span style={{ color: "#ef4444" }}>Red</span> and{" "}
+                    <span style={{ color: "#f97316" }}>Orange</span> Only
+                  </>,
+                )}
               </button>
               <button
                 className={`hp-btn hp-btn-sm ${timelineIsPlaying ? "hp-btn-active" : ""}`}
                 onClick={() => setTimelineIsPlaying(!timelineIsPlaying)}
               >
-                {timelineIsPlaying ? "Pause Timeline" : "Play Timeline"}
+                {timelineIsPlaying
+                  ? t("暂停时间线", "Pause Timeline")
+                  : t("播放时间线", "Play Timeline")}
               </button>
             </div>
           </div>
@@ -558,9 +629,9 @@ export function HomePage() {
                 key={layer.key}
                 className={`hp-layer-btn ${layerStates[layer.key].active ? "active" : ""}`}
                 onClick={layerStates[layer.key].toggle}
-                title={layer.label}
+                title={t(layer.labelZh, layer.labelEn)}
               >
-                {layer.label}
+                {t(layer.labelZh, layer.labelEn)}
               </button>
             ))}
           </div>
@@ -570,12 +641,15 @@ export function HomePage() {
             {isLoading && (
               <div className="status-card">
                 <div className="spinner" />
-                <p>Loading data...</p>
+                <p>{t("加载数据中...", "Loading data...")}</p>
               </div>
             )}
             {!isLoading && error && (
               <div className="status-card error">
-                <p>Load failed: {error}</p>
+                <p>
+                  {t("加载失败：", "Load failed: ")}
+                  {error}
+                </p>
               </div>
             )}
             {!isLoading && !error && canRender && renderView()}
@@ -586,27 +660,32 @@ export function HomePage() {
             {objectTab === "flights" && (
               <>
                 <span>
-                  Top Red Flight: MU3531 · Landing Risk{" "}
+                  {t("最高红色航班：", "Top Red Flight: ")}MU3531 ·{" "}
+                  {t("着陆风险", "Landing Risk")}{" "}
                   <span className="text-red">9.2</span>
                 </span>
                 <span>
-                  Top Factor: Env <span className="text-green">41%</span> ·
-                  Human <span className="text-yellow">34%</span> · Mech 25%
+                  {t("首要因素：", "Top Factor: ")}
+                  {t("环境", "Env")} <span className="text-green">41%</span> ·
+                  {t("人为", "Human")} <span className="text-yellow">34%</span>{" "}
+                  · {t("机械", "Mech")} 25%
                 </span>
                 <span>
-                  Pending Tickets: <span className="text-blue">17</span> ·
-                  Unassigned: <span className="text-red">5</span>
+                  {t("待处理工单：", "Pending Tickets: ")}
+                  <span className="text-blue">17</span> ·
+                  {t("未分配：", "Unassigned: ")}
+                  <span className="text-red">5</span>
                 </span>
               </>
             )}
             {objectTab === "airports" && (
               <>
                 <span>
-                  Red Airports:{" "}
+                  {t("红色机场：", "Red Airports: ")}
                   <span className="text-red">{airportStats.red}</span>
                 </span>
                 <span>
-                  Total Flight Coverage:{" "}
+                  {t("总航班覆盖：", "Total Flight Coverage: ")}
                   <span className="text-blue">
                     {AIRPORTS.reduce(
                       (s, a) => s + a.flightCount,
@@ -615,7 +694,7 @@ export function HomePage() {
                   </span>
                 </span>
                 <span>
-                  Orange Alert Airports:{" "}
+                  {t("橙色告警机场：", "Orange Alert Airports: ")}
                   <span className="text-orange">{airportStats.orange}</span>
                 </span>
               </>
@@ -623,15 +702,17 @@ export function HomePage() {
             {objectTab === "personnel" && (
               <>
                 <span>
-                  High-Risk Personnel:{" "}
+                  {t("高风险人员：", "High-Risk Personnel: ")}
                   <span className="text-red">{personnelStats.highRisk}</span>
                 </span>
                 <span>
-                  Instructors: {personnelStats.techCounts["教员"] || 0} ·
-                  Captains: {personnelStats.techCounts["机长"] || 0}
+                  {t("教员：", "Instructors: ")}
+                  {personnelStats.techCounts["教员"] || 0} ·
+                  {t("机长：", "Captains: ")}
+                  {personnelStats.techCounts["机长"] || 0}
                 </span>
                 <span>
-                  Medium-Risk Personnel:{" "}
+                  {t("中风险人员：", "Medium-Risk Personnel: ")}
                   <span className="text-orange">
                     {personnelStats.mediumRisk}
                   </span>
@@ -644,12 +725,12 @@ export function HomePage() {
         {/* --- Right Risk Ranking Panel --- */}
         <aside className="hp-right-panel">
           <h2 className="hp-panel-title">
-            Risk Ranking (
+            {t("风险排名", "Risk Ranking")} (
             {objectTab === "flights"
-              ? "Flights"
+              ? t("航班", "Flights")
               : objectTab === "airports"
-                ? "Airports"
-                : "Personnel"}
+                ? t("机场", "Airports")
+                : t("人员", "Personnel")}
             )
           </h2>
           <div className="hp-risk-tabs">
@@ -657,19 +738,23 @@ export function HomePage() {
               className={`hp-btn hp-btn-sm ${riskFilter === "all" ? "hp-btn-active" : ""}`}
               onClick={() => setRiskFilter("all")}
             >
-              All
+              {t("全部", "All")}
             </button>
             <button
               className={`hp-btn hp-btn-sm ${riskFilter === "red" ? "hp-btn-active" : "hp-btn-red"}`}
               onClick={() => setRiskFilter("red")}
             >
-              {objectTab === "personnel" ? "High" : "Red"}
+              {objectTab === "personnel"
+                ? t("高风险", "High")
+                : t("红色", "Red")}
             </button>
             <button
               className={`hp-btn hp-btn-sm ${riskFilter === "orange" ? "hp-btn-active" : "hp-btn-orange"}`}
               onClick={() => setRiskFilter("orange")}
             >
-              {objectTab === "personnel" ? "Medium" : "Orange"}
+              {objectTab === "personnel"
+                ? t("中风险", "Medium")
+                : t("橙色", "Orange")}
             </button>
           </div>
           <div className="hp-risk-list" ref={riskListRef}>
@@ -697,7 +782,9 @@ export function HomePage() {
                     <div className="hp-risk-card-header">
                       <strong>{flight.flightNumber}</strong>
                       {isSelected && (
-                        <span className="hp-selected-badge">SELECTED</span>
+                        <span className="hp-selected-badge">
+                          {t("已选中", "SELECTED")}
+                        </span>
                       )}
                     </div>
                     <div className="hp-risk-card-body">
@@ -710,7 +797,7 @@ export function HomePage() {
                         )}
                       </p>
                       <p>
-                        Composite Risk:{" "}
+                        {t("综合风险：", "Composite Risk: ")}
                         <span
                           className={
                             riskZone === "red" ? "text-red" : "text-orange"
@@ -731,23 +818,23 @@ export function HomePage() {
                       <p className="hp-risk-tags-row">
                         {flight.environmentRisk >= 7 && (
                           <span className="hp-risk-tag hp-risk-tag-red">
-                            Env High
+                            {t("环境高", "Env High")}
                           </span>
                         )}
                         {flight.environmentRisk >= 5 &&
                           flight.environmentRisk < 7 && (
                             <span className="hp-risk-tag hp-risk-tag-orange">
-                              Env Medium
+                              {t("环境中", "Env Medium")}
                             </span>
                           )}
                         {flight.humanRisk >= 5 && (
                           <span className="hp-risk-tag hp-risk-tag-yellow">
-                            Human Risk
+                            {t("人为风险", "Human Risk")}
                           </span>
                         )}
                         {flight.machineRisk >= 5 && (
                           <span className="hp-risk-tag hp-risk-tag-yellow">
-                            Mech Risk
+                            {t("机械风险", "Mech Risk")}
                           </span>
                         )}
                       </p>
@@ -756,19 +843,20 @@ export function HomePage() {
                           className={`hp-status-dot hp-status-${flight.status === "巡航中" ? "flying" : flight.status === "未起飞" ? "pending" : "landed"}`}
                         />
                         {flight.status === "巡航中"
-                          ? "In Flight"
+                          ? t("飞行中", "In Flight")
                           : flight.status === "未起飞"
-                            ? "Scheduled"
-                            : "Landed"}
+                            ? t("计划中", "Scheduled")
+                            : t("已降落", "Landed")}
                         {flight.operatingUnit && (
                           <span className="hp-risk-unit">
-                            · {flight.operatingUnit} Div.
+                            · {flight.operatingUnit} {t("部门", "Div.")}
                           </span>
                         )}
                       </p>
                       {flight.scheduledDeparture && (
                         <p className="hp-risk-time">
-                          ETD {flight.scheduledDeparture} → ETA{" "}
+                          {t("预计起飞", "ETD")} {flight.scheduledDeparture} →{" "}
+                          {t("预计到达", "ETA")}{" "}
                           {flight.scheduledArrival || "-"}
                         </p>
                       )}
@@ -782,13 +870,13 @@ export function HomePage() {
                           setSidebarTab("airline");
                         }}
                       >
-                        View Flight
+                        {t("查看航班", "View Flight")}
                       </button>
                       <button
                         className="hp-btn hp-btn-sm hp-btn-primary"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        Handle
+                        {t("处理", "Handle")}
                       </button>
                     </div>
                   </div>
@@ -818,7 +906,7 @@ export function HomePage() {
                     <div className="hp-risk-card-body">
                       <p>{airport.nameZh || airport.name}</p>
                       <p>
-                        Env Risk:{" "}
+                        {t("环境风险：", "Env Risk: ")}
                         <span
                           className={
                             riskZone === "red" ? "text-red" : "text-orange"
@@ -830,31 +918,35 @@ export function HomePage() {
                       <p className="hp-risk-tags-row">
                         {riskZone === "red" && (
                           <span className="hp-risk-tag hp-risk-tag-red">
-                            High Risk
+                            {t("高风险", "High Risk")}
                           </span>
                         )}
                         {riskZone === "orange" && (
                           <span className="hp-risk-tag hp-risk-tag-orange">
-                            Medium Risk
+                            {t("中风险", "Medium Risk")}
                           </span>
                         )}
                       </p>
                       <p>
-                        Flights: <strong>{airport.flightCount}</strong>
+                        {t("航班数：", "Flights: ")}
+                        <strong>{airport.flightCount}</strong>
                         <span className="hp-risk-unit">
                           {" "}
-                          · Operators: {airport.operatorCount}
+                          · {t("运营人员：", "Operators: ")}
+                          {airport.operatorCount}
                         </span>
                       </p>
                       <p className="hp-risk-time">
-                        Coords: {airport.lat.toFixed(2)}°N,{" "}
-                        {airport.lon.toFixed(2)}°E
+                        {t("坐标：", "Coords: ")}
+                        {airport.lat.toFixed(2)}°N, {airport.lon.toFixed(2)}°E
                       </p>
                     </div>
                     <div className="hp-risk-card-actions">
-                      <button className="hp-btn hp-btn-sm">View Airport</button>
+                      <button className="hp-btn hp-btn-sm">
+                        {t("查看机场", "View Airport")}
+                      </button>
                       <button className="hp-btn hp-btn-sm hp-btn-primary">
-                        Handle
+                        {t("处理", "Handle")}
                       </button>
                     </div>
                   </div>
@@ -880,7 +972,7 @@ export function HomePage() {
                     </div>
                     <div className="hp-risk-card-body">
                       <p>
-                        Risk Value:{" "}
+                        {t("风险值：", "Risk Value: ")}
                         <span
                           className={
                             riskZone === "red" ? "text-red" : "text-orange"
@@ -895,43 +987,49 @@ export function HomePage() {
                       <p className="hp-risk-tags-row">
                         {rv >= 2.5 && (
                           <span className="hp-risk-tag hp-risk-tag-red">
-                            High Risk
+                            {t("高风险", "High Risk")}
                           </span>
                         )}
                         {rv >= 2.0 && rv < 2.5 && (
                           <span className="hp-risk-tag hp-risk-tag-orange">
-                            Medium Risk
+                            {t("中风险", "Medium Risk")}
                           </span>
                         )}
                       </p>
                       {person.age && (
                         <p>
-                          Age: {person.age}
+                          {t("年龄：", "Age: ")}
+                          {person.age}
                           {person.flightYears && (
                             <span className="hp-risk-unit">
                               {" "}
-                              · Flight Years: {person.flightYears}
+                              · {t("飞行年限：", "Flight Years: ")}
+                              {person.flightYears}
                             </span>
                           )}
                         </p>
                       )}
                       {person.totalFlightHours && (
                         <p className="hp-risk-time">
-                          Total Hours: {person.totalFlightHours}h
+                          {t("总飞行时间：", "Total Hours: ")}
+                          {person.totalFlightHours}h
                           {person.recent90DaysFlightHours &&
-                            ` · Last 90d: ${person.recent90DaysFlightHours}h`}
+                            ` · ${t("近90天：", "Last 90d: ")}${person.recent90DaysFlightHours}h`}
                         </p>
                       )}
                       {person.currentAircraftType && (
                         <p className="hp-risk-time">
-                          Current Type: {person.currentAircraftType}
+                          {t("当前机型：", "Current Type: ")}
+                          {person.currentAircraftType}
                         </p>
                       )}
                     </div>
                     <div className="hp-risk-card-actions">
-                      <button className="hp-btn hp-btn-sm">View Person</button>
+                      <button className="hp-btn hp-btn-sm">
+                        {t("查看人员", "View Person")}
+                      </button>
                       <button className="hp-btn hp-btn-sm hp-btn-primary">
-                        Handle
+                        {t("处理", "Handle")}
                       </button>
                     </div>
                   </div>
@@ -945,12 +1043,12 @@ export function HomePage() {
       {showAnalysis && (
         <div className="hp-analysis-overlay">
           <div className="hp-analysis-header">
-            <h2>Summary Analysis</h2>
+            <h2>{t("综合分析", "Summary Analysis")}</h2>
             <button
               className="hp-btn hp-btn-sm"
               onClick={() => setShowAnalysis(false)}
             >
-              ✕ Close
+              ✕ {t("关闭", "Close")}
             </button>
           </div>
           <div className="hp-analysis-content">
@@ -1021,15 +1119,16 @@ function FilterItem({
   value: string;
   valueColor?: boolean;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="hp-filter-item">
       <div className="hp-filter-item-label">{label}</div>
       <div className={`hp-filter-item-value ${valueColor ? "colored" : ""}`}>
         {valueColor ? (
           <>
-            <span className="text-red">Red</span>
+            <span className="text-red">{t("红色", "Red")}</span>
             {" · "}
-            <span className="text-orange">Orange</span>
+            <span className="text-orange">{t("橙色", "Orange")}</span>
           </>
         ) : (
           value

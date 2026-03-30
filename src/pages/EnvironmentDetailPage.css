@@ -1,0 +1,710 @@
+.env-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.env-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.env-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.env-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Body */
+.env-body {
+  flex: 1;
+  padding: 0 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Row layouts */
+.env-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+/* Card */
+.env-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.env-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.env-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.env-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.env-card-link {
+  font-size: 11px;
+  color: #60a5fa;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.env-card-link:hover {
+  color: #93bbfd;
+}
+
+.env-card-menu {
+  font-size: 16px;
+  color: #64748b;
+  cursor: pointer;
+  letter-spacing: 2px;
+}
+
+.env-card-menu:hover {
+  color: #94a3b8;
+}
+
+/* Gauge area */
+.env-gauge-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.env-gauge-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.env-gauge-svg {
+  overflow: visible;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+}
+
+.env-gauge-score {
+  font-size: 32px;
+  font-weight: 800;
+  fill: #f8fafc;
+  text-anchor: middle;
+  letter-spacing: -1px;
+}
+
+.env-gauge-score-sub {
+  font-size: 14px;
+  font-weight: 500;
+  fill: #64748b;
+  text-anchor: start;
+}
+
+.env-gauge-label {
+  font-size: 10px;
+  fill: #64748b;
+  text-anchor: middle;
+  font-weight: 500;
+}
+
+.env-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.env-risk-badge-orange {
+  background: rgba(234, 136, 22, 0.18);
+  color: #f97316;
+}
+
+.env-risk-badge-green {
+  background: rgba(34, 197, 94, 0.18);
+  color: #22c55e;
+}
+
+.env-risk-badge-red {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+}
+
+.env-risk-badge-yellow {
+  background: rgba(234, 179, 8, 0.18);
+  color: #eab308;
+}
+
+/* Factor list beside gauge */
+.env-factor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.env-factor-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.env-factor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.env-factor-name {
+  color: #94a3b8;
+}
+
+.env-factor-value {
+  font-weight: 500;
+}
+
+/* Key Factor Status 2x2 grid */
+.env-kf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.env-kf-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.08);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.env-kf-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.env-kf-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.env-kf-icon-temp {
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+}
+
+.env-kf-icon-wind {
+  background: rgba(96, 165, 250, 0.12);
+  color: #60a5fa;
+}
+
+.env-kf-icon-vis {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+}
+
+.env-kf-icon-hum {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+}
+
+.env-kf-label {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.env-kf-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.env-kf-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.env-kf-sparkline {
+  height: 28px;
+  width: 100%;
+}
+
+/* Weather Summary */
+.env-weather-layout {
+  display: flex;
+  gap: 24px;
+}
+
+.env-weather-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.env-weather-right {
+  flex: 1.2;
+  min-width: 0;
+}
+
+.env-weather-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.env-weather-icon {
+  font-size: 28px;
+}
+
+.env-weather-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.env-weather-info {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.env-weather-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.env-weather-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.env-weather-stat-label {
+  color: #94a3b8;
+}
+
+.env-weather-stat-value {
+  color: #e2e8f0;
+  font-weight: 500;
+}
+
+.env-weather-chart-title {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.env-weather-chart {
+  height: 160px;
+}
+
+/* Hourly forecast strip */
+.env-hourly-strip {
+  display: flex;
+  gap: 0;
+  margin-top: 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+}
+
+.env-hourly-strip::-webkit-scrollbar {
+  height: 5px;
+}
+
+.env-hourly-strip::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.05);
+  border-radius: 3px;
+}
+
+.env-hourly-strip::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.env-hourly-strip::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+.env-hourly-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 60px;
+  padding: 8px 6px;
+  border-right: 1px solid rgba(148, 163, 184, 0.06);
+  font-size: 11px;
+}
+
+.env-hourly-item:last-child {
+  border-right: none;
+}
+
+.env-hourly-time {
+  color: #64748b;
+  font-size: 10px;
+}
+
+.env-hourly-icon {
+  font-size: 18px;
+}
+
+.env-hourly-temp {
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Alerts table */
+.env-alerts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.env-alerts-dropdown {
+  font-size: 11px;
+  color: #60a5fa;
+  cursor: pointer;
+  background: none;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 4px;
+  padding: 4px 10px;
+}
+
+.env-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.env-table th {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  font-weight: 500;
+}
+
+.env-table td {
+  font-size: 12px;
+  color: #cbd5e1;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.env-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Risk level pill badges */
+.env-pill {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.env-pill-orange {
+  background: rgba(234, 88, 12, 0.2);
+  color: #ea580c;
+}
+
+.env-pill-yellow {
+  background: rgba(234, 179, 8, 0.2);
+  color: #eab308;
+}
+
+.env-pill-red {
+  background: rgba(220, 38, 38, 0.2);
+  color: #dc2626;
+}
+
+.env-pill-green {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+/* Anomalies timeline */
+.env-anomaly-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.env-anomaly-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.env-anomaly-item:last-child {
+  border-bottom: none;
+}
+
+.env-anomaly-time {
+  font-size: 12px;
+  color: #64748b;
+  min-width: 42px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.env-anomaly-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.env-anomaly-content {
+  flex: 1;
+}
+
+.env-anomaly-tag {
+  margin-bottom: 4px;
+}
+
+.env-anomaly-desc {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+/* Time-window charts */
+.env-tw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.env-tw-chart-title {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.env-tw-chart {
+  height: 160px;
+}
+
+.env-tw-windows {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.env-tw-window {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.env-tw-normal {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.env-tw-disruption {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* Bottom actions */
+.env-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 0 24px 16px;
+}
+
+.env-btn {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+}
+
+.env-btn-primary {
+  background: #3b82f6;
+  color: #fff;
+  border: 1px solid #3b82f6;
+}
+
+.env-btn-primary:hover {
+  background: #2563eb;
+}
+
+.env-btn-outline {
+  background: transparent;
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.env-btn-outline:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.env-btn-outline-red {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.env-btn-outline-red:hover {
+  background: rgba(248, 113, 113, 0.08);
+}
+
+/* Footer */
+.env-footer {
+  padding: 16px 24px;
+  text-align: center;
+  font-size: 11px;
+  color: #475569;
+  border-top: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.env-footer a {
+  color: #60a5fa;
+  margin-left: 8px;
+  text-decoration: none;
+}
+
+.env-footer a:hover {
+  text-decoration: underline;
+}
+
+/* Tooltip box */
+.env-tooltip-box {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #e2e8f0;
+  pointer-events: none;
+}
+
+/* Scrollbar */
+.env-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.env-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.env-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.env-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+
+/* Card-level scrollbar for any overflow inside cards */
+.env-card ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.env-card ::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.05);
+  border-radius: 3px;
+}
+
+.env-card ::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.env-card ::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .env-weather-layout {
+    flex-direction: column;
+  }
+  .env-tw-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .env-row {
+    grid-template-columns: 1fr;
+  }
+  .env-kf-grid {
+    grid-template-columns: 1fr;
+  }
+  .env-gauge-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+}

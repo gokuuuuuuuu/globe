@@ -91,8 +91,13 @@ export function WindLegend({ visible }: WindLegendProps) {
   ];
 
   return (
-    <div ref={ref} className="legend-container wind-legend" style={style}>
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+    <div
+      ref={ref}
+      className="legend-container wind-legend"
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="legend-header">
         <span className="legend-icon">💨</span>
         <span className="legend-title">风速图例</span>
         <span className="legend-drag-hint">
@@ -156,9 +161,10 @@ export function TemperatureLegend({
     <div
       ref={ref}
       className="legend-container temperature-legend"
-      style={style}
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
     >
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+      <div className="legend-header">
         <span className="legend-icon">🌡️</span>
         <span className="legend-title">温度图例</span>
         <span className="legend-drag-hint">
@@ -221,9 +227,10 @@ export function PrecipitationLegend({ visible }: PrecipitationLegendProps) {
     <div
       ref={ref}
       className="legend-container precipitation-legend"
-      style={style}
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
     >
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+      <div className="legend-header">
         <span className="legend-icon">🌧️</span>
         <span className="legend-title">降水图例</span>
         <span className="legend-drag-hint">
@@ -284,8 +291,13 @@ export function FogLegend({ visible }: FogLegendProps) {
   ];
 
   return (
-    <div ref={ref} className="legend-container fog-legend" style={style}>
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+    <div
+      ref={ref}
+      className="legend-container fog-legend"
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="legend-header">
         <span className="legend-icon">🌫️</span>
         <span className="legend-title">雾图层图例</span>
         <span className="legend-drag-hint">
@@ -351,8 +363,13 @@ export function MoistureLegend({ visible }: MoistureLegendProps) {
   ];
 
   return (
-    <div ref={ref} className="legend-container moisture-legend" style={style}>
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+    <div
+      ref={ref}
+      className="legend-container moisture-legend"
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="legend-header">
         <span className="legend-icon">💧</span>
         <span className="legend-title">水汽通量图例</span>
         <span className="legend-drag-hint">
@@ -412,8 +429,13 @@ export function LightningLegend({ visible }: LightningLegendProps) {
   ];
 
   return (
-    <div ref={ref} className="legend-container lightning-legend" style={style}>
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+    <div
+      ref={ref}
+      className="legend-container lightning-legend"
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="legend-header">
         <span className="legend-icon">⚡</span>
         <span className="legend-title">雷电图层图例</span>
         <span className="legend-drag-hint">
@@ -488,8 +510,13 @@ export function CATLegend({ visible }: CATLegendProps) {
   ];
 
   return (
-    <div ref={ref} className="legend-container cat-legend" style={style}>
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+    <div
+      ref={ref}
+      className="legend-container cat-legend"
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="legend-header">
         <span className="legend-icon">🌪️</span>
         <span className="legend-title">颠簸区图例</span>
         <span className="legend-drag-hint">
@@ -559,8 +586,13 @@ export function VisibilityLegend({ visible }: VisibilityLegendProps) {
   ];
 
   return (
-    <div ref={ref} className="legend-container visibility-legend" style={style}>
-      <div className="legend-header" onMouseDown={handleMouseDown}>
+    <div
+      ref={ref}
+      className="legend-container visibility-legend"
+      style={{ ...style, cursor: "grab" }}
+      onMouseDown={handleMouseDown}
+    >
+      <div className="legend-header">
         <span className="legend-icon">👁️</span>
         <span className="legend-title">能见度图例</span>
         <span className="legend-drag-hint">

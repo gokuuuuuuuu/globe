@@ -1,0 +1,373 @@
+.pd-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #0b1120;
+  color: #e2e8f0;
+  font-size: 13px;
+  overflow-y: auto;
+}
+
+/* Breadcrumb */
+.pd-breadcrumb {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: #64748b;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  flex-shrink: 0;
+}
+
+.pd-breadcrumb-sep {
+  margin: 0 8px;
+  color: #475569;
+}
+
+.pd-breadcrumb-active {
+  color: #e2e8f0;
+}
+
+/* Header Card */
+.pd-header-card {
+  margin: 16px 24px 0;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.pd-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.pd-header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.pd-header-icons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pd-icon-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.pd-icon-btn:hover {
+  color: #e2e8f0;
+}
+
+.pd-header-info {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+}
+
+.pd-info-item {
+  flex: 1;
+  padding: 14px 20px;
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+  min-width: 0;
+}
+
+.pd-info-item:last-child {
+  border-right: none;
+}
+
+.pd-info-label {
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
+.pd-info-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pd-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(234, 88, 12, 0.2);
+  color: #ea580c;
+}
+
+.pd-risk-badge-arrow {
+  font-size: 14px;
+}
+
+.pd-hf-score {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pd-hf-score-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.pd-hf-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: rgba(148, 163, 184, 0.15);
+  border-radius: 3px;
+  max-width: 80px;
+  overflow: hidden;
+}
+
+.pd-hf-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: #3b82f6;
+  transition: width 0.3s;
+}
+
+/* Two-column layout */
+.pd-body {
+  display: flex;
+  flex: 1;
+  margin: 16px 24px 24px;
+  gap: 16px;
+  min-height: 0;
+}
+
+/* Left sidebar nav */
+.pd-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 8px 0;
+  align-self: flex-start;
+}
+
+.pd-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #94a3b8;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.pd-nav-item:hover {
+  color: #e2e8f0;
+  background: rgba(51, 65, 85, 0.3);
+}
+
+.pd-nav-item-active {
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  border-left-color: #3b82f6;
+}
+
+.pd-nav-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Right content area */
+.pd-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Card */
+.pd-card {
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.pd-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.pd-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.pd-dropdown {
+  font-size: 11px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 4px;
+  padding: 4px 8px;
+  background: rgba(30, 41, 59, 0.8);
+  color: #94a3b8;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Row layouts */
+.pd-row-3 {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 16px;
+}
+
+.pd-row-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+/* Top Risk Indicators list */
+.pd-indicator-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.pd-indicator-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.pd-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Action links */
+.pd-action-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pd-action-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.pd-action-link:hover {
+  background: rgba(51, 65, 85, 0.5);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.pd-action-link-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pd-action-link-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.pd-action-link-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.pd-action-link-chevron {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* Legend items for charts */
+.pd-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.pd-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.pd-legend-line {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.pd-legend-line-dashed {
+  width: 16px;
+  height: 0;
+  border-top: 2px dashed;
+}
+
+/* Scrollbar */
+.pd-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pd-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.pd-root::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 3px;
+}
+
+.pd-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
