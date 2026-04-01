@@ -32,8 +32,8 @@ export function FeedbackReviewPage() {
       <div className="fbr-page-header">
         <h1 className="fbr-page-title">
           {t(
-            "P26 反馈 / 复核 - 工单 #WO-20231027-004",
-            "P26 Feedback / Review - Work Order #WO-20231027-004",
+            "反馈 / 复核 - 工单 #WO-20231027-004",
+            "Feedback / Review - Work Order #WO-20231027-004",
           )}
         </h1>
         <div className="fbr-breadcrumb">

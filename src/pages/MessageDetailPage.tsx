@@ -110,7 +110,7 @@ export function MessageDetailPage() {
         {t("消息", "Messages")}
         <span className="msg-breadcrumb-sep">&gt;</span>
         <span className="msg-breadcrumb-active">
-          {t("P22 消息详情", "P22 Message Detail")}
+          {t("消息详情", "Message Detail")}
         </span>
       </div>
 

@@ -95,10 +95,10 @@ export function NoticeDetailPage() {
         <span className="ntc-breadcrumb-sep">&gt;</span>
         {t("环境专题", "Environment")}
         <span className="ntc-breadcrumb-sep">&gt;</span>
-        {t("P23 通告", "P23 Notice")}
+        {t("通告", "Notice")}
         <span className="ntc-breadcrumb-sep">&gt;</span>
         <span className="ntc-breadcrumb-active">
-          {t("P23 通告详情", "P23 Notice Detail")}
+          {t("通告详情", "Notice Detail")}
         </span>
       </div>
 
@@ -107,7 +107,7 @@ export function NoticeDetailPage() {
         <div className="ntc-page-header">
           <div className="ntc-page-header-left">
             <h1 className="ntc-page-title">
-              {t("P23 通告详情：", "P23 Notice Detail: ")}
+              {t("通告详情：", "Notice Detail: ")}
               {t("北京首都国际机场 (ZBAA) 雷暴预警", noticeData.title)}
             </h1>
             <div className="ntc-page-meta">

@@ -127,14 +127,14 @@ export function WorkOrderDetailPage() {
         <span className="wod-breadcrumb-sep">&gt;</span>
         {t("工单", "Work Orders")}
         <span className="wod-breadcrumb-sep">&gt;</span>
-        <span className="wod-breadcrumb-active">WO-P25-20230815</span>
+        <span className="wod-breadcrumb-active">WO-20230815</span>
       </div>
 
       <div className="wod-body">
         {/* Page header */}
         <div className="wod-page-header">
           <h1 className="wod-page-title">
-            WO-P25-20230815:{" "}
+            WO-20230815:{" "}
             {t(
               "Asset-004 高风险发现的修复",
               "Remediation of Asset-004 High Risk Findings",

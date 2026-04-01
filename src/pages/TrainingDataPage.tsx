@@ -426,7 +426,7 @@ export function TrainingDataPage() {
       <div className="trn-summary-row">
         <div className="trn-summary-card trn-summary-card--green">
           <div className="trn-summary-label">
-            {t("P17 飞行员总数", "Total Pilots in P17")}
+            {t("飞行员总数", "Total Pilots in P17")}
           </div>
           <div className="trn-summary-value">128</div>
           <div className="trn-summary-sub">
@@ -463,7 +463,7 @@ export function TrainingDataPage() {
         </div>
         <div className="trn-summary-card trn-summary-card--yellow">
           <div className="trn-summary-label">
-            {t("当前 P17 风险等级", "Current P17 Risk Level")}
+            {t("当前风险等级", "Current Risk Level")}
           </div>
           <div className="trn-summary-value">
             <span className="trn-summary-low-risk">{t("低", "Low")}</span>

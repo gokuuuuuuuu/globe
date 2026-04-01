@@ -27,6 +27,8 @@ import { WorkOrderListPage } from "./pages/WorkOrderListPage";
 import { WorkOrderDetailPage } from "./pages/WorkOrderDetailPage";
 import { FeedbackReviewPage } from "./pages/FeedbackReviewPage";
 import { StatisticalAnalysisPage } from "./pages/StatisticalAnalysisPage";
+import { RiskFactorLibraryPage } from "./pages/RiskFactorLibraryPage";
+import { SystemManagementPage } from "./pages/SystemManagementPage";
 
 function App() {
   return (
@@ -130,6 +132,14 @@ function App() {
             <Route
               path="statistical-analysis"
               element={<StatisticalAnalysisPage />}
+            />
+            <Route
+              path="knowledge-center"
+              element={<RiskFactorLibraryPage />}
+            />
+            <Route
+              path="system-management"
+              element={<SystemManagementPage />}
             />
             <Route path="*" element={<PlaceholderPage />} />
           </Route>

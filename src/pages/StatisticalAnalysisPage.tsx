@@ -149,7 +149,7 @@ export function StatisticalAnalysisPage() {
       <div className="sta-breadcrumb">
         {t("首页", "Home")}
         <span className="sta-breadcrumb-sep">/</span>
-        {t("P27 统计分析", "P27 Statistical Analysis")}
+        {t("统计分析", "Statistical Analysis")}
         <span className="sta-breadcrumb-sep">/</span>
         <span className="sta-breadcrumb-active">
           {t("机场统计", "Airport Statistics")}
@@ -575,13 +575,7 @@ export function StatisticalAnalysisPage() {
       </div>
 
       {/* Footer */}
-      <div className="sta-footer">
-        <span>
-          © 2024 ARVIS Systems Inc. |{" "}
-          {t("保留所有权利。", "All rights reserved.")}
-        </span>
-        <span>v. 1.2.3 &nbsp; ● {t("在线", "Online")}</span>
-      </div>
+     
     </div>
   );
 }

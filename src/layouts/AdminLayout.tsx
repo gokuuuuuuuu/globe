@@ -276,12 +276,28 @@ export function AdminLayout() {
         </svg>
       ),
     },
-  ];
-
-  const bottomItems: MenuItem[] = [
     {
-      path: "/settings",
-      label: t("设置", "Settings"),
+      path: "/knowledge-center",
+      label: t("规则与知识中心", "Rules & Knowledge Center"),
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-[18px] h-[18px]"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+      ),
+    },
+    {
+      path: "/system-management",
+      label: t("系统管理", "System Management"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -299,6 +315,8 @@ export function AdminLayout() {
       ),
     },
   ];
+
+  const bottomItems: MenuItem[] = [];
 
   const [expandedMenus, setExpandedMenus] = useState<string[]>(() => {
     const allItems = menuItems;

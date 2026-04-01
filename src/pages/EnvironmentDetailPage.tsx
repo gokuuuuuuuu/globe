@@ -456,7 +456,7 @@ export function EnvironmentDetailPage() {
         {t("环境分析", "Environmental Analysis")}
         <span className="env-breadcrumb-sep">/</span>
         <span className="env-breadcrumb-active">
-          {t("P21 详情", "P21 Detail")}
+          {t("详情", "Detail")}
         </span>
       </div>
 
