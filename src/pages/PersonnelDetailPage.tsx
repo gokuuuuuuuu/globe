@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -214,7 +214,10 @@ const navItems: NavItem[] = [
 export function PersonnelDetailPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [activeNav, setActiveNav] = useState("risk-profile");
+  const [searchParams] = useSearchParams();
+  const [activeNav, setActiveNav] = useState(
+    searchParams.get("tab") || "risk-profile",
+  );
 
   return (
     <div className="pd-root">

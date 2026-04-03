@@ -511,7 +511,14 @@ export function PersonnelListPage() {
                 <td>{person.relatedHighRiskFlights}</td>
                 <td onClick={(e) => e.stopPropagation()}>
                   <div className="pl-actions-cell">
-                    <button className="pl-action-link">
+                    <button
+                      className="pl-action-link"
+                      onClick={() =>
+                        navigate(
+                          `/personnel-center/personnel-detail?id=${person.id}&tab=historical-flights`,
+                        )
+                      }
+                    >
                       <svg
                         width="12"
                         height="12"

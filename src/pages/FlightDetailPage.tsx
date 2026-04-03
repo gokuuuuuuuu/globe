@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useLanguage } from "../i18n/useLanguage";
 import "./FlightDetailPage.css";
 
