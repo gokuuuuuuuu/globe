@@ -226,7 +226,7 @@ export function HomePage() {
       <header className="hp-header">
         <div className="hp-header-left">
           <span className="hp-logo">
-            {t("▲ 重大风险智能预警平台", "▲ MRIWP")}
+            {t("重大风险智能预警平台", "MRIWP")}
           </span>
         </div>
         <div className="hp-header-right">

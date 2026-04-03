@@ -4,11 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./AircraftListPage.css";
 
-// Mock aircraft data
+// Mock aircraft data - using real aircraftNumber values from flightData
 const MOCK_AIRCRAFT = [
   {
     id: "ac-1",
-    tailNumber: "B-1001",
+    tailNumber: "B-6716",
     type: "B737-800",
     age: 8.2,
     totalHours: 24500,
@@ -19,7 +19,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-2",
-    tailNumber: "B-1002",
+    tailNumber: "B-6011",
     type: "A320-214",
     age: 5.1,
     totalHours: 18200,
@@ -30,7 +30,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-3",
-    tailNumber: "B-1003",
+    tailNumber: "B-30FF",
     type: "B777-300ER",
     age: 12.5,
     totalHours: 42100,
@@ -41,7 +41,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-4",
-    tailNumber: "B-1004",
+    tailNumber: "B-2291",
     type: "A350-900",
     age: 2.3,
     totalHours: 8900,
@@ -52,7 +52,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-5",
-    tailNumber: "B-1005",
+    tailNumber: "B-2292",
     type: "B737-800",
     age: 10.8,
     totalHours: 35600,
@@ -63,7 +63,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-6",
-    tailNumber: "B-1006",
+    tailNumber: "B-30FE",
     type: "A320-214",
     age: 6.4,
     totalHours: 21300,
@@ -74,7 +74,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-7",
-    tailNumber: "B-1007",
+    tailNumber: "B-9970",
     type: "B737-800",
     age: 9.1,
     totalHours: 30200,
@@ -85,7 +85,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-8",
-    tailNumber: "B-1008",
+    tailNumber: "B-1635",
     type: "A320-214",
     age: 3.7,
     totalHours: 12400,
@@ -96,7 +96,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-9",
-    tailNumber: "B-1009",
+    tailNumber: "B-325T",
     type: "B777-300ER",
     age: 14.2,
     totalHours: 48700,
@@ -107,7 +107,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-10",
-    tailNumber: "B-1010",
+    tailNumber: "B-6346",
     type: "A350-900",
     age: 1.5,
     totalHours: 5200,
@@ -118,7 +118,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-11",
-    tailNumber: "B-1011",
+    tailNumber: "B-30C3",
     type: "B737-800",
     age: 7.6,
     totalHours: 26800,
@@ -129,7 +129,7 @@ const MOCK_AIRCRAFT = [
   },
   {
     id: "ac-12",
-    tailNumber: "B-1012",
+    tailNumber: "B-6472",
     type: "A320-214",
     age: 4.9,
     totalHours: 16700,

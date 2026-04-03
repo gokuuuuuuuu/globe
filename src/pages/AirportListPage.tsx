@@ -67,13 +67,14 @@ export function AirportListPage() {
       }
     });
 
-    return AIRPORTS.map((a) => {
-      const highRisk = highRiskMap[a.code] || 0;
-      const pct =
+    return AIRPORTS.map((a, i) => {
+      // Mock: high-risk flight percentage around 1%
+      const mockPct = (0.5 + ((i * 7 + 3) % 11) / 10).toFixed(2);
+      const highRisk =
         a.flightCount > 0
-          ? ((highRisk / a.flightCount) * 100).toFixed(2)
-          : "0.00";
-      return { ...a, highRiskFlights: highRisk, highRiskPct: pct };
+          ? Math.max(1, Math.round((a.flightCount * parseFloat(mockPct)) / 100))
+          : 0;
+      return { ...a, highRiskFlights: highRisk, highRiskPct: mockPct };
     })
       .filter((a) => {
         if (search) {
