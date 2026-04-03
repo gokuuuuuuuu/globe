@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -415,8 +416,63 @@ function WindTooltip({
 
 // ===== Main Component =====
 
+// Phase-specific environment data
+const phaseEnvData = {
+  takeoff: {
+    location: "ZSPD (上海浦东)",
+    temperature: 22,
+    wind: { speed: 12, direction: "SE" },
+    visibility: 8,
+    humidity: 72,
+    risk: { score: 45, level: "Medium" as const },
+    alerts: [
+      {
+        level: "yellow" as const,
+        alert: "侧风提醒",
+        area: "RWY 16R",
+        timestamp: "2024-06-15 08:30",
+      },
+      {
+        level: "green" as const,
+        alert: "能见度良好",
+        area: "全场",
+        timestamp: "2024-06-15 08:00",
+      },
+    ],
+  },
+  landing: {
+    location: "ZBAA (北京首都)",
+    temperature: 18,
+    wind: { speed: 22, direction: "NW" },
+    visibility: 3,
+    humidity: 85,
+    risk: { score: 78, level: "High" as const },
+    alerts: [
+      {
+        level: "red" as const,
+        alert: "雷暴警告",
+        area: "进近区域",
+        timestamp: "2024-06-15 14:15",
+      },
+      {
+        level: "orange" as const,
+        alert: "低能见度",
+        area: "RWY 01",
+        timestamp: "2024-06-15 14:00",
+      },
+      {
+        level: "yellow" as const,
+        alert: "阵风提醒",
+        area: "RWY 36R",
+        timestamp: "2024-06-15 13:45",
+      },
+    ],
+  },
+};
+
 export function EnvironmentDetailPage() {
   const { t } = useLanguage();
+  const [envPhase, setEnvPhase] = useState<"takeoff" | "landing">("takeoff");
 
   const pillClass = (level: string) =>
     level === "red"
@@ -455,10 +511,280 @@ export function EnvironmentDetailPage() {
       <div className="env-breadcrumb">
         {t("环境分析", "Environmental Analysis")}
         <span className="env-breadcrumb-sep">/</span>
-        <span className="env-breadcrumb-active">
-          {t("详情", "Detail")}
-        </span>
+        <span className="env-breadcrumb-active">{t("详情", "Detail")}</span>
       </div>
+
+      {/* Phase Tabs */}
+      <div
+        style={{
+          display: "flex",
+          gap: 4,
+          margin: "12px 24px",
+          padding: "3px",
+          background: "rgba(15,23,42,0.6)",
+          borderRadius: 8,
+          width: "fit-content",
+          border: "1px solid rgba(148,163,184,0.12)",
+        }}
+      >
+        <button
+          onClick={() => setEnvPhase("takeoff")}
+          style={{
+            padding: "6px 20px",
+            borderRadius: 6,
+            border: "none",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "all 0.15s",
+            background:
+              envPhase === "takeoff" ? "rgba(59,130,246,0.2)" : "transparent",
+            color: envPhase === "takeoff" ? "#60a5fa" : "#94a3b8",
+          }}
+        >
+          {t("起飞阶段", "Takeoff Phase")}
+        </button>
+        <button
+          onClick={() => setEnvPhase("landing")}
+          style={{
+            padding: "6px 20px",
+            borderRadius: 6,
+            border: "none",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "all 0.15s",
+            background:
+              envPhase === "landing" ? "rgba(59,130,246,0.2)" : "transparent",
+            color: envPhase === "landing" ? "#60a5fa" : "#94a3b8",
+          }}
+        >
+          {t("降落阶段", "Landing Phase")}
+        </button>
+      </div>
+
+      {/* Phase Environment Card */}
+      {(() => {
+        const pd = phaseEnvData[envPhase];
+        const riskColor =
+          pd.risk.level === "High"
+            ? "#ef4444"
+            : pd.risk.level === "Medium"
+              ? "#eab308"
+              : "#22c55e";
+        return (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              margin: "0 24px",
+              gap: 16,
+              marginBottom: 16,
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(15,23,42,0.6)",
+                borderRadius: 10,
+                border: "1px solid rgba(148,163,184,0.12)",
+                padding: 16,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#f8fafc",
+                  marginBottom: 12,
+                }}
+              >
+                {envPhase === "takeoff"
+                  ? t("起飞机场环境", "Takeoff Airport Environment")
+                  : t("降落机场环境", "Landing Airport Environment")}
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 400,
+                    color: "#94a3b8",
+                    marginLeft: 8,
+                  }}
+                >
+                  {pd.location}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div
+                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("温度", "Temp")}
+                  </div>
+                  <div
+                    style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc" }}
+                  >
+                    {pd.temperature}°C
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("风速/风向", "Wind")}
+                  </div>
+                  <div
+                    style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc" }}
+                  >
+                    {pd.wind.speed}kt{" "}
+                    <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                      {pd.wind.direction}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("能见度", "Visibility")}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: pd.visibility < 5 ? "#ef4444" : "#f8fafc",
+                    }}
+                  >
+                    {pd.visibility}km
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("湿度", "Humidity")}
+                  </div>
+                  <div
+                    style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc" }}
+                  >
+                    {pd.humidity}%
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  marginTop: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 11, color: "#64748b" }}>
+                  {t("环境风险评分", "Env Risk Score")}:
+                </span>
+                <span
+                  style={{ fontSize: 16, fontWeight: 700, color: riskColor }}
+                >
+                  {pd.risk.score}
+                </span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    padding: "1px 8px",
+                    borderRadius: 4,
+                    background: `${riskColor}20`,
+                    color: riskColor,
+                  }}
+                >
+                  {pd.risk.level === "High"
+                    ? t("高", "High")
+                    : pd.risk.level === "Medium"
+                      ? t("中", "Medium")
+                      : t("低", "Low")}
+                </span>
+              </div>
+            </div>
+            <div
+              style={{
+                background: "rgba(15,23,42,0.6)",
+                borderRadius: 10,
+                border: "1px solid rgba(148,163,184,0.12)",
+                padding: 16,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#f8fafc",
+                  marginBottom: 12,
+                }}
+              >
+                {t("气象告警", "Weather Alerts")}
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {pd.alerts.map((a, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "6px 10px",
+                      borderRadius: 6,
+                      background:
+                        a.level === "red"
+                          ? "rgba(239,68,68,0.08)"
+                          : a.level === "orange"
+                            ? "rgba(249,115,22,0.08)"
+                            : a.level === "yellow"
+                              ? "rgba(234,179,8,0.08)"
+                              : "rgba(34,197,94,0.08)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        flexShrink: 0,
+                        background:
+                          a.level === "red"
+                            ? "#ef4444"
+                            : a.level === "orange"
+                              ? "#f97316"
+                              : a.level === "yellow"
+                                ? "#eab308"
+                                : "#22c55e",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "#e2e8f0",
+                        fontWeight: 600,
+                        flex: 1,
+                      }}
+                    >
+                      {a.alert}
+                    </span>
+                    <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                      {a.area}
+                    </span>
+                    <span style={{ fontSize: 10, color: "#64748b" }}>
+                      {a.timestamp}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <div className="env-body">
         {/* ===== Row 1: Overall Risk + Key Factors ===== */}
@@ -1011,26 +1337,153 @@ export function EnvironmentDetailPage() {
         </div>
       </div>
 
-      {/* Bottom Action Buttons */}
-      <div className="env-actions">
-        <button className="env-btn env-btn-primary">
-          {t("查看消息", "View Messages")}
-        </button>
-        <button className="env-btn env-btn-outline">
-          {t("查看通知", "View Notices")}
-        </button>
-        <button className="env-btn env-btn-outline-red">
-          {t("查看相关航班", "View Related Flights")}
-        </button>
-      </div>
+      {/* Messages & Notices (merged from MessageDetailPage & NoticeDetailPage) */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 16,
+          marginTop: 20,
+        }}
+      >
+        {/* METAR Messages */}
+        <div
+          style={{
+            background: "rgba(15,23,42,0.6)",
+            borderRadius: 10,
+            border: "1px solid rgba(148,163,184,0.12)",
+            padding: 20,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#f8fafc",
+              marginBottom: 12,
+            }}
+          >
+            {t("报文信息", "Message Information")}
+          </h3>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 8,
+                marginBottom: 12,
+              }}
+            >
+              <div>
+                <span style={{ color: "#64748b" }}>
+                  {t("报文ID", "Message ID")}:
+                </span>{" "}
+                <span style={{ color: "#e2e8f0" }}>MSG-123456</span>
+              </div>
+              <div>
+                <span style={{ color: "#64748b" }}>{t("来源", "Source")}:</span>{" "}
+                <span style={{ color: "#e2e8f0" }}>FAA NOTAM</span>
+              </div>
+              <div>
+                <span style={{ color: "#64748b" }}>{t("类型", "Type")}:</span>{" "}
+                <span style={{ color: "#e2e8f0" }}>
+                  {t("空域限制", "Airspace Restriction")}
+                </span>
+              </div>
+              <div>
+                <span style={{ color: "#64748b" }}>
+                  {t("接收时间", "Received")}:
+                </span>{" "}
+                <span style={{ color: "#e2e8f0" }}>11/22/23, 11:39 PM</span>
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              background: "rgba(0,0,0,0.3)",
+              borderRadius: 6,
+              padding: 12,
+              fontSize: 11,
+              fontFamily: "monospace",
+              color: "#94a3b8",
+              maxHeight: 120,
+              overflow: "auto",
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {`METAR ZBAA 150600Z 20008G18KT 150V250
+1500 R01/1000N R36R/1200D +TSRA SCT015CB
+BKN030 25/18 Q1005 NOSIG TEMPO 1200
++TSRA GR GS CB`}
+          </div>
+        </div>
 
-      {/* Footer */}
-      <div className="env-footer">
-        {t(
-          "全球页脚 · 小型团队与未公布的网络机队运营。保留所有权利。",
-          "Global footer · Minor teams and unannounced web fleet continues. All rights reserved.",
-        )}
-        <a href="#">{t("帮助", "Help")}</a>
+        {/* Notices */}
+        <div
+          style={{
+            background: "rgba(15,23,42,0.6)",
+            borderRadius: 10,
+            border: "1px solid rgba(148,163,184,0.12)",
+            padding: 20,
+          }}
+        >
+          <h3
+            style={{
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#f8fafc",
+              marginBottom: 12,
+            }}
+          >
+            {t("通告信息", "Notice Information")}
+          </h3>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 8,
+                marginBottom: 12,
+              }}
+            >
+              <div>
+                <span style={{ color: "#64748b" }}>{t("通告", "Notice")}:</span>{" "}
+                <span style={{ color: "#e2e8f0" }}>
+                  {t("ZBAA雷暴警告", "ZBAA Thunderstorm Warning")}
+                </span>
+              </div>
+              <div>
+                <span style={{ color: "#64748b" }}>
+                  {t("生效时间", "Effective")}:
+                </span>{" "}
+                <span style={{ color: "#e2e8f0" }}>2024-06-15 14:00 (CST)</span>
+              </div>
+              <div>
+                <span style={{ color: "#64748b" }}>
+                  {t("到期时间", "Expiration")}:
+                </span>{" "}
+                <span style={{ color: "#e2e8f0" }}>2024-06-15 18:00 (CST)</span>
+              </div>
+              <div>
+                <span style={{ color: "#64748b" }}>{t("来源", "Source")}:</span>{" "}
+                <span style={{ color: "#e2e8f0" }}>
+                  Aviation Weather Center
+                </span>
+              </div>
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
+                {t("影响范围", "Impact Area")}
+              </div>
+              <div style={{ color: "#e2e8f0", fontSize: 12 }}>
+                {t(
+                  "影响机场：ZBAA, ZBAD, ZBTJ · 半径约100km · 雷暴、冰雹",
+                  "Affected: ZBAA, ZBAD, ZBTJ · Radius ~100km · Thunderstorm, Hail",
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./WorkOrderDetailPage.css";
 
@@ -84,6 +85,7 @@ type TabKey = (typeof TAB_KEYS)[number];
 
 export function WorkOrderDetailPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>("governance");
   const [closureOption, setClosureOption] = useState("remediated");
 
@@ -144,7 +146,10 @@ export function WorkOrderDetailPage() {
             <button className="wod-btn wod-btn-primary">
               {t("分配操作", "Assign Action")}
             </button>
-            <button className="wod-btn wod-btn-green">
+            <button
+              className="wod-btn wod-btn-green"
+              onClick={() => navigate("/governance/feedback-review")}
+            >
               {t("提交反馈", "Submit Feedback")}
             </button>
             <button className="wod-btn">

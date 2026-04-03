@@ -1,5 +1,6 @@
 // @ts-nocheck
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FLIGHTS, calculateRiskFromEnvironmentRisk } from "../data/flightData";
 import type { Flight } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
@@ -86,10 +87,31 @@ function govStatusClass(status: string): string {
 }
 
 function scoreColorClass(score: number): string {
-  if (score >= 80) return "fl-score-red";
-  if (score >= 50) return "fl-score-orange";
-  if (score >= 30) return "fl-score-yellow";
+  if (score >= 70) return "fl-score-red";
+  if (score >= 40) return "fl-score-orange";
   return "fl-score-green";
+}
+
+// Add airline code prefix to flight number for display
+const AIRLINE_CODES = [
+  "MU",
+  "FM",
+  "KN",
+  "MU",
+  "MU",
+  "FM",
+  "MU",
+  "KN",
+  "FM",
+  "MU",
+];
+function getDisplayFlightNumber(flight: Flight): string {
+  // Use a deterministic index based on flight id hash
+  const hash = flight.id ? flight.id.charCodeAt(flight.id.length - 1) : 0;
+  const code = AIRLINE_CODES[hash % AIRLINE_CODES.length];
+  // If flightNumber already starts with letters, return as-is
+  if (/^[A-Z]{2}/.test(flight.flightNumber)) return flight.flightNumber;
+  return `${code}${flight.flightNumber}`;
 }
 
 // Translate risk tag at render time
@@ -142,8 +164,11 @@ function translateFlightStatus(
 
 export function FlightListPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   // Filters
   const [flightNumberFilter, setFlightNumberFilter] = useState("");
+  const [aircraftNumberFilter, setAircraftNumberFilter] = useState("");
   const [departureFilter, setDepartureFilter] = useState("");
   const [arrivalFilter, setArrivalFilter] = useState("");
   const [operatingUnitFilter, setOperatingUnitFilter] = useState("");
@@ -153,9 +178,14 @@ export function FlightListPage() {
   const [govStatusFilter, setGovStatusFilter] = useState<string[]>([]);
   const [riskTypeFilter, setRiskTypeFilter] = useState<string[]>([]);
   const [page, setPage] = useState(1);
-  const [openActions, setOpenActions] = useState<string | null>(null);
 
-  // Dropdown toggles
+  // Read URL params to pre-fill filters
+  useEffect(() => {
+    const aircraft = searchParams.get("aircraft");
+    if (aircraft) setAircraftNumberFilter(aircraft);
+  }, [searchParams]);
+
+  // Dropdown toggles for filter multi-selects
   const [showRiskLevelDD, setShowRiskLevelDD] = useState(false);
   const [showGovStatusDD, setShowGovStatusDD] = useState(false);
   const [showRiskTypeDD, setShowRiskTypeDD] = useState(false);
@@ -168,6 +198,15 @@ export function FlightListPage() {
       if (
         flightNumberFilter &&
         !f.flightNumber.toLowerCase().includes(flightNumberFilter.toLowerCase())
+      )
+        return false;
+
+      // Aircraft number filter
+      if (
+        aircraftNumberFilter &&
+        !(f.aircraftNumber || "")
+          .toLowerCase()
+          .includes(aircraftNumberFilter.toLowerCase())
       )
         return false;
 
@@ -216,6 +255,7 @@ export function FlightListPage() {
     );
   }, [
     flightNumberFilter,
+    aircraftNumberFilter,
     departureFilter,
     arrivalFilter,
     operatingUnitFilter,
@@ -235,6 +275,7 @@ export function FlightListPage() {
   const handleSearch = () => setPage(1);
   const handleReset = () => {
     setFlightNumberFilter("");
+    setAircraftNumberFilter("");
     setDepartureFilter("");
     setArrivalFilter("");
     setOperatingUnitFilter("");
@@ -272,7 +313,7 @@ export function FlightListPage() {
       <div className="fl-breadcrumb">
         <span>MRIWP</span>
         <span className="fl-breadcrumb-sep">&gt;</span>
-        <span>{t("风险监控", "Risk Monitoring")}</span>
+        <span>{t("航班", "Flights")}</span>
         <span className="fl-breadcrumb-sep">&gt;</span>
         <span className="fl-breadcrumb-active">
           {t("航班列表", "Flight List")}
@@ -345,6 +386,15 @@ export function FlightListPage() {
               placeholder={t("输入航班号...", "Enter flight number...")}
               value={flightNumberFilter}
               onChange={(e) => setFlightNumberFilter(e.target.value)}
+            />
+          </div>
+          <div className="fl-filter-item">
+            <label>{t("机号", "Aircraft Number")}</label>
+            <input
+              className="fl-input"
+              placeholder={t("输入机号...", "Enter aircraft number...")}
+              value={aircraftNumberFilter}
+              onChange={(e) => setAircraftNumberFilter(e.target.value)}
             />
           </div>
           <div className="fl-filter-item">
@@ -642,8 +692,8 @@ export function FlightListPage() {
               <th>{t("机尾号 / 机型", "Aircraft Tail / Type")}</th>
               <th>{t("出发", "Departure")}</th>
               <th>{t("到达", "Arrival")}</th>
-              <th>{t("计划时间", "Scheduled Time")}</th>
-              <th>{t("预计时间", "Estimated Time")}</th>
+              <th>{t("起飞时间", "Departure Time")}</th>
+              <th>{t("降落时间", "Arrival Time")}</th>
               <th>{t("状态", "Status")}</th>
               <th>{t("综合风险等级", "Composite Risk Level")}</th>
               <th>{t("人为因素评分", "Human Factor Score")}</th>
@@ -651,7 +701,7 @@ export function FlightListPage() {
               <th>{t("环境因素评分", "Environmental Factor Score")}</th>
               <th>{t("主要风险标签", "Major Risk Tags")}</th>
               <th>{t("治理状态", "Governance Status")}</th>
-              <th>{t("操作", "Actions")}</th>
+              <th style={{ minWidth: 100 }}>{t("操作", "Actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -660,37 +710,45 @@ export function FlightListPage() {
               const govStatus = getGovernanceStatus(flight);
               const tags = getRiskTags(flight);
               return (
-                <tr key={flight.id}>
+                <tr
+                  key={flight.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() =>
+                    navigate(`/risk-monitoring/flight-detail?id=${flight.id}`)
+                  }
+                >
                   <td className="fl-td-check">
                     <input type="checkbox" />
                   </td>
-                  <td className="fl-td-flight-no">{flight.flightNumber}</td>
+                  <td className="fl-td-flight-no">
+                    {getDisplayFlightNumber(flight)}
+                  </td>
                   <td>
                     {flight.aircraftNumber || "—"} /{" "}
                     {flight.aircraftType || "—"}
                   </td>
                   <td>
-                    <div className="fl-airport-cell">
-                      <span className="fl-airport-code">
-                        {flight.fromAirportCode4 || flight.fromAirport}
-                      </span>
-                      <span className="fl-airport-name">
-                        {flight.fromAirportZh}
-                      </span>
-                    </div>
+                    <span
+                      className="fl-airport-code"
+                      data-tip={flight.fromAirportZh || flight.fromAirport}
+                    >
+                      {flight.fromAirportCode4 || flight.fromAirport}
+                    </span>
                   </td>
                   <td>
-                    <div className="fl-airport-cell">
-                      <span className="fl-airport-code">
-                        {flight.toAirportCode4 || flight.toAirport}
-                      </span>
-                      <span className="fl-airport-name">
-                        {flight.toAirportZh}
-                      </span>
-                    </div>
+                    <span
+                      className="fl-airport-code"
+                      data-tip={flight.toAirportZh || flight.toAirport}
+                    >
+                      {flight.toAirportCode4 || flight.toAirport}
+                    </span>
                   </td>
-                  <td>{flight.scheduledDeparture || "—"}</td>
-                  <td>{flight.estimatedDeparture || "—"}</td>
+                  <td>
+                    {flight.scheduledDeparture || flight.actualDeparture || "—"}
+                  </td>
+                  <td>
+                    {flight.scheduledArrival || flight.actualArrival || "—"}
+                  </td>
                   <td>
                     <span
                       className={`fl-status-badge fl-status-${flight.status === "已落地" ? "landed" : flight.status === "巡航中" ? "cruise" : "pending"}`}
@@ -743,78 +801,125 @@ export function FlightListPage() {
                     </span>
                   </td>
                   <td>
-                    <div className="fl-actions-cell">
+                    <div
+                      className="fl-icon-actions"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <button
-                        className="fl-actions-toggle"
+                        className="fl-icon-btn"
+                        data-tip={t("查看报告", "View Report")}
                         onClick={(e) => {
                           e.stopPropagation();
-                          setOpenActions(
-                            openActions === flight.id ? null : flight.id,
+                          navigate(
+                            `/risk-monitoring/flight-report?id=${flight.id}`,
                           );
                         }}
                       >
                         <svg
-                          width="16"
-                          height="16"
+                          width="14"
+                          height="14"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="currentColor"
                           strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          <polyline points="6 9 12 15 18 9" />
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
                       </button>
-                      {openActions === flight.id && (
-                        <div className="fl-actions-menu">
-                          <button onClick={() => setOpenActions(null)}>
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <circle cx="12" cy="12" r="10" />
-                              <line x1="12" y1="8" x2="12" y2="12" />
-                              <line x1="12" y1="16" x2="12.01" y2="16" />
-                            </svg>
-                            {t("查看航班", "View Flight")}
-                          </button>
-                          <button onClick={() => setOpenActions(null)}>
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                              <polyline points="14 2 14 8 20 8" />
-                            </svg>
-                            {t("查看报告", "View Report")}
-                          </button>
-                          <button onClick={() => setOpenActions(null)}>
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <line x1="8" y1="6" x2="21" y2="6" />
-                              <line x1="8" y1="12" x2="21" y2="12" />
-                              <line x1="8" y1="18" x2="21" y2="18" />
-                              <line x1="3" y1="6" x2="3.01" y2="6" />
-                              <line x1="3" y1="12" x2="3.01" y2="12" />
-                              <line x1="3" y1="18" x2="3.01" y2="18" />
-                            </svg>
-                            {t("发起处置", "Initiate Action")}
-                          </button>
-                        </div>
-                      )}
+                      <button
+                        className="fl-icon-btn"
+                        data-tip={t("查看相关人员", "View Personnel")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/personnel-center/personnel-list`);
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </button>
+                      <button
+                        className="fl-icon-btn"
+                        data-tip={t("查看相关机场", "View Airport")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(
+                            `/airport-center/airport-detail?code=${flight.fromAirport}`,
+                          );
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
+                        </svg>
+                      </button>
+                      <button
+                        className="fl-icon-btn"
+                        data-tip={t("查看相关环境", "View Environment")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/environment-topic/environment-detail`);
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="12" cy="12" r="4" />
+                          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                        </svg>
+                      </button>
+                      <button
+                        className="fl-icon-btn fl-icon-btn-warn"
+                        data-tip={t("发起处置", "Initiate Action")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                          <line x1="12" y1="9" x2="12" y2="13" />
+                          <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                      </button>
                     </div>
                   </td>
                 </tr>

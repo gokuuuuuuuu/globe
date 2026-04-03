@@ -180,15 +180,16 @@
 .ap-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11px;
+  table-layout: auto;
 }
 
 .ap-table th {
   text-align: left;
-  padding: 8px 10px;
+  padding: 6px 6px;
   color: #94a3b8;
   font-weight: 500;
-  font-size: 11px;
+  font-size: 10px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.12);
   position: sticky;
   top: 0;
@@ -198,7 +199,7 @@
 }
 
 .ap-table td {
-  padding: 8px 10px;
+  padding: 6px 6px;
   color: #e2e8f0;
   border-bottom: 1px solid rgba(148, 163, 184, 0.06);
   vertical-align: middle;
@@ -257,13 +258,9 @@
   background: #dc2626;
 }
 
-.ap-badge-medium-high {
-  background: #ea580c;
-}
-
 .ap-badge-medium {
-  background: #f59e0b;
-  color: #1e293b;
+  background: #ea580c;
+  color: #ffffff;
 }
 
 .ap-badge-low {

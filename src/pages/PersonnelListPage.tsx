@@ -1,11 +1,12 @@
 // @ts-nocheck
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./PersonnelListPage.css";
 
 // ---------- Mock Data ----------
 
-type RiskLevel = "High" | "Medium-High" | "Medium" | "Low";
+type RiskLevel = "High" | "Medium" | "Low";
 
 interface Personnel {
   id: string;
@@ -17,10 +18,11 @@ interface Personnel {
   relatedHighRiskFlights: number;
 }
 
-const DIVISIONS = ["Commercial", "Cargo", "Training"];
-const SQUADRONS = ["SQ-101", "SQ-102", "SQ-203", "SQ-305"];
-const ROLES = ["Pilot", "First Officer", "Flight Engineer", "Dispatcher"];
-const FLEETS = ["B737", "B777", "A320", "A350"];
+const UNITS = ["东航总部", "上海分公司", "江苏分公司", "浙江分公司"];
+const AIRCRAFT_TYPES = ["B737", "B777", "A320", "A350"];
+const BRIGADES = ["一大队", "二大队", "三大队", "四大队"];
+const SQUADRONS = ["一中队", "二中队", "三中队", "四中队"];
+const TECH_LEVELS = ["机长", "副驾驶", "教员", "检查员"];
 
 const NAMES = [
   "A. Brown",
@@ -75,7 +77,7 @@ const NAMES = [
   "B. Young",
 ];
 
-const UNITS = [
+const MOCK_UNITS = [
   "North Division - SQ101",
   "North Division - SQ102",
   "South Division - SQ203",
@@ -84,7 +86,7 @@ const UNITS = [
   "Central Division - SQ102",
 ];
 
-const RISK_LEVELS: RiskLevel[] = ["High", "Medium-High", "Medium", "Low"];
+const RISK_LEVELS: RiskLevel[] = ["High", "Medium", "Low"];
 const TAGS = [
   "Fatigue, Stress, Task Overload",
   "Communication, Procedure Deviations",
@@ -94,12 +96,12 @@ const TAGS = [
 function generateMockData(): Personnel[] {
   const data: Personnel[] = [];
   for (let i = 0; i < 50; i++) {
-    const riskIdx = i < 12 ? 0 : i < 22 ? 1 : i < 35 ? 2 : 3;
+    const riskIdx = i < 15 ? 0 : i < 35 ? 1 : 2;
     data.push({
       id: `p-${i}`,
       employeeId: `EMP0${421 + i}`,
       name: NAMES[i % NAMES.length],
-      operatingUnit: UNITS[i % UNITS.length],
+      operatingUnit: MOCK_UNITS[i % MOCK_UNITS.length],
       riskLevel: RISK_LEVELS[riskIdx],
       humanFactorTags: riskIdx === 3 ? "None" : TAGS[i % 3],
       relatedHighRiskFlights:
@@ -115,12 +117,16 @@ const MOCK_PERSONNEL = generateMockData();
 
 export function PersonnelListPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  const [filterCollapsed, setFilterCollapsed] = useState(true);
 
   // Filters
-  const [division, setDivision] = useState("Commercial");
-  const [squadron, setSquadron] = useState("SQ-101");
-  const [role, setRole] = useState("Pilot");
-  const [fleet, setFleet] = useState("B737");
+  const [unit, setUnit] = useState("东航总部");
+  const [aircraftType, setAircraftType] = useState("B737");
+  const [brigade, setBrigade] = useState("一大队");
+  const [squadron, setSquadron] = useState("一中队");
+  const [techLevel, setTechLevel] = useState("机长");
   const [searchText, setSearchText] = useState("");
   const [dateFrom, setDateFrom] = useState("2024-02-15");
   const [dateTo, setDateTo] = useState("2024-05-15");
@@ -156,10 +162,11 @@ export function PersonnelListPage() {
   const avgRiskScore = 4.25;
 
   const handleReset = () => {
-    setDivision("Commercial");
-    setSquadron("SQ-101");
-    setRole("Pilot");
-    setFleet("B737");
+    setUnit("东航总部");
+    setAircraftType("B737");
+    setBrigade("一大队");
+    setSquadron("一中队");
+    setTechLevel("机长");
     setSearchText("");
     setPage(1);
   };
@@ -172,8 +179,6 @@ export function PersonnelListPage() {
     switch (level) {
       case "High":
         return "pl-risk-high";
-      case "Medium-High":
-        return "pl-risk-medium-high";
       case "Medium":
         return "pl-risk-medium";
       case "Low":
@@ -185,8 +190,6 @@ export function PersonnelListPage() {
     switch (level) {
       case "High":
         return t("高", "High");
-      case "Medium-High":
-        return t("中高", "Medium-High");
       case "Medium":
         return t("中", "Medium");
       case "Low":
@@ -226,7 +229,7 @@ export function PersonnelListPage() {
       <div className="pl-breadcrumb">
         <span>MRIWP</span>
         <span className="pl-breadcrumb-sep">&gt;</span>
-        <span>{t("人员中心", "Personnel Center")}</span>
+        <span>{t("人", "Personnel")}</span>
         <span className="pl-breadcrumb-sep">&gt;</span>
         <span className="pl-breadcrumb-active">
           {t("人员列表", "Personnel List")}
@@ -236,148 +239,184 @@ export function PersonnelListPage() {
       {/* Page Header */}
       <div className="pl-page-header">
         <div className="pl-page-title">
-          <h1>{t("人员列表（高风险）", "Personnel List (High-Risk)")}</h1>
+          <h1>{t("人员列表", "Personnel List (High-Risk)")}</h1>
         </div>
       </div>
 
-      {/* Filter Card */}
-      <div className="pl-filter-card">
-        <div className="pl-filter-top">
-          <div className="pl-filter-dropdowns">
-            <div className="pl-filter-item">
-              <label>{t("部门", "Division")}</label>
-              <select
-                className="pl-select"
-                value={division}
-                onChange={(e) => setDivision(e.target.value)}
-              >
-                {DIVISIONS.map((d) => (
-                  <option key={d} value={d}>
-                    {d === "Commercial"
-                      ? t("商业", "Commercial")
-                      : d === "Cargo"
-                        ? t("货运", "Cargo")
-                        : d === "Training"
-                          ? t("培训", "Training")
-                          : d}
-                  </option>
-                ))}
-              </select>
+      {/* Filter Card (collapsible) */}
+      <div
+        className="pl-filter-toggle"
+        onClick={() => setFilterCollapsed(!filterCollapsed)}
+      >
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+        </svg>
+        <span>{t("筛选条件", "Filters")}</span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          style={{
+            transition: "transform 0.2s",
+            transform: filterCollapsed ? "rotate(-90deg)" : "rotate(0deg)",
+          }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </div>
+      {!filterCollapsed && (
+        <div className="pl-filter-card">
+          <div className="pl-filter-top">
+            <div className="pl-filter-dropdowns">
+              <div className="pl-filter-item">
+                <label>{t("飞行单位", "Flight Unit")}</label>
+                <select
+                  className="pl-select"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                >
+                  {UNITS.map((u) => (
+                    <option key={u} value={u}>
+                      {u}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pl-filter-item">
+                <label>{t("机型", "Aircraft Type")}</label>
+                <select
+                  className="pl-select"
+                  value={aircraftType}
+                  onChange={(e) => setAircraftType(e.target.value)}
+                >
+                  {AIRCRAFT_TYPES.map((a) => (
+                    <option key={a} value={a}>
+                      {a}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pl-filter-item">
+                <label>{t("大队", "Brigade")}</label>
+                <select
+                  className="pl-select"
+                  value={brigade}
+                  onChange={(e) => setBrigade(e.target.value)}
+                >
+                  {BRIGADES.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pl-filter-item">
+                <label>{t("中队", "Squadron")}</label>
+                <select
+                  className="pl-select"
+                  value={squadron}
+                  onChange={(e) => setSquadron(e.target.value)}
+                >
+                  {SQUADRONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pl-filter-item">
+                <label>{t("技术等级", "Technical Level")}</label>
+                <select
+                  className="pl-select"
+                  value={techLevel}
+                  onChange={(e) => setTechLevel(e.target.value)}
+                >
+                  {TECH_LEVELS.map((l) => (
+                    <option key={l} value={l}>
+                      {l}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="pl-filter-item">
+                <label>{t("时间", "Time")}</label>
+                <div className="pl-time-range">
+                  <input
+                    type="date"
+                    className="pl-date-input"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                  <span className="pl-date-sep">—</span>
+                  <input
+                    type="date"
+                    className="pl-date-input"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="pl-filter-item">
-              <label>{t("中队", "Squadron")}</label>
-              <select
-                className="pl-select"
-                value={squadron}
-                onChange={(e) => setSquadron(e.target.value)}
-              >
-                {SQUADRONS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="pl-filter-item">
-              <label>{t("角色", "Role")}</label>
-              <select
-                className="pl-select"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                {ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r === "Pilot"
-                      ? t("飞行员", "Pilot")
-                      : r === "First Officer"
-                        ? t("副驾驶", "First Officer")
-                        : r === "Flight Engineer"
-                          ? t("飞行工程师", "Flight Engineer")
-                          : r === "Dispatcher"
-                            ? t("调度员", "Dispatcher")
-                            : r}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="pl-filter-item">
-              <label>{t("机队", "Fleet")}</label>
-              <select
-                className="pl-select"
-                value={fleet}
-                onChange={(e) => setFleet(e.target.value)}
-              >
-                {FLEETS.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="pl-filter-item">
-              <label>{t("时间窗口", "Time Window")}</label>
-              <div className="pl-time-range">
-                <input
-                  type="date"
-                  className="pl-date-input"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                />
-                <span className="pl-date-sep">—</span>
-                <input
-                  type="date"
-                  className="pl-date-input"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                />
+
+            {/* Stats */}
+            <div className="pl-stats">
+              <div className="pl-stat-box">
+                <span className="pl-stat-value">{totalPersonnel}</span>
+                <span className="pl-stat-label">
+                  {t("总人员", "Total Personnel")}
+                </span>
+              </div>
+              <div className="pl-stat-box">
+                <span className="pl-stat-value pl-stat-warning">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  {highRiskCount}
+                </span>
+                <span className="pl-stat-label">
+                  {t("高风险", "High-Risk")}
+                </span>
+              </div>
+              <div className="pl-stat-box">
+                <span className="pl-stat-value">{avgRiskScore}</span>
+                <span className="pl-stat-label">
+                  {t("平均风险分", "Avg Risk Score")}
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="pl-stats">
-            <div className="pl-stat-box">
-              <span className="pl-stat-value">{totalPersonnel}</span>
-              <span className="pl-stat-label">
-                {t("总人员", "Total Personnel")}
-              </span>
-            </div>
-            <div className="pl-stat-box">
-              <span className="pl-stat-value pl-stat-warning">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                  <line x1="12" y1="9" x2="12" y2="13" />
-                  <line x1="12" y1="17" x2="12.01" y2="17" />
-                </svg>
-                {highRiskCount}
-              </span>
-              <span className="pl-stat-label">{t("高风险", "High-Risk")}</span>
-            </div>
-            <div className="pl-stat-box">
-              <span className="pl-stat-value">{avgRiskScore}</span>
-              <span className="pl-stat-label">
-                {t("平均风险分", "Avg Risk Score")}
-              </span>
-            </div>
+          <div className="pl-filter-bottom">
+            <button className="pl-btn-reset" onClick={handleReset}>
+              {t("重置", "Reset")}
+            </button>
+            <button className="pl-btn-apply" onClick={handleApply}>
+              {t("应用", "Apply")}
+            </button>
           </div>
         </div>
-
-        <div className="pl-filter-bottom">
-          <button className="pl-btn-reset" onClick={handleReset}>
-            {t("重置", "Reset")}
-          </button>
-          <button className="pl-btn-apply" onClick={handleApply}>
-            {t("应用", "Apply")}
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Search + Export Row */}
       <div className="pl-search-row">
@@ -421,19 +460,6 @@ export function PersonnelListPage() {
             </svg>
             {t("导出", "Export")}
           </button>
-          <button className="pl-export-btn">
-            {t("导出", "Export")}
-            <svg
-              width="10"
-              height="10"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -459,6 +485,10 @@ export function PersonnelListPage() {
               <tr
                 key={person.id}
                 className={person.riskLevel === "High" ? "pl-row-high" : ""}
+                style={{ cursor: "pointer" }}
+                onClick={() =>
+                  navigate(`/personnel-center/personnel-detail?id=${person.id}`)
+                }
               >
                 <td className="pl-td-check">
                   <input type="checkbox" />
@@ -479,22 +509,8 @@ export function PersonnelListPage() {
                   </span>
                 </td>
                 <td>{person.relatedHighRiskFlights}</td>
-                <td>
+                <td onClick={(e) => e.stopPropagation()}>
                   <div className="pl-actions-cell">
-                    <button className="pl-action-link">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                        <circle cx="12" cy="7" r="4" />
-                      </svg>
-                      {t("查看人员", "View Person")}
-                    </button>
                     <button className="pl-action-link">
                       <svg
                         width="12"
@@ -506,7 +522,7 @@ export function PersonnelListPage() {
                       >
                         <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
                       </svg>
-                      {t("查看相关航班", "View Related Flights")}
+                      {t("查看历史航班", "View Historical Flights")}
                     </button>
                   </div>
                 </td>

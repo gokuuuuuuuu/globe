@@ -138,7 +138,7 @@ function getDotClass(color: string) {
 
 export function FlightDetailPage() {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<"phases" | "causes">("phases");
+  // Tabs removed per requirements
 
   const tFactor = (name: string) => {
     const map: Record<string, string> = {
@@ -196,26 +196,22 @@ export function FlightDetailPage() {
       <div className="fd-breadcrumb">
         <span>MRIWP</span>
         <span className="fd-breadcrumb-sep">&gt;</span>
-        <span>{t("风险监控", "Risk Monitoring")}</span>
+        <span>{t("航班", "Flights")}</span>
         <span className="fd-breadcrumb-sep">&gt;</span>
         <span className="fd-breadcrumb-active">
-          {t("单航班详情", "Single Flight Detail")}
+          {t("航班信息", "Flight Info")}
         </span>
       </div>
 
       {/* Page Header */}
       <div className="fd-page-header">
         <h1 className="fd-page-title">
-          {t("单航班详情", "Single Flight Detail")} - {flightInfo.flightNumber}
+          {t("航班信息", "Flight Info")} - {flightInfo.flightNumber}
         </h1>
         <div className="fd-header-actions">
           <button className="fd-btn">
             {t("查看完整报告", "View Full Report")}
           </button>
-          <button className="fd-btn">
-            {t("查看解释", "View Explanation")}
-          </button>
-          <button className="fd-btn">{t("查看证据", "View Evidence")}</button>
           <button className="fd-btn fd-btn-danger">
             {t("发起处置", "Initiate Action")}
           </button>
@@ -321,342 +317,210 @@ export function FlightDetailPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="fd-tabs">
-        <button
-          className={`fd-tab ${activeTab === "phases" ? "fd-tab-active" : ""}`}
-          onClick={() => setActiveTab("phases")}
-        >
-          {t("飞行阶段", "Flight Phases")}
-        </button>
-        <button
-          className={`fd-tab ${activeTab === "causes" ? "fd-tab-active" : ""}`}
-          onClick={() => setActiveTab("causes")}
-        >
-          {t("原因维度", "Cause Dimensions")}
-        </button>
-      </div>
-
       {/* Content */}
       <div className="fd-content">
-        {activeTab === "phases" && (
-          <>
-            {/* Flight Phases Cards */}
-            <div className="fd-phases">
-              {phases.map((phase) => (
-                <div className="fd-phase-card" key={phase.name}>
-                  <div className="fd-phase-header">
-                    <div className="fd-phase-name">
-                      {phase.name === "Takeoff"
-                        ? t("起飞", "Takeoff")
-                        : phase.name === "Cruise"
-                          ? t("巡航", "Cruise")
-                          : phase.name === "Landing"
-                            ? t("着陆", "Landing")
-                            : phase.name}
+        {/* Flight Phases Cards */}
+        <div className="fd-phases">
+          {phases.map((phase) => (
+            <div className="fd-phase-card" key={phase.name}>
+              <div className="fd-phase-header">
+                <div className="fd-phase-name">
+                  {phase.name === "Takeoff"
+                    ? t("起飞", "Takeoff")
+                    : phase.name === "Cruise"
+                      ? t("巡航", "Cruise")
+                      : phase.name === "Landing"
+                        ? t("着陆", "Landing")
+                        : phase.name}
+                </div>
+                <div className="fd-phase-scores">
+                  <div className="fd-phase-score-item">
+                    <div className="fd-phase-score-label">
+                      {t("风险评分", "Risk Score")}
                     </div>
-                    <div className="fd-phase-scores">
-                      <div className="fd-phase-score-item">
-                        <div className="fd-phase-score-label">
-                          {t("风险评分", "Risk Score")}
-                        </div>
-                        <div className="fd-phase-score-value">
-                          {phase.riskScore}
-                        </div>
-                      </div>
-                      <div className="fd-phase-score-item">
-                        <div className="fd-phase-score-label">
-                          {t("权重", "Weight")}
-                        </div>
-                        <div className="fd-phase-score-value">
-                          {phase.weight}
-                        </div>
-                      </div>
+                    <div className="fd-phase-score-value">
+                      {phase.riskScore}
                     </div>
                   </div>
-                  <div className="fd-phase-chart">
-                    {phase.bars.map((h, i) => (
-                      <div
-                        key={i}
-                        className="fd-phase-bar"
-                        style={{
-                          height: `${(h / 100) * 100}%`,
-                          background: phase.barColors[i],
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <div className="fd-phase-tags">
-                    <span className="fd-phase-tags-label">
-                      {t("风险标签", "Risk Tags")}
-                    </span>
-                    {phase.tags.map((tag, i) => (
-                      <span key={i} className="fd-phase-tag">
-                        {tag === "Engine Performance"
-                          ? t("发动机性能", "Engine Performance")
-                          : tag === "Human"
-                            ? t("人为因素", "Human")
-                            : tag === "Crosswinds"
-                              ? t("侧风", "Crosswinds")
-                              : tag === "Braking Action"
-                                ? t("刹车效能", "Braking Action")
-                                : tag}
-                      </span>
-                    ))}
+                  <div className="fd-phase-score-item">
+                    <div className="fd-phase-score-label">
+                      {t("权重", "Weight")}
+                    </div>
+                    <div className="fd-phase-score-value">{phase.weight}</div>
                   </div>
                 </div>
-              ))}
+              </div>
+              <div className="fd-phase-chart">
+                {phase.bars.map((h, i) => (
+                  <div
+                    key={i}
+                    className="fd-phase-bar"
+                    style={{
+                      height: `${(h / 100) * 100}%`,
+                      background: phase.barColors[i],
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="fd-phase-tags">
+                <span className="fd-phase-tags-label">
+                  {t("风险标签", "Risk Tags")}
+                </span>
+                {phase.tags.map((tag, i) => (
+                  <span key={i} className="fd-phase-tag">
+                    {tag === "Engine Performance"
+                      ? t("发动机性能", "Engine Performance")
+                      : tag === "Human"
+                        ? t("人为因素", "Human")
+                        : tag === "Crosswinds"
+                          ? t("侧风", "Crosswinds")
+                          : tag === "Braking Action"
+                            ? t("刹车效能", "Braking Action")
+                            : tag}
+                  </span>
+                ))}
+              </div>
             </div>
+          ))}
+        </div>
 
-            {/* Top-Factor Contribution Area */}
-            <h2 className="fd-section-title">
-              {t("首要因素贡献区域", "Top-Factor Contribution Area")}
-            </h2>
-            <div className="fd-factors">
-              <div className="fd-factor-card">
-                <div className="fd-factor-title">
-                  {t("人为因素 Top 5", "Human Top 5")}
-                </div>
-                {factorData.human.map((item, i) => (
-                  <div className="fd-factor-row" key={i}>
-                    <div className="fd-factor-left">
-                      <span
-                        className={`fd-factor-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-name">
-                        {tFactor(item.name)}
-                      </span>
-                    </div>
-                    <div className="fd-factor-right">
-                      <span
-                        className={`fd-factor-score-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-score">
-                        {item.score.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="fd-factor-card">
-                <div className="fd-factor-title">
-                  {t("飞机因素 Top 5", "Aircraft Top 5")}
-                </div>
-                {factorData.aircraft.map((item, i) => (
-                  <div className="fd-factor-row" key={i}>
-                    <div className="fd-factor-left">
-                      <span
-                        className={`fd-factor-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-name">
-                        {tFactor(item.name)}
-                      </span>
-                    </div>
-                    <div className="fd-factor-right">
-                      <span
-                        className={`fd-factor-score-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-score">
-                        {item.score.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="fd-factor-card">
-                <div className="fd-factor-title">
-                  {t("环境因素 Top 5", "Environment Top 5")}
-                </div>
-                {factorData.environment.map((item, i) => (
-                  <div className="fd-factor-row" key={i}>
-                    <div className="fd-factor-left">
-                      <span
-                        className={`fd-factor-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-name">
-                        {tFactor(item.name)}
-                      </span>
-                    </div>
-                    <div className="fd-factor-right">
-                      <span
-                        className={`fd-factor-score-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-score">
-                        {item.score.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="fd-factor-card">
-                <div className="fd-factor-title">
-                  {t("综合因素 Top 10", "Composite Top 10")}
-                </div>
-                {factorData.composite.map((item, i) => (
-                  <div className="fd-factor-row" key={i}>
-                    <div className="fd-factor-left">
-                      <span
-                        className={`fd-factor-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-name">
-                        {tFactor(item.name)}
-                      </span>
-                    </div>
-                    <div className="fd-factor-right">
-                      <span
-                        className={`fd-factor-score-dot ${getDotClass(item.color)}`}
-                      />
-                      <span className="fd-factor-score">
-                        {item.score.toFixed(1)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {/* Top-Factor Contribution Area */}
+        <h2 className="fd-section-title">
+          {t("首要因素贡献区域", "Top-Factor Contribution Area")}
+        </h2>
+        <div className="fd-factors">
+          <div className="fd-factor-card">
+            <div className="fd-factor-title">
+              {t("人为因素 Top 5", "Human Top 5")}
             </div>
-
-            {/* Major Risk Event Section */}
-            <div className="fd-risk-section-header">
-              <h2 className="fd-section-title" style={{ margin: 0 }}>
-                {t("重大风险事件", "Major Risk Event Section")}
-              </h2>
-              <div className="fd-risk-section-actions">
-                <button className="fd-btn">
-                  {t("查看完整报告", "View Full Report")}
-                </button>
-                <button className="fd-btn">
-                  {t("查看解释", "View Explanation")}
-                </button>
-                <button className="fd-btn">
-                  {t("查看证据", "View Evidence")}
-                </button>
-                <button className="fd-btn">
-                  {t("查看重大风险详情", "View Major Risk Detail")}
-                </button>
-                <button className="fd-btn fd-btn-danger">
-                  {t("发起处置", "Initiate Action")}
-                </button>
-              </div>
-            </div>
-            <table className="fd-risk-table">
-              <thead>
-                <tr>
-                  <th>{t("重大风险", "Major Risk")}</th>
-                  <th>{t("优先级", "Priority")}</th>
-                  <th>{t("原因摘要", "Cause Summaries")}</th>
-                  <th>{t("建议措施", "Suggested Actions")}</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {majorRiskEvents.map((evt, i) => (
-                  <tr key={i}>
-                    <td>{tRisk(evt.risk)}</td>
-                    <td>
-                      <span className={`fd-priority ${evt.priorityClass}`}>
-                        {tPriority(evt.priority)}
-                      </span>
-                    </td>
-                    <td>{tCause(evt.cause)}</td>
-                    <td>{tAction(evt.action)}</td>
-                    <td>
-                      <button className="fd-btn">
-                        {t("查看详情", "View Detail")}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Governance Section */}
-            <div className="fd-gov-section-header">
-              <h2 className="fd-section-title" style={{ margin: 0 }}>
-                {t("治理部分", "Governance Section")}
-              </h2>
-              <div className="fd-risk-section-actions">
-                <button className="fd-btn">
-                  {t("查看相关人员", "View Related Person")}
-                </button>
-                <button className="fd-btn">
-                  {t("查看相关飞机", "View Related Aircraft")}
-                </button>
-                <button className="fd-btn">
-                  {t("查看相关环境", "View Related Environment")}
-                </button>
-              </div>
-            </div>
-            <div className="fd-gov-cards">
-              <div className="fd-gov-card">
-                <div className="fd-gov-card-label">
-                  {t("责任部门", "Responsible Department")}
+            {factorData.human.map((item, i) => (
+              <div className="fd-factor-row" key={i}>
+                <div className="fd-factor-left">
+                  <span
+                    className={`fd-factor-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-name">{tFactor(item.name)}</span>
                 </div>
-                <div className="fd-gov-card-value">
-                  {t("飞行运营", "Flight Operations")}
-                </div>
-              </div>
-              <div className="fd-gov-card">
-                <div className="fd-gov-card-label">
-                  {t("责任人", "Responsible Person")}
-                </div>
-                <div className="fd-gov-person">
-                  <div className="fd-gov-avatar">SJ</div>
-                  <div>
-                    <div className="fd-gov-card-value">Sarah Jenkins</div>
-                    <div className="fd-gov-card-sub">
-                      {t("高级调度员", "Senior Dispatcher")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="fd-gov-card">
-                <div className="fd-gov-card-label">
-                  {t("最新反馈", "Latest Feedback")}
-                </div>
-                <div className="fd-gov-card-value">
-                  {t("已计划并审核改航", "Reroute planned and reviewed")}
-                </div>
-              </div>
-              <div className="fd-gov-card">
-                <div className="fd-gov-card-label">
-                  {t("最新评审", "Latest Review")}
-                </div>
-                <div className="fd-gov-card-value">
-                  {t("2024年10月27日 16:30", "Oct 27, 2024 16:30")}
-                </div>
-              </div>
-              <div className="fd-gov-card">
-                <div className="fd-gov-card-label">
-                  {t("当前工单状态", "Current Work Order Status")}
-                </div>
-                <div className="fd-gov-card-value">
-                  {t("工单 #WO-456", "Work Order #WO-456")}
-                  <span className="fd-pending-badge">
-                    {t("待审批", "Pending Approval")}
+                <div className="fd-factor-right">
+                  <span
+                    className={`fd-factor-score-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-score">
+                    {item.score.toFixed(1)}
                   </span>
                 </div>
               </div>
-            </div>
-          </>
-        )}
-
-        {activeTab === "causes" && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: 300,
-              color: "#64748b",
-              fontSize: 14,
-            }}
-          >
-            {t(
-              "原因维度视图即将推出...",
-              "Cause Dimensions view coming soon...",
-            )}
+            ))}
           </div>
-        )}
+          <div className="fd-factor-card">
+            <div className="fd-factor-title">
+              {t("飞机因素 Top 5", "Aircraft Top 5")}
+            </div>
+            {factorData.aircraft.map((item, i) => (
+              <div className="fd-factor-row" key={i}>
+                <div className="fd-factor-left">
+                  <span
+                    className={`fd-factor-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-name">{tFactor(item.name)}</span>
+                </div>
+                <div className="fd-factor-right">
+                  <span
+                    className={`fd-factor-score-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-score">
+                    {item.score.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="fd-factor-card">
+            <div className="fd-factor-title">
+              {t("环境因素 Top 5", "Environment Top 5")}
+            </div>
+            {factorData.environment.map((item, i) => (
+              <div className="fd-factor-row" key={i}>
+                <div className="fd-factor-left">
+                  <span
+                    className={`fd-factor-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-name">{tFactor(item.name)}</span>
+                </div>
+                <div className="fd-factor-right">
+                  <span
+                    className={`fd-factor-score-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-score">
+                    {item.score.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="fd-factor-card">
+            <div className="fd-factor-title">
+              {t("综合因素 Top 10", "Composite Top 10")}
+            </div>
+            {factorData.composite.map((item, i) => (
+              <div className="fd-factor-row" key={i}>
+                <div className="fd-factor-left">
+                  <span
+                    className={`fd-factor-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-name">{tFactor(item.name)}</span>
+                </div>
+                <div className="fd-factor-right">
+                  <span
+                    className={`fd-factor-score-dot ${getDotClass(item.color)}`}
+                  />
+                  <span className="fd-factor-score">
+                    {item.score.toFixed(1)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Major Risk Event Section */}
+        <div className="fd-risk-section-header">
+          <h2 className="fd-section-title" style={{ margin: 0 }}>
+            {t("重大风险事件", "Major Risk Event Section")}
+          </h2>
+        </div>
+        <table className="fd-risk-table">
+          <thead>
+            <tr>
+              <th>{t("重大风险", "Major Risk")}</th>
+              <th>{t("优先级", "Priority")}</th>
+              <th>{t("原因摘要", "Cause Summaries")}</th>
+              <th>{t("建议措施", "Suggested Actions")}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {majorRiskEvents.map((evt, i) => (
+              <tr key={i}>
+                <td>{tRisk(evt.risk)}</td>
+                <td>
+                  <span className={`fd-priority ${evt.priorityClass}`}>
+                    {tPriority(evt.priority)}
+                  </span>
+                </td>
+                <td>{tCause(evt.cause)}</td>
+                <td>{tAction(evt.action)}</td>
+                <td>
+                  <button className="fd-btn">
+                    {t("查看详情", "View Detail")}
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Governance Section - hidden */}
       </div>
     </div>
   );

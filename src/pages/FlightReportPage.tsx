@@ -41,6 +41,24 @@ const NAV_SECTIONS = [
     icon: "env",
   },
   {
+    id: "factor-explanation",
+    labelZh: "因子解释",
+    labelEn: "Factor Explanation",
+    icon: "doc",
+  },
+  {
+    id: "evidence-chain",
+    labelZh: "证据链",
+    labelEn: "Evidence Chain",
+    icon: "evidence",
+  },
+  {
+    id: "major-risk-detail",
+    labelZh: "重大风险详情",
+    labelEn: "Major Risk Detail",
+    icon: "alert",
+  },
+  {
     id: "major-risk",
     labelZh: "重大风险事件说明",
     labelEn: "Major Risk Event Explanation",
@@ -168,7 +186,7 @@ export function FlightReportPage() {
       <div className="fr-breadcrumb">
         <span>MRIWP</span>
         <span className="fr-breadcrumb-sep">&gt;</span>
-        <span>{t("风险监控", "Risk Monitoring")}</span>
+        <span>{t("航班", "Flights")}</span>
         <span className="fr-breadcrumb-sep">&gt;</span>
         <span className="fr-breadcrumb-active">
           {t("完整航班报告", "Full Flight Report")}
@@ -181,53 +199,14 @@ export function FlightReportPage() {
           {t("完整航班报告", "Full Flight Report")}
         </h1>
         <div className="fr-header-actions">
-          <button className="fr-btn">{t("页面PDF", "Page PDF")}</button>
-          <button className="fr-btn">{t("操作", "Actions")}</button>
+          <button className="fr-btn">{t("导出", "Export")}</button>
+          <button className="fr-btn fr-btn-primary">
+            {t("返回航班详情", "Back to Flight Detail")}
+          </button>
         </div>
       </div>
 
-      {/* Flight Info Bar */}
-      <div className="fr-info-bar">
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("航班ID", "Flight ID")}</div>
-          <div className="fr-info-value">{flightInfo.flightId}</div>
-        </div>
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("日期", "Date")}</div>
-          <div className="fr-info-value">{flightInfo.date}</div>
-        </div>
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("飞机", "Aircraft")}</div>
-          <div className="fr-info-value">{flightInfo.aircraft}</div>
-        </div>
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("机长", "Pilot in Command")}</div>
-          <div className="fr-info-value">{flightInfo.pilot}</div>
-        </div>
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("航线", "Route")}</div>
-          <div className="fr-info-value">{flightInfo.route}</div>
-        </div>
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("状态", "Status")}</div>
-          <div className="fr-info-value fr-info-value-green">
-            {flightInfo.status}
-          </div>
-        </div>
-        <div className="fr-info-item">
-          <div className="fr-info-label">{t("摘要", "Summary")}</div>
-          <div className="fr-info-value">{flightInfo.summary}</div>
-        </div>
-      </div>
-
-      {/* Export row */}
-      <div className="fr-export-row">
-        <button className="fr-btn">{t("导出PDF", "Export PDF")}</button>
-        <button className="fr-btn">{t("导出Word", "Export Word")}</button>
-        <button className="fr-btn fr-btn-primary">
-          {t("返回航班详情", "Back to Flight Detail")}
-        </button>
-      </div>
+      {/* Info bar removed - duplicates Flight Facts section */}
 
       {/* Body: nav + content */}
       <div className="fr-body">
@@ -378,8 +357,15 @@ export function FlightReportPage() {
                   </ul>
                 </div>
               </div>
+            </div>
+          </div>
 
-              {/* Flight Phase Risk Analysis mini */}
+          {/* Flight Phase Risk Analysis - separate section */}
+          <div id="flight-phase" className="fr-section">
+            <h2 className="fr-section-title">
+              {t("飞行阶段风险分析", "Flight Phase Risk Analysis")}
+            </h2>
+            <div className="fr-grid-1">
               <div className="fr-card">
                 <div className="fr-card-title">
                   {t("飞行阶段风险分析", "Flight Phase Risk Analysis")}
@@ -580,77 +566,6 @@ export function FlightReportPage() {
                       for maintenance aspects and contributing factors.
                     </li>
                   </ul>
-                </div>
-              </div>
-              <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("飞机因素分析", "Aircraft Factor Analysis")}
-                </div>
-                <div className="fr-text" style={{ marginBottom: 12 }}>
-                  Aircraft Factor analysis provides our contains for systems,
-                  maintenance logs, engine airmo environments summary for
-                  components and maintenance settings.
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 16,
-                    alignItems: "center",
-                    marginBottom: 12,
-                  }}
-                >
-                  <div
-                    className="fr-donut"
-                    style={{
-                      width: 100,
-                      height: 100,
-                      background: `conic-gradient(#ef4444 0deg 150deg, #f97316 150deg 240deg, #eab308 240deg 320deg, #22c55e 320deg 360deg)`,
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: "50%",
-                        background: "#1e293b",
-                        position: "absolute",
-                      }}
-                    />
-                  </div>
-                  <div className="fr-donut-legend">
-                    <div className="fr-legend-item">
-                      <span
-                        className="fr-legend-dot"
-                        style={{ background: "#ef4444" }}
-                      />{" "}
-                      {t("严重", "Critical")}{" "}
-                      <span className="fr-legend-count">11</span>
-                    </div>
-                    <div className="fr-legend-item">
-                      <span
-                        className="fr-legend-dot"
-                        style={{ background: "#f97316" }}
-                      />{" "}
-                      {t("高", "High")}{" "}
-                      <span className="fr-legend-count">6</span>
-                    </div>
-                    <div className="fr-legend-item">
-                      <span
-                        className="fr-legend-dot"
-                        style={{ background: "#eab308" }}
-                      />{" "}
-                      {t("中", "Medium")}{" "}
-                      <span className="fr-legend-count">5</span>
-                    </div>
-                    <div className="fr-legend-item">
-                      <span
-                        className="fr-legend-dot"
-                        style={{ background: "#22c55e" }}
-                      />{" "}
-                      {t("低", "Low")}{" "}
-                      <span className="fr-legend-count">1</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -1052,10 +967,6 @@ export function FlightReportPage() {
             <div className="fr-card">
               <div className="fr-grid-4">
                 <div>
-                  <div className="fr-env-label">{t("航班ID", "Flight ID")}</div>
-                  <div className="fr-env-value">{flightInfo.flightId}</div>
-                </div>
-                <div>
                   <div className="fr-env-label">{t("日期", "Date")}</div>
                   <div className="fr-env-value">{flightInfo.date}</div>
                 </div>
@@ -1064,10 +975,12 @@ export function FlightReportPage() {
                   <div className="fr-env-value">{flightInfo.aircraft}</div>
                 </div>
                 <div>
-                  <div className="fr-env-label">
-                    {t("机长", "Pilot in Command")}
-                  </div>
+                  <div className="fr-env-label">PF</div>
                   <div className="fr-env-value">{flightInfo.pilot}</div>
+                </div>
+                <div>
+                  <div className="fr-env-label">PM</div>
+                  <div className="fr-env-value">Co-pilot</div>
                 </div>
                 <div>
                   <div className="fr-env-label">{t("航线", "Route")}</div>
@@ -1080,7 +993,9 @@ export function FlightReportPage() {
                   </div>
                 </div>
                 <div>
-                  <div className="fr-env-label">Composite Risk</div>
+                  <div className="fr-env-label">
+                    {t("综合风险", "Composite Risk")}
+                  </div>
                   <div className="fr-env-value" style={{ color: "#ef4444" }}>
                     HIGH (Red) - 78/100
                   </div>
@@ -1095,8 +1010,114 @@ export function FlightReportPage() {
             </div>
           </div>
 
-          {/* Flight Phase section anchor */}
-          <div id="flight-phase" />
+          {/* Factor Explanation section */}
+          <div id="factor-explanation" className="fr-section">
+            <h2 className="fr-section-title">
+              {t("因子解释", "Factor Explanation")}
+            </h2>
+            <div className="fr-card">
+              <div className="fr-text">
+                <p>
+                  {t(
+                    "本节详细解释了各风险因子的含义、权重和计算方法。",
+                    "This section explains the meaning, weight, and calculation methods of each risk factor.",
+                  )}
+                </p>
+                <ul>
+                  <li>
+                    <strong>{t("人为因素", "Human Factors")}:</strong>{" "}
+                    {t(
+                      "包含机组疲劳、通信、任务负荷等维度的评估。",
+                      "Assessment of crew fatigue, communication, task load, etc.",
+                    )}
+                  </li>
+                  <li>
+                    <strong>{t("飞机因素", "Aircraft Factors")}:</strong>{" "}
+                    {t(
+                      "包含发动机状态、液压系统、航电设备等维度的评估。",
+                      "Assessment of engine status, hydraulic systems, avionics, etc.",
+                    )}
+                  </li>
+                  <li>
+                    <strong>{t("环境因素", "Environmental Factors")}:</strong>{" "}
+                    {t(
+                      "包含天气、空中交通、机场条件等维度的评估。",
+                      "Assessment of weather, air traffic, airport conditions, etc.",
+                    )}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Evidence Chain section */}
+          <div id="evidence-chain" className="fr-section">
+            <h2 className="fr-section-title">
+              {t("证据链", "Evidence Chain")}
+            </h2>
+            <div className="fr-card">
+              <div className="fr-text">
+                <p>
+                  {t(
+                    "以下为支持风险评估的数据来源：",
+                    "The following data sources support the risk assessment:",
+                  )}
+                </p>
+                <ul>
+                  <li>
+                    <strong>{t("飞行数据", "Flight Data")}:</strong> QAR/FDR{" "}
+                    {t("记录的飞行参数数据", "recorded flight parameter data")}
+                  </li>
+                  <li>
+                    <strong>{t("训练数据", "Training Data")}:</strong>{" "}
+                    {t(
+                      "机组人员训练记录和考核结果",
+                      "Crew training records and assessment results",
+                    )}
+                  </li>
+                  <li>
+                    <strong>{t("维修数据", "Maintenance Data")}:</strong>{" "}
+                    {t(
+                      "飞机维修保养记录和故障报告",
+                      "Aircraft maintenance records and fault reports",
+                    )}
+                  </li>
+                  <li>
+                    <strong>{t("通告", "Notices")}:</strong> NOTAM{" "}
+                    {t("和航行通告信息", "and flight advisory information")}
+                  </li>
+                  <li>
+                    <strong>{t("报文", "Messages")}:</strong> METAR/TAF{" "}
+                    {t("气象报文信息", "meteorological message information")}
+                  </li>
+                  <li>
+                    <strong>{t("规则和手册", "Rules & Manuals")}:</strong>{" "}
+                    {t(
+                      "适用的法规、标准和操作手册",
+                      "Applicable regulations, standards, and operating manuals",
+                    )}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Major Risk Detail section */}
+          <div id="major-risk-detail" className="fr-section">
+            <h2 className="fr-section-title">
+              {t("重大风险详情", "Major Risk Detail")}
+            </h2>
+            <div className="fr-card">
+              <div className="fr-text">
+                <p>
+                  {t(
+                    "本节包含重大风险事件的详细分析，包括原因链和影响评估。",
+                    "This section contains detailed analysis of major risk events, including causal chains and impact assessments.",
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

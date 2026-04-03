@@ -37,8 +37,8 @@ export function AdminLayout() {
       ),
     },
     {
-      path: "/risk-monitoring",
-      label: t("风险监控", "Risk Monitoring"),
+      path: "/risk-monitoring/flights",
+      label: t("航班", "Flights"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -55,36 +55,10 @@ export function AdminLayout() {
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       ),
-      children: [
-        {
-          path: "/risk-monitoring/flights",
-          label: t("航班列表", "Flight List"),
-        },
-        {
-          path: "/risk-monitoring/flight-detail",
-          label: t("航班详情", "Flight Detail"),
-        },
-        {
-          path: "/risk-monitoring/flight-report",
-          label: t("航班报告", "Flight Report"),
-        },
-        {
-          path: "/risk-monitoring/factor-explanation",
-          label: t("因子解释", "Factor Explanation"),
-        },
-        {
-          path: "/risk-monitoring/evidence-chain",
-          label: t("证据链", "Evidence Chain"),
-        },
-        {
-          path: "/risk-monitoring/major-risk-detail",
-          label: t("重大风险详情", "Major Risk Detail"),
-        },
-      ],
     },
     {
-      path: "/airport-center",
-      label: t("机场中心", "Airport Center"),
+      path: "/airport-center/airport-list",
+      label: t("机场", "Airports"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -99,24 +73,10 @@ export function AdminLayout() {
           <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
         </svg>
       ),
-      children: [
-        {
-          path: "/airport-center/airport-list",
-          label: t("机场列表", "Airport List"),
-        },
-        {
-          path: "/airport-center/airport-detail",
-          label: t("机场详情", "Airport Detail"),
-        },
-        {
-          path: "/airport-center/airport-flights",
-          label: t("机场相关航班", "Airport Related Flights"),
-        },
-      ],
     },
     {
-      path: "/personnel-center",
-      label: t("人员中心", "Personnel Center"),
+      path: "/personnel-center/personnel-list",
+      label: t("人", "Personnel"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -134,36 +94,10 @@ export function AdminLayout() {
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </svg>
       ),
-      children: [
-        {
-          path: "/personnel-center/personnel-list",
-          label: t("人员列表", "Personnel List"),
-        },
-        {
-          path: "/personnel-center/personnel-detail",
-          label: t("人员详情", "Personnel Detail"),
-        },
-        {
-          path: "/personnel-center/personnel-trend",
-          label: t("个人趋势", "Personal Trend"),
-        },
-        {
-          path: "/personnel-center/personnel-vs-fleet",
-          label: t("个人 VS 机队", "Personal vs Fleet"),
-        },
-        {
-          path: "/personnel-center/training-data",
-          label: t("训练数据", "Training Data"),
-        },
-        {
-          path: "/personnel-center/historical-flights",
-          label: t("历史航班", "Historical Flights"),
-        },
-      ],
     },
     {
-      path: "/aircraft-topic",
-      label: t("飞机专题", "Aircraft Topic"),
+      path: "/aircraft-topic/aircraft-list",
+      label: t("机", "Aircraft"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -179,20 +113,10 @@ export function AdminLayout() {
           <path d="M22 2L15 22 11 13 2 9l20-7z" />
         </svg>
       ),
-      children: [
-        {
-          path: "/aircraft-topic/aircraft-detail",
-          label: t("飞机详情", "Aircraft Detail"),
-        },
-        {
-          path: "/aircraft-topic/maintenance-info",
-          label: t("维修信息", "Maintenance Info"),
-        },
-      ],
     },
     {
-      path: "/environment-topic",
-      label: t("环境专题", "Environment Topic"),
+      path: "/environment-topic/environment-detail",
+      label: t("环", "Environment"),
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -208,23 +132,9 @@ export function AdminLayout() {
           <circle cx="12" cy="12" r="4" />
         </svg>
       ),
-      children: [
-        {
-          path: "/environment-topic/environment-detail",
-          label: t("环境详情", "Environment Detail"),
-        },
-        {
-          path: "/environment-topic/message-detail",
-          label: t("报文详情", "Message Detail"),
-        },
-        {
-          path: "/environment-topic/notice-detail",
-          label: t("通告详情", "Notice Detail"),
-        },
-      ],
     },
     {
-      path: "/governance",
+      path: "/governance/work-order-list",
       label: t("治理闭环", "Governance"),
       icon: (
         <svg
@@ -241,20 +151,6 @@ export function AdminLayout() {
           <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
         </svg>
       ),
-      children: [
-        {
-          path: "/governance/work-order-list",
-          label: t("工单列表", "Work Order List"),
-        },
-        {
-          path: "/governance/work-order-detail",
-          label: t("工单详情", "Work Order Detail"),
-        },
-        {
-          path: "/governance/feedback-review",
-          label: t("反馈复核", "Feedback Review"),
-        },
-      ],
     },
     {
       path: "/statistical-analysis",
@@ -419,7 +315,13 @@ export function AdminLayout() {
             <polyline points="2 17 12 22 22 17" />
             <polyline points="2 12 12 17 22 12" />
           </svg>
-          <span className="al-logo-text">MRIWP</span>
+          <span
+            className="al-logo-text"
+            style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.5px" }}
+          >
+            {/* {t("重大风险智能预警平台", "Risk Intelligence Platform")} */}
+            MRIWP
+          </span>
         </div>
 
         {/* Main menu */}

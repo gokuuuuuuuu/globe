@@ -52,8 +52,6 @@ export function HomePage() {
     setShowCATLayer,
     showVisibilityLayer,
     setShowVisibilityLayer,
-    timelineTimeRange,
-    setTimelineTimeRange,
     selectedFlightRouteId,
     setSelectedFlightRouteId,
     setSidebarTab,
@@ -66,6 +64,7 @@ export function HomePage() {
   const [objectTab, setObjectTab] = useState<ObjectTab>("flights");
   const [riskFilter, setRiskFilter] = useState<"all" | "red" | "orange">("all");
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(true);
   const redOrangeOnly =
     riskZones.length === 2 &&
     riskZones.includes("red") &&
@@ -229,12 +228,6 @@ export function HomePage() {
           <span className="hp-logo">
             {t("▲ 重大风险智能预警平台", "▲ MRIWP")}
           </span>
-          <span className="hp-header-title">
-            {t(
-              "航空风险预测与治理系统 · 首页工作台",
-              "Aviation Risk Prediction and Governance System · Home Workbench",
-            )}
-          </span>
         </div>
         <div className="hp-header-right">
           <span className="hp-header-time">
@@ -279,23 +272,6 @@ export function HomePage() {
           </div>
         </div>
         <div className="hp-toolbar-section">
-          <span className="hp-toolbar-label">
-            {t(
-              "预测时间窗口与快捷操作",
-              "Forecast time window and Quick action",
-            )}
-          </span>
-          <div className="hp-btn-group">
-            {[4, 10, 18, 24].map((h) => (
-              <button
-                key={h}
-                className={`hp-btn ${timelineTimeRange === h ? "hp-btn-active" : ""}`}
-                onClick={() => setTimelineTimeRange(h as 4 | 10 | 18 | 24)}
-              >
-                {h} {t("小时", "Hours")}
-              </button>
-            ))}
-          </div>
           <div className="hp-btn-group hp-btn-group-right">
             <button
               className={`hp-btn ${showAnalysis ? "hp-btn-active" : ""}`}
@@ -324,9 +300,9 @@ export function HomePage() {
             <StatCard
               label={t("红色", "Red")}
               value={flightStats.red.toString()}
-              change="+6.3%"
+              change="-1%"
               color="#ef4444"
-              trend="up"
+              trend="down"
             />
             <StatCard
               label={t("橙色", "Orange")}
@@ -334,13 +310,6 @@ export function HomePage() {
               change="+12"
               color="#f97316"
               trend="up"
-            />
-            <StatCard
-              label={t("黄色", "Yellow")}
-              value={flightStats.yellow.toString()}
-              change="-18"
-              color="#eab308"
-              trend="down"
             />
             <StatCard
               label={t("绿色", "Green")}
@@ -456,121 +425,173 @@ export function HomePage() {
 
       {/* ===== Three-Column Body ===== */}
       <div className="hp-body">
-        {/* --- Left Filter Panel --- */}
-        <aside className="hp-left-panel">
-          <h2 className="hp-panel-title">
-            {t("筛选与值班控制", "Filters & Duty Control")}
-          </h2>
-          <div className="hp-filter-list">
-            {objectTab === "flights" && (
-              <>
-                <FilterItem
-                  label={t("对象视图", "Object View")}
-                  value={t("航班 - 主要对象", "Flights - Primary Object")}
-                />
-                <FilterItem
-                  label={t("航空部门 / 中队", "Airline Division / Squadron")}
-                  value={t(
-                    "所有部门 · 所有中队",
-                    "All Divisions · All Squadrons",
-                  )}
-                />
-                <FilterItem
-                  label={t("区域 / 机场", "Region / Airport")}
-                  value={t("华东 · 所有机场", "East China · All Airports")}
-                />
-                <FilterItem
-                  label={t("航班号 / 机尾号", "Flight No. / Tail No.")}
-                  value={t("所有航班 · 所有飞机", "All Flights · All Aircraft")}
-                />
-                <FilterItem
-                  label={t("风险等级", "Risk Level")}
-                  value={t("红色 · 橙色", "Red · Orange")}
-                  valueColor
-                />
-                <FilterItem
-                  label={t("风险类型", "Risk Type")}
-                  value={t("全部 · 人为/机械/环境", "All · Human/Mech/Env")}
-                />
-                <FilterItem
-                  label={t("治理状态", "Governance Status")}
-                  value={t("仅开放工单", "Open Tickets Only")}
-                />
-              </>
-            )}
-            {objectTab === "airports" && (
-              <>
-                <FilterItem
-                  label={t("对象视图", "Object View")}
-                  value={t("机场 - 主要对象", "Airports - Primary Object")}
-                />
-                <FilterItem
-                  label={t("区域", "Region")}
-                  value={t("华东 · 所有省份", "East China · All Provinces")}
-                />
-                <FilterItem
-                  label={t("机场代码 / 名称", "Airport Code / Name")}
-                  value={t("所有机场", "All Airports")}
-                />
-                <FilterItem
-                  label={t("环境风险等级", "Env Risk Level")}
-                  value={t("红色 · 橙色", "Red · Orange")}
-                  valueColor
-                />
-                <FilterItem
-                  label={t("航班数量范围", "Flight Count Range")}
-                  value={t("不限", "Unlimited")}
-                />
-                <FilterItem
-                  label={t("运营人员数", "Operator Count")}
-                  value={t("不限", "Unlimited")}
-                />
-              </>
-            )}
-            {objectTab === "personnel" && (
-              <>
-                <FilterItem
-                  label={t("对象视图", "Object View")}
-                  value={t("人员 - 主要对象", "Personnel - Primary Object")}
-                />
-                <FilterItem
-                  label={t("技术等级", "Tech Level")}
-                  value={t(
-                    "全部 · 教员/机长/副驾",
-                    "All · Instructor/Captain/FO",
-                  )}
-                />
-                <FilterItem
-                  label={t("机队", "Fleet")}
-                  value={t("所有机队", "All Fleets")}
-                />
-                <FilterItem
-                  label={t("风险值范围", "Risk Value Range")}
-                  value="≥2.0"
-                />
-                <FilterItem
-                  label={t("飞行年限", "Flight Years")}
-                  value={t("不限", "Unlimited")}
-                />
-                <FilterItem
-                  label={t("当前机型", "Current Aircraft")}
-                  value={t("所有机型", "All Types")}
-                />
-              </>
-            )}
+        {/* --- Left Filter Panel (collapsible) --- */}
+        {leftPanelCollapsed ? (
+          <div
+            className="hp-left-tab"
+            onClick={() => setLeftPanelCollapsed(false)}
+          >
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+            </svg>
+            <span>{t("筛选", "Filter")}</span>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </div>
-          <div className="hp-filter-actions">
-            <button className="hp-btn hp-btn-primary">
-              {t("应用", "Apply")}
+        ) : (
+          <aside className="hp-left-panel">
+            <div className="hp-panel-header">
+              <h2 className="hp-panel-title">
+                {t("筛选与值班控制", "Filters & Duty Control")}
+              </h2>
+              <button
+                className="hp-panel-close"
+                onClick={() => setLeftPanelCollapsed(true)}
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+            </div>
+            <div className="hp-filter-list">
+              {objectTab === "flights" && (
+                <>
+                  <FilterItem
+                    label={t("对象视图", "Object View")}
+                    value={t("航班 - 主要对象", "Flights - Primary Object")}
+                  />
+                  <FilterItem
+                    label={t("航空部门 / 中队", "Airline Division / Squadron")}
+                    value={t(
+                      "所有部门 · 所有中队",
+                      "All Divisions · All Squadrons",
+                    )}
+                  />
+                  <FilterItem
+                    label={t("区域 / 机场", "Region / Airport")}
+                    value={t("华东 · 所有机场", "East China · All Airports")}
+                  />
+                  <FilterItem
+                    label={t("航班号 / 机尾号", "Flight No. / Tail No.")}
+                    value={t(
+                      "所有航班 · 所有飞机",
+                      "All Flights · All Aircraft",
+                    )}
+                  />
+                  <FilterItem
+                    label={t("风险等级", "Risk Level")}
+                    value={t("红色 · 橙色", "Red · Orange")}
+                    valueColor
+                  />
+                  <FilterItem
+                    label={t("风险类型", "Risk Type")}
+                    value={t("全部 · 人为/机械/环境", "All · Human/Mech/Env")}
+                  />
+                  <FilterItem
+                    label={t("治理状态", "Governance Status")}
+                    value={t("仅开放工单", "Open Tickets Only")}
+                  />
+                </>
+              )}
+              {objectTab === "airports" && (
+                <>
+                  <FilterItem
+                    label={t("对象视图", "Object View")}
+                    value={t("机场 - 主要对象", "Airports - Primary Object")}
+                  />
+                  <FilterItem
+                    label={t("区域", "Region")}
+                    value={t("华东 · 所有省份", "East China · All Provinces")}
+                  />
+                  <FilterItem
+                    label={t("机场代码 / 名称", "Airport Code / Name")}
+                    value={t("所有机场", "All Airports")}
+                  />
+                  <FilterItem
+                    label={t("环境风险等级", "Env Risk Level")}
+                    value={t("红色 · 橙色", "Red · Orange")}
+                    valueColor
+                  />
+                  <FilterItem
+                    label={t("航班数量范围", "Flight Count Range")}
+                    value={t("不限", "Unlimited")}
+                  />
+                  <FilterItem
+                    label={t("运营人员数", "Operator Count")}
+                    value={t("不限", "Unlimited")}
+                  />
+                </>
+              )}
+              {objectTab === "personnel" && (
+                <>
+                  <FilterItem
+                    label={t("对象视图", "Object View")}
+                    value={t("人员 - 主要对象", "Personnel - Primary Object")}
+                  />
+                  <FilterItem
+                    label={t("技术等级", "Tech Level")}
+                    value={t(
+                      "全部 · 教员/机长/副驾",
+                      "All · Instructor/Captain/FO",
+                    )}
+                  />
+                  <FilterItem
+                    label={t("机队", "Fleet")}
+                    value={t("所有机队", "All Fleets")}
+                  />
+                  <FilterItem
+                    label={t("风险值范围", "Risk Value Range")}
+                    value="≥2.0"
+                  />
+                  <FilterItem
+                    label={t("飞行年限", "Flight Years")}
+                    value={t("不限", "Unlimited")}
+                  />
+                  <FilterItem
+                    label={t("当前机型", "Current Aircraft")}
+                    value={t("所有机型", "All Types")}
+                  />
+                </>
+              )}
+            </div>
+            <div className="hp-filter-actions">
+              <button className="hp-btn hp-btn-primary">
+                {t("应用", "Apply")}
+              </button>
+              <button className="hp-btn">{t("重置", "Reset")}</button>
+            </div>
+            <button className="hp-link-btn">
+              {t("切换到列表视图", "Switch to List View")}
             </button>
-            <button className="hp-btn">{t("重置", "Reset")}</button>
-          </div>
-          <button className="hp-link-btn">
-            {t("切换到列表视图", "Switch to List View")}
-          </button>
-        </aside>
+          </aside>
+        )}
 
         {/* --- Center Map Area --- */}
+
         <div className="hp-center">
           {/* Map Top Toolbar */}
           <div className="hp-map-toolbar">

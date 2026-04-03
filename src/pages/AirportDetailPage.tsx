@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -43,8 +44,7 @@ const RISK_COLORS = {
 
 function getRiskBadgeCls(zone: string): string {
   if (zone === "red") return "ad-badge-red";
-  if (zone === "orange") return "ad-badge-orange";
-  if (zone === "yellow") return "ad-badge-yellow";
+  if (zone === "orange" || zone === "yellow") return "ad-badge-orange";
   return "ad-badge-green";
 }
 
@@ -52,10 +52,9 @@ function getRiskLabel(
   zone: string,
   t: (zh: string, en: string) => string,
 ): string {
-  if (zone === "red") return t("红色", "Red");
-  if (zone === "orange") return t("橙色", "Orange");
-  if (zone === "yellow") return t("黄色", "Yellow");
-  return t("绿色", "Green");
+  if (zone === "red") return t("高", "High");
+  if (zone === "orange" || zone === "yellow") return t("中", "Medium");
+  return t("低", "Low");
 }
 
 // Semi-circle gauge SVG
@@ -129,6 +128,7 @@ function GaugeArc({
 
 export function AirportDetailPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // Pick first airport as displayed airport
   const airport = AIRPORTS[0];
@@ -254,7 +254,7 @@ export function AirportDetailPage() {
       <div className="ad-breadcrumb">
         MRIWP
         <span className="ad-breadcrumb-sep">&gt;</span>
-        {t("机场中心", "Airport Center")}
+        {t("机场", "Airports")}
         <span className="ad-breadcrumb-sep">&gt;</span>
         <span className="ad-breadcrumb-active">
           {t("机场详情", "Airport Detail")}
@@ -346,9 +346,6 @@ export function AirportDetailPage() {
 
         {/* Right action buttons */}
         <div className="ad-header-right">
-          <button className="ad-action-btn ad-action-btn-primary">
-            {t("查看相关航班", "View Related Flights")}
-          </button>
           <button className="ad-action-btn">
             {t("查看单航班", "View Single Flight")}
           </button>
@@ -356,7 +353,7 @@ export function AirportDetailPage() {
             {t("查看消息", "View Messages")}
           </button>
           <button className="ad-action-btn">
-            {t("查看通知", "View Notices")}
+            {t("查看报文", "View Messages")}
           </button>
         </div>
       </div>
@@ -370,10 +367,9 @@ export function AirportDetailPage() {
           </div>
           <div className="ad-chart-legend">
             {[
-              { color: RISK_COLORS.red, label: t("红色", "Red") },
-              { color: RISK_COLORS.orange, label: t("橙色", "Orange") },
-              { color: RISK_COLORS.yellow, label: t("黄色", "Yellow") },
-              { color: RISK_COLORS.green, label: t("绿色", "Green") },
+              { color: RISK_COLORS.red, label: t("高", "High") },
+              { color: RISK_COLORS.orange, label: t("中", "Medium") },
+              { color: RISK_COLORS.green, label: t("低", "Low") },
             ].map((item) => (
               <span key={item.color} className="ad-chart-legend-item">
                 <span
@@ -405,10 +401,9 @@ export function AirportDetailPage() {
           </div>
           <div className="ad-chart-legend">
             {[
-              { color: RISK_COLORS.red, label: t("红色", "Red") },
-              { color: RISK_COLORS.orange, label: t("橙色", "Orange") },
-              { color: RISK_COLORS.yellow, label: t("黄色", "Yellow") },
-              { color: RISK_COLORS.green, label: t("绿色", "Green") },
+              { color: RISK_COLORS.red, label: t("高", "High") },
+              { color: RISK_COLORS.orange, label: t("中", "Medium") },
+              { color: RISK_COLORS.green, label: t("低", "Low") },
             ].map((item) => (
               <span key={item.color} className="ad-chart-legend-item">
                 <span
@@ -528,8 +523,8 @@ export function AirportDetailPage() {
               <th>{t("航空公司", "Airline")}</th>
               <th>{t("出发地", "Origin")}</th>
               <th>{t("目的地", "Destination")}</th>
-              <th>{t("计划时间", "Scheduled Time")}</th>
-              <th>{t("实际时间", "Actual Time")}</th>
+              <th>{t("起飞时间", "Departure Time")}</th>
+              <th>{t("降落时间", "Arrival Time")}</th>
               <th>{t("当前状态", "Current Status")}</th>
               <th>{t("风险等级", "Risk Level")}</th>
               <th>{t("风险原因", "Risk Reasons")}</th>
@@ -571,7 +566,13 @@ export function AirportDetailPage() {
                     : t("已落地", "Landed");
 
               return (
-                <tr key={f.id}>
+                <tr
+                  key={f.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() =>
+                    navigate(`/risk-monitoring/flight-detail?id=${f.id}`)
+                  }
+                >
                   <td style={{ fontWeight: 600, color: "#f8fafc" }}>
                     {f.flightNumber}
                   </td>
@@ -602,7 +603,7 @@ export function AirportDetailPage() {
                   </td>
                   <td>
                     <span className="ad-view-link">
-                      {t("查看详情", "View Details")}
+                      {t("查看航班详情", "View Flight Detail")}
                     </span>
                   </td>
                 </tr>

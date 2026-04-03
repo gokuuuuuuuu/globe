@@ -18,6 +18,7 @@ import { PersonnelTrendPage } from "./pages/PersonnelTrendPage";
 import { PersonnelVsFleetPage } from "./pages/PersonnelVsFleetPage";
 import { TrainingDataPage } from "./pages/TrainingDataPage";
 import { HistoricalFlightsPage } from "./pages/HistoricalFlightsPage";
+import { AircraftListPage } from "./pages/AircraftListPage";
 import { AircraftDetailPage } from "./pages/AircraftDetailPage";
 import { MaintenanceInfoPage } from "./pages/MaintenanceInfoPage";
 import { EnvironmentDetailPage } from "./pages/EnvironmentDetailPage";
@@ -96,6 +97,10 @@ function App() {
             <Route
               path="personnel-center/historical-flights"
               element={<HistoricalFlightsPage />}
+            />
+            <Route
+              path="aircraft-topic/aircraft-list"
+              element={<AircraftListPage />}
             />
             <Route
               path="aircraft-topic/aircraft-detail"

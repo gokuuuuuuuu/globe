@@ -97,9 +97,9 @@ const deviationData = [
     personal: 82.5,
     fleet: 78.2,
     deviation: "-22.0%",
-    status: "medium-high",
-    statusEn: "Medium-High",
-    statusZh: "中高",
+    status: "medium",
+    statusEn: "Medium",
+    statusZh: "中",
   },
   {
     en: "Late Flap Configuration",

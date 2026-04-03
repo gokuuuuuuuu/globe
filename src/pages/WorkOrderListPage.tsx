@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./WorkOrderListPage.css";
 
@@ -153,6 +154,7 @@ const PAGE_SIZE = 10;
 
 export function WorkOrderListPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // Filters
   const [statusFilter, setStatusFilter] = useState("all");
@@ -458,7 +460,12 @@ export function WorkOrderListPage() {
                 </td>
                 <td>
                   <div className="wo-actions">
-                    <button className="wo-action-btn view">
+                    <button
+                      className="wo-action-btn view"
+                      onClick={() =>
+                        navigate(`/governance/work-order-detail?id=${wo.id}`)
+                      }
+                    >
                       &#128196;&nbsp;{t("查看工单", "View Work Order")}
                     </button>
                     <button className="wo-action-btn process">

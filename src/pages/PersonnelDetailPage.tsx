@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -19,12 +20,12 @@ import "./PersonnelDetailPage.css";
 // ---------- Mock Data ----------
 
 const riskScoreTrendData = [
-  { month: "Jan", monthZh: "1月", composite: 15, human: 12 },
-  { month: "Feb", monthZh: "2月", composite: 22, human: 18 },
-  { month: "Mar", monthZh: "3月", composite: 28, human: 25 },
-  { month: "Apr", monthZh: "4月", composite: 32, human: 30 },
-  { month: "May", monthZh: "5月", composite: 35, human: 28 },
-  { month: "Jun", monthZh: "6月", composite: 38, human: 35 },
+  { month: "1", monthZh: "第1次", composite: 15, human: 12 },
+  { month: "2", monthZh: "第2次", composite: 22, human: 18 },
+  { month: "3", monthZh: "第3次", composite: 28, human: 25 },
+  { month: "4", monthZh: "第4次", composite: 32, human: 30 },
+  { month: "5", monthZh: "第5次", composite: 35, human: 28 },
+  { month: "6", monthZh: "第6次", composite: 38, human: 35 },
 ];
 
 const keyRiskContributorsData = [
@@ -212,6 +213,7 @@ const navItems: NavItem[] = [
 
 export function PersonnelDetailPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [activeNav, setActiveNav] = useState("risk-profile");
 
   return (
@@ -220,7 +222,7 @@ export function PersonnelDetailPage() {
       <div className="pd-breadcrumb">
         <span>MRIWP</span>
         <span className="pd-breadcrumb-sep">&gt;</span>
-        <span>{t("人员中心", "Personnel Center")}</span>
+        <span>{t("人", "Personnel")}</span>
         <span className="pd-breadcrumb-sep">&gt;</span>
         <span className="pd-breadcrumb-active">
           {t("人员详情", "Personnel Detail")}
@@ -341,7 +343,256 @@ export function PersonnelDetailPage() {
         {/* Right Content Area */}
         <div className="pd-content">
           {activeNav === "risk-profile" && <RiskProfileSection />}
-          {activeNav !== "risk-profile" && (
+          {activeNav === "personal-trend" && (
+            <div className="pd-card" style={{ padding: 20 }}>
+              <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                {t("个人趋势", "Personal Trend")}
+              </h3>
+              <div className="pd-row-3">
+                <div className="pd-card">
+                  <div className="pd-card-header">
+                    <h3 className="pd-card-title">
+                      {t("风险评分趋势", "Risk Score Trend")}
+                    </h3>
+                  </div>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={riskScoreTrendData}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={GRID_STROKE}
+                      />
+                      <XAxis
+                        dataKey={(d: (typeof riskScoreTrendData)[0]) =>
+                          t(d.monthZh, d.month)
+                        }
+                        tick={AXIS_TICK}
+                        stroke={GRID_STROKE}
+                      />
+                      <YAxis
+                        tick={AXIS_TICK}
+                        stroke={GRID_STROKE}
+                        domain={[0, 50]}
+                      />
+                      <Tooltip {...darkTooltipStyle} />
+                      <Area
+                        type="monotone"
+                        dataKey="composite"
+                        stroke="#3b82f6"
+                        fill="rgba(59,130,246,0.1)"
+                        strokeWidth={2}
+                        name={t("综合评分", "Composite Score")}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="human"
+                        stroke="#94a3b8"
+                        strokeWidth={2}
+                        dot={{ fill: "#94a3b8", r: 3 }}
+                        name={t("人为因素分项", "Human Factor Component")}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <h3
+                className="pd-card-title"
+                style={{ marginTop: 24, marginBottom: 12 }}
+              >
+                {t("相关历史航班", "Related Historical Flights")}
+              </h3>
+              <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr
+                      style={{
+                        borderBottom: "1px solid rgba(148,163,184,0.15)",
+                      }}
+                    >
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("航班号", "Flight No.")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("日期", "Date")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("航线", "Route")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("风险等级", "Risk Level")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {
+                        fn: "MU5101",
+                        date: "2024-03-15",
+                        route: "ZSPD-ZBAA",
+                        risk: t("高", "High"),
+                        color: "#ef4444",
+                      },
+                      {
+                        fn: "MU5235",
+                        date: "2024-03-10",
+                        route: "ZBAA-ZSPD",
+                        risk: t("中", "Medium"),
+                        color: "#eab308",
+                      },
+                      {
+                        fn: "MU5302",
+                        date: "2024-02-28",
+                        route: "ZSPD-ZGGG",
+                        risk: t("高", "High"),
+                        color: "#ef4444",
+                      },
+                      {
+                        fn: "MU5418",
+                        date: "2024-02-20",
+                        route: "ZGGG-ZSPD",
+                        risk: t("低", "Low"),
+                        color: "#22c55e",
+                      },
+                      {
+                        fn: "MU5506",
+                        date: "2024-02-15",
+                        route: "ZSPD-ZSSS",
+                        risk: t("中", "Medium"),
+                        color: "#eab308",
+                      },
+                    ].map((f, i) => (
+                      <tr
+                        key={i}
+                        style={{
+                          borderBottom: "1px solid rgba(148,163,184,0.08)",
+                          cursor: "pointer",
+                        }}
+                        onClick={() =>
+                          navigate(`/risk-monitoring/flight-detail?fn=${f.fn}`)
+                        }
+                      >
+                        <td
+                          style={{
+                            padding: "8px 12px",
+                            color: "#e2e8f0",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {f.fn}
+                        </td>
+                        <td style={{ padding: "8px 12px" }}>{f.date}</td>
+                        <td style={{ padding: "8px 12px" }}>{f.route}</td>
+                        <td style={{ padding: "8px 12px" }}>
+                          <span style={{ color: f.color, fontWeight: 600 }}>
+                            {f.risk}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+          {activeNav === "personal-vs-fleet" && (
+            <div className="pd-card" style={{ padding: 20 }}>
+              <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                {t("个人与机队对比", "Personal vs Fleet")}
+              </h3>
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={peerAnalysisData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                  <XAxis
+                    dataKey="month"
+                    tick={AXIS_TICK}
+                    stroke={GRID_STROKE}
+                    tickFormatter={(v: string) => t(`第${v}次`, `#${v}`)}
+                  />
+                  <YAxis
+                    tick={AXIS_TICK}
+                    stroke={GRID_STROKE}
+                    domain={[0, 50]}
+                  />
+                  <Tooltip {...darkTooltipStyle} />
+                  <Line
+                    type="monotone"
+                    dataKey="individual"
+                    stroke="#3b82f6"
+                    strokeWidth={2}
+                    dot={{ fill: "#3b82f6", r: 4 }}
+                    name={t("个人", "Individual")}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="squadron"
+                    stroke="#ea580c"
+                    strokeWidth={2}
+                    dot={{ fill: "#ea580c", r: 4 }}
+                    name={t("中队平均", "Squadron Avg")}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="fleet"
+                    stroke="#94a3b8"
+                    strokeWidth={2}
+                    strokeDasharray="6 3"
+                    dot={{ fill: "#94a3b8", r: 4 }}
+                    name={t("机队平均", "Fleet Avg")}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+          {activeNav === "training-data" && (
+            <div className="pd-card" style={{ padding: 20 }}>
+              <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                {t("训练数据", "Training Data")}
+              </h3>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  height: 200,
+                  color: "#64748b",
+                  fontSize: 14,
+                }}
+              >
+                {t(
+                  "训练数据展示内容待确认",
+                  "Training data display content to be confirmed",
+                )}
+              </div>
+            </div>
+          )}
+          {activeNav === "squadron-monthly" && (
             <div
               style={{
                 display: "flex",
@@ -353,6 +604,156 @@ export function PersonnelDetailPage() {
               }}
             >
               {t("此部分正在开发中...", "This section is under development...")}
+            </div>
+          )}
+          {activeNav === "historical-flights" && (
+            <div className="pd-card" style={{ padding: 20 }}>
+              <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                {t("历史航班", "Historical Flights")}
+              </h3>
+              <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr
+                      style={{
+                        borderBottom: "1px solid rgba(148,163,184,0.15)",
+                      }}
+                    >
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("航班号", "Flight No.")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("日期", "Date")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("航线", "Route")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("机型", "Aircraft Type")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("风险等级", "Risk Level")}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      {
+                        fn: "MU5101",
+                        date: "2024-03-15",
+                        route: "ZSPD-ZBAA",
+                        type: "B737-800",
+                        risk: t("高", "High"),
+                        color: "#ef4444",
+                      },
+                      {
+                        fn: "MU5235",
+                        date: "2024-03-10",
+                        route: "ZBAA-ZSPD",
+                        type: "B737-800",
+                        risk: t("中", "Medium"),
+                        color: "#eab308",
+                      },
+                      {
+                        fn: "MU5302",
+                        date: "2024-02-28",
+                        route: "ZSPD-ZGGG",
+                        type: "A320",
+                        risk: t("高", "High"),
+                        color: "#ef4444",
+                      },
+                      {
+                        fn: "MU5418",
+                        date: "2024-02-20",
+                        route: "ZGGG-ZSPD",
+                        type: "A320",
+                        risk: t("低", "Low"),
+                        color: "#22c55e",
+                      },
+                      {
+                        fn: "MU5506",
+                        date: "2024-02-15",
+                        route: "ZSPD-ZSSS",
+                        type: "B737-800",
+                        risk: t("中", "Medium"),
+                        color: "#eab308",
+                      },
+                      {
+                        fn: "MU5612",
+                        date: "2024-02-10",
+                        route: "ZSSS-ZSPD",
+                        type: "B777",
+                        risk: t("低", "Low"),
+                        color: "#22c55e",
+                      },
+                    ].map((f, i) => (
+                      <tr
+                        key={i}
+                        style={{
+                          borderBottom: "1px solid rgba(148,163,184,0.08)",
+                          cursor: "pointer",
+                        }}
+                        onClick={() =>
+                          navigate(`/risk-monitoring/flight-detail?fn=${f.fn}`)
+                        }
+                      >
+                        <td
+                          style={{
+                            padding: "8px 12px",
+                            color: "#e2e8f0",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {f.fn}
+                        </td>
+                        <td style={{ padding: "8px 12px" }}>{f.date}</td>
+                        <td style={{ padding: "8px 12px" }}>{f.route}</td>
+                        <td style={{ padding: "8px 12px" }}>{f.type}</td>
+                        <td style={{ padding: "8px 12px" }}>
+                          <span style={{ color: f.color, fontWeight: 600 }}>
+                            {f.risk}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -515,7 +916,7 @@ function RiskProfileSection() {
                 dataKey="month"
                 tick={AXIS_TICK}
                 stroke={GRID_STROKE}
-                tickFormatter={(v: string) => t(`${v}月`, v)}
+                tickFormatter={(v: string) => t(`第${v}次`, `#${v}`)}
               />
               <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} domain={[0, 50]} />
               <Tooltip {...darkTooltipStyle} />

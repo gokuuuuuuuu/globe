@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -13,16 +14,13 @@ import "./AirportListPage.css";
 
 function getRiskBadge(risk: number, t: (zh: string, en: string) => string) {
   if (risk >= 7) return { label: t("高", "HIGH"), cls: "ap-badge-high" };
-  if (risk >= 5)
-    return { label: t("中高", "MEDIUM-HIGH"), cls: "ap-badge-medium-high" };
   if (risk >= 3) return { label: t("中", "MEDIUM"), cls: "ap-badge-medium" };
   return { label: t("低", "LOW"), cls: "ap-badge-low" };
 }
 
 function getMarkerColor(risk: number): string {
   if (risk >= 7) return "#dc2626";
-  if (risk >= 5) return "#ea580c";
-  if (risk >= 3) return "#f59e0b";
+  if (risk >= 3) return "#ea580c";
   return "#22c55e";
 }
 
@@ -53,7 +51,7 @@ const PAGE_SIZE = 12;
 
 export function AirportListPage() {
   const { t } = useLanguage();
-  const [region, setRegion] = useState("all");
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
@@ -152,7 +150,7 @@ export function AirportListPage() {
       <div className="ap-breadcrumb">
         MRIWP
         <span className="ap-breadcrumb-sep">&gt;</span>
-        {t("机场中心", "Airport Center")}
+        {t("机场", "Airports")}
         <span className="ap-breadcrumb-sep">&gt;</span>
         <span className="ap-breadcrumb-active">
           {t("机场列表", "Airport List")}
@@ -161,23 +159,6 @@ export function AirportListPage() {
 
       {/* Filters */}
       <div className="ap-filters">
-        <div className="ap-filter-group">
-          <span className="ap-filter-label">
-            {t("选择区域", "Select Region")}
-          </span>
-          <select
-            className="ap-filter-select"
-            value={region}
-            onChange={(e) => setRegion(e.target.value)}
-          >
-            <option value="all">
-              {t("北美、欧洲、亚太", "North America, Europe, Asia Pacific")}
-            </option>
-            <option value="asia">{t("亚太", "Asia Pacific")}</option>
-            <option value="europe">{t("欧洲", "Europe")}</option>
-            <option value="americas">{t("美洲", "Americas")}</option>
-          </select>
-        </div>
         <div className="ap-filter-group">
           <span className="ap-filter-label">
             {t("时间窗口", "Time Window")}
@@ -215,7 +196,6 @@ export function AirportListPage() {
             className="ap-btn ap-btn-secondary"
             onClick={() => {
               setSearch("");
-              setRegion("all");
               setPage(1);
             }}
           >
@@ -229,9 +209,9 @@ export function AirportListPage() {
         {/* Left: Ranking Table */}
         <div className="ap-panel" style={{ width: leftWidth, flexShrink: 0 }}>
           <div className="ap-panel-title">
-            {t("高风险机场排名", "High-Risk Airport Ranking")}
+            {t("风险机场排名", "Risk Airport Ranking")}
           </div>
-          <div className="ap-panel-body">
+          <div className="ap-panel-body" style={{ overflowX: "hidden" }}>
             <table className="ap-table">
               <thead>
                 <tr>
@@ -241,7 +221,6 @@ export function AirportListPage() {
                   <th>{t("高风险航班占比", "High-Risk Flights %")}</th>
                   <th>{t("主要风险类型", "Major Risk Types")}</th>
                   <th>{t("综合风险等级", "Composite Risk Level")}</th>
-                  <th></th>
                 </tr>
               </thead>
               <tbody>
@@ -255,7 +234,15 @@ export function AirportListPage() {
                     t,
                   );
                   return (
-                    <tr key={a.id}>
+                    <tr
+                      key={a.id}
+                      style={{ cursor: "pointer" }}
+                      onClick={() =>
+                        navigate(
+                          `/airport-center/airport-detail?code=${a.code}`,
+                        )
+                      }
+                    >
                       <td>
                         <span className="ap-rank">{rank}</span>
                       </td>
@@ -284,14 +271,6 @@ export function AirportListPage() {
                         <span className={`ap-risk-badge ${composite.cls}`}>
                           {composite.label}
                         </span>
-                      </td>
-                      <td>
-                        <button className="ap-table-btn ap-table-btn-primary">
-                          {t("查看机场", "View Airport")}
-                        </button>
-                        <button className="ap-table-btn">
-                          {t("查看相关航班", "View Related Flights")}
-                        </button>
                       </td>
                     </tr>
                   );
@@ -415,8 +394,7 @@ export function AirportListPage() {
               </div>
               {[
                 { color: "#dc2626", label: t("高", "High") },
-                { color: "#ea580c", label: t("中高", "Medium-High") },
-                { color: "#f59e0b", label: t("中", "Medium") },
+                { color: "#ea580c", label: t("中", "Medium") },
                 { color: "#22c55e", label: t("低", "Low") },
               ].map((item) => (
                 <div key={item.color} className="ap-map-legend-item">

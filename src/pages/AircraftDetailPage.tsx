@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -271,6 +272,7 @@ const darkTooltipStyle = {
 
 export function AircraftDetailPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const riskLevelText =
     factorScore.riskLevel === "High"
@@ -290,7 +292,7 @@ export function AircraftDetailPage() {
     <div className="acd-root">
       {/* Breadcrumb */}
       <div className="acd-breadcrumb">
-        <span>{t("飞机专题", "Aircraft Topic")}</span>
+        <span>{t("机", "Aircraft")}</span>
         <span className="acd-breadcrumb-sep">&gt;</span>
         <span className="acd-breadcrumb-active">
           {t("飞机详情", "Aircraft Detail")}: {aircraftInfo.tailNumber}
@@ -332,19 +334,18 @@ export function AircraftDetailPage() {
         </div>
       </div>
 
-      {/* 3 Action Buttons */}
+      {/* Action Button - only View Related Flights */}
       <div className="acd-actions">
-        <button className="acd-action-btn">
-          <DocumentIcon />
-          {t("查看维修信息", "View Maintenance Info")}
-        </button>
-        <button className="acd-action-btn">
+        <button
+          className="acd-action-btn"
+          onClick={() =>
+            navigate(
+              `/risk-monitoring/flights?aircraft=${aircraftInfo.tailNumber}`,
+            )
+          }
+        >
           <AirplaneIcon />
           {t("查看相关航班", "View Related Flights")}
-        </button>
-        <button className="acd-action-btn">
-          <InfoIcon />
-          {t("查看飞机因子解释", "View Aircraft Factor Explanation")}
         </button>
       </div>
 
@@ -619,6 +620,173 @@ export function AircraftDetailPage() {
                         ? t("警告", "Warning")
                         : t("已发生", "Occurred")}
                 </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Maintenance Info (merged from MaintenanceInfoPage) */}
+      <div className="acd-cards-row-2" style={{ marginTop: 20 }}>
+        <div className="acd-card">
+          <div className="acd-card-title">
+            {t("维修信息", "MAINTENANCE INFO")}
+          </div>
+          <div style={{ fontSize: 13, color: "#94a3b8" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginBottom: 16,
+              }}
+            >
+              <div>
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                >
+                  {t("飞机ID", "Aircraft ID")}
+                </div>
+                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>N123AR</div>
+              </div>
+              <div>
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                >
+                  {t("机型", "Model")}
+                </div>
+                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>
+                  Challenger 350
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                >
+                  {t("当前位置", "Location")}
+                </div>
+                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>KORD</div>
+              </div>
+              <div>
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                >
+                  {t("总飞行小时", "Total Hours")}
+                </div>
+                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>1,388</div>
+              </div>
+              <div>
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                >
+                  {t("适航状态", "Status")}
+                </div>
+                <div style={{ color: "#22c55e", fontWeight: 600 }}>
+                  {t("适航", "Serviceable")}
+                </div>
+              </div>
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "#e2e8f0",
+                  marginBottom: 8,
+                }}
+              >
+                {t("当前限制", "Current Restrictions")}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <span
+                  style={{
+                    padding: "2px 8px",
+                    background: "rgba(239,68,68,0.15)",
+                    color: "#ef4444",
+                    borderRadius: 4,
+                    fontSize: 11,
+                  }}
+                >
+                  MEL 32-01: Nose Gear Steering
+                </span>
+                <span
+                  style={{
+                    padding: "2px 8px",
+                    background: "rgba(234,179,8,0.15)",
+                    color: "#eab308",
+                    borderRadius: 4,
+                    fontSize: 11,
+                  }}
+                >
+                  DDM 21-05: Packs
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="acd-card">
+          <div className="acd-card-title">
+            {t("近期维修事件", "RECENT MAINTENANCE EVENTS")}
+          </div>
+          <div style={{ fontSize: 13, color: "#94a3b8" }}>
+            {[
+              {
+                date: "2024-03-02",
+                type: t("非计划", "Unscheduled"),
+                desc: "Rudder Actuator Fault",
+                color: "#ef4444",
+              },
+              {
+                date: "2024-03-05",
+                type: t("计划", "Scheduled"),
+                desc: "Scheduled Check A",
+                color: "#22c55e",
+              },
+              {
+                date: "2024-03-08",
+                type: t("非计划", "Unscheduled"),
+                desc: "Hydraulic Pump Failure",
+                color: "#ef4444",
+              },
+              {
+                date: "2024-03-11",
+                type: t("计划", "Scheduled"),
+                desc: "Component Replacement",
+                color: "#22c55e",
+              },
+              {
+                date: "2024-03-14",
+                type: t("非计划", "Unscheduled"),
+                desc: "Avionics Fault",
+                color: "#f97316",
+              },
+            ].map((evt, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "6px 0",
+                  borderBottom: "1px solid rgba(148,163,184,0.08)",
+                }}
+              >
+                <span style={{ fontSize: 11, color: "#64748b", minWidth: 80 }}>
+                  {evt.date}
+                </span>
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: evt.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ fontSize: 11, color: evt.color }}>
+                  {evt.type}
+                </span>
+                <span style={{ color: "#e2e8f0" }}>{evt.desc}</span>
               </div>
             ))}
           </div>

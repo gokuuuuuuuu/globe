@@ -74,7 +74,8 @@
 /* ===== 工具栏 ===== */
 .hp-toolbar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: space-between;
   gap: 24px;
   padding: 6px 16px;
   background: #111827;
@@ -91,8 +92,9 @@
 
 .hp-toolbar-section:last-child {
   flex-direction: row;
-  align-items: flex-end;
+  align-items: center;
   gap: 8px;
+  margin-left: auto;
 }
 
 .hp-toolbar-label {
@@ -256,13 +258,78 @@
   background: rgba(17, 24, 39, 0.9);
   border-right: 1px solid rgba(148, 163, 184, 0.12);
   overflow-y: auto;
+  transition: width 0.2s ease;
+}
+
+/* Collapsed tab */
+.hp-left-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 6px;
+  background: rgba(17, 24, 39, 0.9);
+  border-right: 1px solid rgba(148, 163, 184, 0.12);
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  user-select: none;
+  transition:
+    color 0.15s,
+    background 0.15s;
+  flex-shrink: 0;
+}
+
+.hp-left-tab:hover {
+  color: #60a5fa;
+  background: rgba(17, 24, 39, 1);
+}
+
+.hp-left-tab span {
+  letter-spacing: 2px;
+}
+
+.hp-left-tab svg:last-child {
+  writing-mode: horizontal-tb;
+  transform: rotate(0deg);
+  margin-top: 2px;
+}
+
+/* Panel header with close button */
+.hp-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.hp-panel-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.hp-panel-close:hover {
+  background: rgba(148, 163, 184, 0.1);
+  color: #e2e8f0;
 }
 
 .hp-panel-title {
   font-size: 14px;
   font-weight: 600;
   color: #f1f5f9;
-  margin: 0 0 12px 0;
+  margin: 0;
 }
 
 .hp-filter-list {

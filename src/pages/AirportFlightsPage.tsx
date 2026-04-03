@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AIRPORTS,
   FLIGHTS,
@@ -74,9 +75,8 @@ function getTailNumber(flight: Flight): string {
 
 // Score bar color based on score (out of 100)
 function getScoreBarColor(score: number): string {
-  if (score >= 80) return "#dc2626";
-  if (score >= 60) return "#ea580c";
-  if (score >= 40) return "#eab308";
+  if (score >= 70) return "#dc2626";
+  if (score >= 40) return "#ea580c";
   return "#22c55e";
 }
 
@@ -109,6 +109,7 @@ function ScoreBar({ score }: { score: number }) {
 
 export function AirportFlightsPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageInput, setPageInput] = useState("1");
@@ -161,7 +162,7 @@ export function AirportFlightsPage() {
       <div className="af-breadcrumb">
         <span>MRIWP</span>
         <span className="af-breadcrumb-sep">&gt;</span>
-        <span>{t("机场中心", "Airport Center")}</span>
+        <span>{t("机场", "Airports")}</span>
         <span className="af-breadcrumb-sep">&gt;</span>
         <span className="af-breadcrumb-active">
           {t("机场相关航班", "Airport Related Flights")}
@@ -336,7 +337,13 @@ export function AirportFlightsPage() {
               const envScore = normalizeScore(flight.environmentRisk);
 
               return (
-                <tr key={flight.id}>
+                <tr
+                  key={flight.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() =>
+                    navigate(`/risk-monitoring/flight-detail?id=${flight.id}`)
+                  }
+                >
                   <td className="af-td-check">
                     <input type="checkbox" />
                   </td>
