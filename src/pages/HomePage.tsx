@@ -130,6 +130,16 @@ export function HomePage() {
   };
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
+  const { riskZones, setRiskZones } = useAppStore();
+  const redYellowOnly =
+    riskZones.length === 2 &&
+    riskZones.includes("red") &&
+    riskZones.includes("yellow");
+  const toggleRedYellowOnly = () => {
+    setRiskZones(
+      redYellowOnly ? ["red", "yellow", "green"] : ["red", "yellow"],
+    );
+  };
 
   const canRender = !!atlas && !!world;
 
@@ -697,18 +707,41 @@ export function HomePage() {
 
       {/* ===== Center Stage ===== */}
       <div className="center-stage">
-        <div className="stage-header">
-          <div className="stage-left-controls">
-            <div className="action-strip glass-sm">
+        <div className="stage-toolbar">
+          <div className="toolbar-strip glass-sm">
+            {/* Actions */}
+            <div className="toolbar-group">
               <button
                 className={showAnalysis ? "active" : ""}
                 onClick={() => setShowAnalysis(!showAnalysis)}
               >
                 {t("综合分析", "Analysis")}
               </button>
-              <button>{t("治理工作流", "Governance")}</button>
+              <button onClick={() => navigate("/governance/work-order-list")}>
+                {t("治理工作流", "Governance")}
+              </button>
             </div>
-            <div className="view-mode glass-sm">
+
+            <div className="toolbar-div" />
+
+            {/* Layers */}
+            <div className="toolbar-group">
+              {LAYERS.map((layer) => (
+                <button
+                  key={layer.key}
+                  className={layerStates[layer.key].active ? "active" : ""}
+                  onClick={layerStates[layer.key].toggle}
+                  title={t(layer.labelZh, layer.labelEn)}
+                >
+                  {t(layer.labelZh, layer.labelEn)}
+                </button>
+              ))}
+            </div>
+
+            <div className="toolbar-div" />
+
+            {/* View mode */}
+            <div className="toolbar-group">
               <button
                 className={view === "globe" ? "active" : ""}
                 onClick={() => setView("globe")}
@@ -721,20 +754,6 @@ export function HomePage() {
               >
                 2D
               </button>
-            </div>
-          </div>
-          <div className="stage-aside">
-            <div className="layer-strip glass-sm">
-              {LAYERS.map((layer) => (
-                <button
-                  key={layer.key}
-                  className={layerStates[layer.key].active ? "active" : ""}
-                  onClick={layerStates[layer.key].toggle}
-                  title={t(layer.labelZh, layer.labelEn)}
-                >
-                  {t(layer.labelZh, layer.labelEn)}
-                </button>
-              ))}
             </div>
           </div>
         </div>
@@ -824,6 +843,14 @@ export function HomePage() {
               <div className="delta">&#9660; 1k / 1h</div>
             </div>
           </div>
+          <button
+            className={`dist-filter-btn ${redYellowOnly ? "active" : ""}`}
+            onClick={toggleRedYellowOnly}
+          >
+            {redYellowOnly
+              ? t("显示全部", "Show All")
+              : t("仅红黄", "Red/Ylw Only")}
+          </button>
         </div>
 
         {/* Critical Alert Hero Card */}
@@ -910,7 +937,18 @@ export function HomePage() {
               </button>
               <button
                 className="btn-secondary"
-                onClick={() => navigate("/risk-monitoring/flight-detail")}
+                onClick={() => {
+                  if (objectTab === "flights")
+                    navigate("/risk-monitoring/flight-detail");
+                  else if (objectTab === "airports")
+                    navigate(
+                      `/airport-center/airport-detail?code=${topCriticalItem?.id}`,
+                    );
+                  else
+                    navigate(
+                      `/personnel-center/personnel-detail?id=${topCriticalItem?.id}`,
+                    );
+                }}
               >
                 {t("详情", "Details")}
               </button>

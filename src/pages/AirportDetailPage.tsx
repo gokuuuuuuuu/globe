@@ -301,14 +301,21 @@ export function AirportDetailPage() {
                 {t("中风险航班", "Medium-Risk Flights")}
               </span>
               <span className="ad-stat-ratio">
-                {t("高/中风险占比", "High/Med Risk Ratio")}:{" "}
-                <strong>
+                {t("高风险占比", "High Risk Ratio")}:{" "}
+                <strong className="ad-stat-red">
                   {airport.flightCount > 0
-                    ? (
-                        ((riskCounts.red + riskCounts.yellow) /
-                          airport.flightCount) *
-                        100
-                      ).toFixed(1)
+                    ? ((riskCounts.red / airport.flightCount) * 100).toFixed(1)
+                    : 0}
+                  %
+                </strong>
+              </span>
+              <span className="ad-stat-ratio">
+                {t("中风险占比", "Med Risk Ratio")}:{" "}
+                <strong className="ad-stat-yellow">
+                  {airport.flightCount > 0
+                    ? ((riskCounts.yellow / airport.flightCount) * 100).toFixed(
+                        1,
+                      )
                     : 0}
                   %
                 </strong>

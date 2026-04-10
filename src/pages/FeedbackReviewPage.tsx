@@ -250,13 +250,18 @@ export function FeedbackReviewPage() {
       {/* Bottom action bar */}
       <div className="fbr-action-bar">
         <div className="fbr-action-left">
-          <button className="fbr-btn">{t("取消", "Cancel")}</button>
+          <button className="fbr-btn" onClick={() => navigate(-1)}>
+            {t("取消", "Cancel")}
+          </button>
         </div>
         <div className="fbr-action-right">
-          <button className="fbr-btn">
+          <button className="fbr-btn" onClick={() => navigate(-1)}>
             {t("保存并返回", "Save and Return")}
           </button>
-          <button className="fbr-btn fbr-btn-primary">
+          <button
+            className="fbr-btn fbr-btn-primary"
+            onClick={() => navigate("/governance/work-order-list")}
+          >
             {t("提交并返回列表", "Submit and Back to List")}
           </button>
         </div>

@@ -146,8 +146,12 @@ export function PersonnelListPage() {
   };
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
+  const riskParam = searchParams.get("risk");
   const filteredData = useMemo(() => {
     let data = MOCK_PERSONNEL;
+    if (riskParam === "high") {
+      data = data.filter((p) => p.riskLevel === "高");
+    }
     if (searchText) {
       const q = searchText.toLowerCase();
       data = data.filter(
@@ -158,7 +162,7 @@ export function PersonnelListPage() {
       );
     }
     return data;
-  }, [searchText]);
+  }, [searchText, riskParam]);
 
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
   const pageData = filteredData.slice(

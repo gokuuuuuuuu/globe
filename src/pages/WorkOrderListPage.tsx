@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { useAppStore } from "../store/useAppStore";
 import "./WorkOrderListPage.css";
 
 // ===== Types =====
@@ -158,6 +159,18 @@ export function WorkOrderListPage() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const fromHome = (location.state as { from?: string })?.from === "home";
+
+  // Close workflow (shared store + local loading)
+  const { closedWorkOrderIds, closeWorkOrder } = useAppStore();
+  const closedIds = closedWorkOrderIds;
+  const [closingId, setClosingId] = useState<string | null>(null);
+  const handleCloseWO = (id: string) => {
+    setClosingId(id);
+    setTimeout(() => {
+      closeWorkOrder(id);
+      setClosingId(null);
+    }, 500);
+  };
 
   // Filters
   const [statusFilter, setStatusFilter] = useState("all");
@@ -478,9 +491,19 @@ export function WorkOrderListPage() {
                   </div>
                 </td>
                 <td>
-                  <span className={`wo-status ${wo.status}`}>
-                    {tStatus(wo.status)}
-                  </span>
+                  {closingId === wo.id ? (
+                    <span className="wo-status closing">
+                      {t("关闭中...", "Closing...")}
+                    </span>
+                  ) : (
+                    <span
+                      className={`wo-status ${closedIds.has(wo.id) ? "closed" : wo.status}`}
+                    >
+                      {closedIds.has(wo.id)
+                        ? tStatus("closed")
+                        : tStatus(wo.status)}
+                    </span>
+                  )}
                 </td>
                 <td>
                   <span className="wo-dept">{tDept(wo.department)}</span>
@@ -498,11 +521,23 @@ export function WorkOrderListPage() {
                     >
                       &#128196;&nbsp;{t("查看工单", "View Work Order")}
                     </button>
-                    <button className="wo-action-btn process">
+                    {/* <button className="wo-action-btn process">
                       &#8599;&nbsp;{t("继续处理", "Continue Processing")}
-                    </button>
-                    <button className="wo-action-btn close-wo">
-                      &#10005;&nbsp;{t("关闭", "Close")}
+                    </button> */}
+                    <button
+                      className="wo-action-btn close-wo"
+                      disabled={closedIds.has(wo.id) || closingId === wo.id}
+                      onClick={() => handleCloseWO(wo.id)}
+                    >
+                      {closingId === wo.id ? (
+                        t("关闭中...", "Closing...")
+                      ) : closedIds.has(wo.id) ? (
+                        t("已关闭", "Closed")
+                      ) : (
+                        <>
+                          {"\u2715"}&nbsp;{t("关闭", "Close")}
+                        </>
+                      )}
                     </button>
                   </div>
                 </td>

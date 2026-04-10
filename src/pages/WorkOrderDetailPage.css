@@ -622,6 +622,21 @@
   flex-shrink: 0;
 }
 
+@keyframes wo-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.wod-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ── Scrollbar ── */
 .wod-root::-webkit-scrollbar {
   width: 6px;

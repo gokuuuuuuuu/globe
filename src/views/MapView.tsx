@@ -609,7 +609,7 @@ export function MapView({ world, atlas }: MapViewProps) {
 
   const baseColor = new Color("#2dd4bf");
   const hoverColor = new Color("#facc15");
-  const highlightColor = new Color("#f97316");
+  const highlightColor = new Color("#eab308");
 
   return (
     <div className="view-root">
@@ -1179,8 +1179,8 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
       return {
         speed: 3,
         intensity: 0.3,
-        baseColor: new Color("#ff6f00"),
-        brightColor: new Color("#ffb74d"),
+        baseColor: new Color("#eab308"),
+        brightColor: new Color("#facc15"),
       };
     } else if (risk >= 1) {
       // 低风险：慢速闪烁
@@ -1412,7 +1412,7 @@ function MapCountryLabel({
   const renderOrder = isSelected ? 20 : isHovered ? 10 : 5;
   // 通过颜色透明度实现效果
   const color = isSelected
-    ? "#f97316"
+    ? "#eab308"
     : isHovered
       ? "#facc15"
       : "rgba(229, 231, 235, 0.7)"; // 降低非选中/悬停标签的透明度

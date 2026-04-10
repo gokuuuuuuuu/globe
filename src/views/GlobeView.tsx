@@ -1110,7 +1110,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
   // 使用 useMemo 缓存颜色对象，避免每次渲染创建新对象
   const baseColor = useMemo(() => new Color("#ffffff"), []);
   const hoverColor = useMemo(() => new Color("#facc15"), []);
-  const highlightColor = useMemo(() => new Color("#f97316"), []);
+  const highlightColor = useMemo(() => new Color("#eab308"), []);
 
   return (
     <div className="view-root">
@@ -1904,7 +1904,7 @@ function CountryLabelText({
   });
 
   // 根据状态确定颜色和大小
-  const color = isSelected ? "#f97316" : isHovered ? "#facc15" : "#f5f5f4";
+  const color = isSelected ? "#eab308" : isHovered ? "#facc15" : "#f5f5f4";
   const fontSize = isSelected ? 0.025 : isHovered ? 0.022 : 0.02;
   const outlineWidth = isSelected ? 0.003 : isHovered ? 0.0025 : 0.002;
   const outlineColor = "#000000";
@@ -2402,8 +2402,8 @@ const AirportParticle = memo(function AirportParticle({
       return {
         speed: 3,
         intensity: 0.3,
-        baseColor: new Color("#ff6f00"),
-        brightColor: new Color("#ffb74d"),
+        baseColor: new Color("#eab308"),
+        brightColor: new Color("#facc15"),
       };
     } else if (risk >= 1) {
       // 低风险：慢速闪烁

@@ -315,20 +315,20 @@ export function getRiskColor(environmentRisk: number): string {
   if (environmentRisk >= 7) {
     return "#ff1744"; // 高风险 - 鲜艳红色（Material Design Red A400）
   } else if (environmentRisk >= 5) {
-    return "#ff6f00"; // 中风险 - 鲜艳橙色（Material Design Deep Orange A700）
+    return "#eab308"; // 中风险 - 黄色
   } else if (environmentRisk >= 1) {
-    return "#4caf50"; // 低风险 - 鲜艳绿色（Material Design Green 500）
+    return "#4caf50"; // 低风险 - 绿色
   } else {
-    return "#4caf50"; // 极低风险 - 鲜艳绿色（Material Design Green 500）
+    return "#4caf50"; // 极低风险 - 绿色
   }
 }
 
 // 根据机的风险值获取对应的亮色
 export function getMachineRiskColor(machineRisk: number): string {
   if (machineRisk >= 7) {
-    return "#ff1744"; // 高风险 - 鲜艳红色（Material Design Red A400）
+    return "#ff1744"; // 高风险 - 红色
   } else if (machineRisk >= 5) {
-    return "#ff6f00"; // 中风险 - 鲜艳橙色（Material Design Deep Orange A700）
+    return "#eab308"; // 中风险 - 黄色
   } else if (machineRisk >= 2) {
     return "#ffc107"; // 低风险 - 鲜艳黄色（Material Design Amber A700）
   } else {

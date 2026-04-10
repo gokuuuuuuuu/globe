@@ -54,6 +54,7 @@ export function AirportListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
+  const riskParam = searchParams.get("risk");
   const page = parseInt(searchParams.get("page") || "1", 10);
   const setPage = (pageOrFn: number | ((prev: number) => number)) => {
     const newPage = typeof pageOrFn === "function" ? pageOrFn(page) : pageOrFn;
@@ -88,6 +89,7 @@ export function AirportListPage() {
       return { ...a, highRiskFlights: highRisk, highRiskPct: mockPct };
     })
       .filter((a) => {
+        if (riskParam === "high" && a.environmentRisk < 7) return false;
         if (search) {
           const q = search.toLowerCase();
           return (

@@ -101,16 +101,18 @@
 }
 
 .ad-stat-ratio {
-  margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
 }
 
+.ad-stat-ratio:first-of-type {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .ad-stat-ratio strong {
-  color: rgba(255, 255, 255, 0.96);
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .ad-risk-types {

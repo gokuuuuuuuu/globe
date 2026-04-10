@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { useAppStore } from "../store/useAppStore";
 import "./WorkOrderDetailPage.css";
 
 // ===== Mock Data =====
@@ -88,6 +89,10 @@ export function WorkOrderDetailPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>("governance");
   const [closureOption, setClosureOption] = useState("remediated");
+  const [woStatus, setWoStatus] = useState<
+    "in-progress" | "closing" | "closed"
+  >("in-progress");
+  const { closeWorkOrder } = useAppStore();
 
   const tabLabels: Record<TabKey, string> = {
     governance: t("治理", "Governance"),
@@ -162,22 +167,61 @@ export function WorkOrderDetailPage() {
               "Asset-004 高风险发现的修复",
               "Remediation of Asset-004 High Risk Findings",
             )}
+            <span
+              style={{
+                marginLeft: 12,
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "2px 10px",
+                borderRadius: 4,
+                background:
+                  woStatus === "closed"
+                    ? "rgba(34,197,94,0.15)"
+                    : woStatus === "closing"
+                      ? "rgba(234,179,8,0.15)"
+                      : "rgba(59,130,246,0.15)",
+                color:
+                  woStatus === "closed"
+                    ? "#22c55e"
+                    : woStatus === "closing"
+                      ? "#eab308"
+                      : "#60a5fa",
+                animation:
+                  woStatus === "closing" ? "wo-pulse 0.8s infinite" : undefined,
+              }}
+            >
+              {woStatus === "closed"
+                ? t("已关闭", "Closed")
+                : woStatus === "closing"
+                  ? t("关闭中...", "Closing...")
+                  : t("处理中", "In Progress")}
+            </span>
           </h1>
           <div className="wod-header-actions">
-            <button className="wod-btn wod-btn-primary">
-              {t("分配操作", "Assign Action")}
-            </button>
             <button
               className="wod-btn wod-btn-green"
+              disabled={woStatus !== "in-progress"}
               onClick={() => navigate("/governance/feedback-review")}
             >
               {t("提交反馈", "Submit Feedback")}
             </button>
-            <button className="wod-btn">
-              {t("审核并关闭", "Review and Close")}
-            </button>
-            <button className="wod-btn">
-              {t("查看对象详情", "View Object Details")}
+            <button
+              className="wod-btn"
+              disabled={woStatus !== "in-progress"}
+              onClick={() => {
+                setWoStatus("closing");
+                setTimeout(() => {
+                  closeWorkOrder("ARV-WO-2023-001");
+                  setWoStatus("closed");
+                  setTimeout(() => navigate(-1), 300);
+                }, 500);
+              }}
+            >
+              {woStatus === "closing"
+                ? t("关闭中...", "Closing...")
+                : woStatus === "closed"
+                  ? t("已关闭", "Closed")
+                  : t("审核并关闭", "Review and Close")}
             </button>
           </div>
         </div>
@@ -573,17 +617,6 @@ export function WorkOrderDetailPage() {
       </div>
 
       {/* Bottom action bar */}
-      <div className="wod-action-bar">
-        <button className="wod-btn wod-btn-green">
-          {t("提交反馈", "Submit Feedback")}
-        </button>
-        <button className="wod-btn">
-          {t("审核并关闭", "Review and Close")}
-        </button>
-        <button className="wod-btn wod-btn-primary">
-          {t("查看对象详情", "View Object Details")}
-        </button>
-      </div>
     </div>
   );
 }

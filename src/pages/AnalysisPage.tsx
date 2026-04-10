@@ -15,6 +15,7 @@ import {
   Area,
   ResponsiveContainer,
 } from "recharts";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 
 // ===== Mock Data =====
@@ -128,20 +129,20 @@ const compositeData = [
 ];
 
 // Dark theme chart axis/grid styles
-const AXIS_TICK = { fontSize: 11, fill: "#94a3b8" };
-const AXIS_TICK_SM = { fontSize: 10, fill: "#94a3b8" };
-const AXIS_TICK_XS = { fontSize: 9, fill: "#94a3b8" };
-const GRID_STROKE = "rgba(148, 163, 184, 0.1)";
+const AXIS_TICK = { fontSize: 11, fill: "rgba(255, 255, 255, 0.4)" };
+const AXIS_TICK_SM = { fontSize: 10, fill: "rgba(255, 255, 255, 0.4)" };
+const AXIS_TICK_XS = { fontSize: 9, fill: "rgba(255, 255, 255, 0.4)" };
+const GRID_STROKE = "rgba(255, 255, 255, 0.06)";
 
 const darkTooltipStyle = {
   contentStyle: {
-    background: "#1e293b",
-    border: "1px solid rgba(148,163,184,0.2)",
+    background: "rgba(255, 255, 255, 0.06)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
     borderRadius: 6,
-    color: "#e2e8f0",
+    color: "rgba(255, 255, 255, 0.96)",
     fontSize: 12,
   },
-  itemStyle: { color: "#cbd5e1" },
+  itemStyle: { color: "rgba(255, 255, 255, 0.62)" },
 };
 
 // ===== Stat Card =====
@@ -161,9 +162,9 @@ function StatCard({
   return (
     <div
       style={{
-        background: "rgba(30, 41, 59, 0.5)",
-        border: "1px solid rgba(148, 163, 184, 0.12)",
-        borderRadius: 8,
+        background: "rgba(255, 255, 255, 0.06)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        borderRadius: 14,
         padding: "12px 16px",
         display: "flex",
         flexDirection: "column",
@@ -182,14 +183,28 @@ function StatCard({
             }}
           />
         )}
-        <span style={{ fontSize: 12, color: "#94a3b8" }}>{label}</span>
+        <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.4)" }}>
+          {label}
+        </span>
       </div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 8 }}>
-        <span style={{ fontSize: 24, fontWeight: 700, color: "#f8fafc" }}>
+        <span
+          style={{
+            fontSize: 24,
+            fontWeight: 700,
+            color: "rgba(255, 255, 255, 0.96)",
+          }}
+        >
           {value}
         </span>
         {change && (
-          <span style={{ fontSize: 11, color: "#64748b", marginBottom: 3 }}>
+          <span
+            style={{
+              fontSize: 11,
+              color: "rgba(255, 255, 255, 0.4)",
+              marginBottom: 3,
+            }}
+          >
             {change}
           </span>
         )}
@@ -233,9 +248,9 @@ function FactorTable({
   return (
     <div
       style={{
-        background: "rgba(30, 41, 59, 0.5)",
-        border: "1px solid rgba(148, 163, 184, 0.12)",
-        borderRadius: 8,
+        background: "rgba(255, 255, 255, 0.06)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        borderRadius: 14,
         padding: 16,
         display: "flex",
         flexDirection: "column",
@@ -245,7 +260,7 @@ function FactorTable({
         style={{
           fontSize: 13,
           fontWeight: 600,
-          color: "#f8fafc",
+          color: "rgba(255, 255, 255, 0.96)",
           marginBottom: 12,
         }}
       >
@@ -261,9 +276,9 @@ function FactorTable({
                 textAlign: "left",
                 padding: "6px 0",
                 fontWeight: 500,
-                color: "#64748b",
+                color: "rgba(255, 255, 255, 0.4)",
                 fontSize: 11,
-                borderBottom: "1px solid rgba(148,163,184,0.15)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
               }}
             >
               {nameKey === "cause" ? "Cause" : "Factor"}
@@ -273,9 +288,9 @@ function FactorTable({
                 textAlign: "left",
                 padding: "6px 0",
                 fontWeight: 500,
-                color: "#64748b",
+                color: "rgba(255, 255, 255, 0.4)",
                 fontSize: 11,
-                borderBottom: "1px solid rgba(148,163,184,0.15)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
               }}
             >
               Top N
@@ -285,9 +300,9 @@ function FactorTable({
                 textAlign: "right",
                 padding: "6px 0",
                 fontWeight: 500,
-                color: "#64748b",
+                color: "rgba(255, 255, 255, 0.4)",
                 fontSize: 11,
-                borderBottom: "1px solid rgba(148,163,184,0.15)",
+                borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
               }}
             >
               % Risk
@@ -300,12 +315,12 @@ function FactorTable({
               <td
                 style={{
                   padding: "6px 0",
-                  color: "#cbd5e1",
+                  color: "rgba(255, 255, 255, 0.62)",
                   maxWidth: 120,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  borderBottom: "1px solid rgba(148,163,184,0.06)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
                 }}
               >
                 {String(item[nameKey])}
@@ -313,7 +328,7 @@ function FactorTable({
               <td
                 style={{
                   padding: "6px 0",
-                  borderBottom: "1px solid rgba(148,163,184,0.06)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -332,9 +347,9 @@ function FactorTable({
                 style={{
                   padding: "6px 0",
                   textAlign: "right",
-                  color: "#e2e8f0",
+                  color: "rgba(255, 255, 255, 0.96)",
                   fontWeight: 600,
-                  borderBottom: "1px solid rgba(148,163,184,0.06)",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
                 }}
               >
                 {String(item.risk)}
@@ -360,9 +375,9 @@ function ChartCard({
   return (
     <div
       style={{
-        background: "rgba(30, 41, 59, 0.5)",
-        border: "1px solid rgba(148, 163, 184, 0.12)",
-        borderRadius: 8,
+        background: "rgba(255, 255, 255, 0.06)",
+        border: "1px solid rgba(255, 255, 255, 0.1)",
+        borderRadius: 14,
         padding: 16,
       }}
     >
@@ -375,7 +390,12 @@ function ChartCard({
         }}
       >
         <h3
-          style={{ fontSize: 13, fontWeight: 600, color: "#f8fafc", margin: 0 }}
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "rgba(255, 255, 255, 0.96)",
+            margin: 0,
+          }}
         >
           {title}
         </h3>
@@ -389,6 +409,7 @@ function ChartCard({
 // ===== Main Page =====
 export function AnalysisPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const trendData = [
     { day: t("日", "Sun"), value: 20 },
@@ -401,12 +422,21 @@ export function AnalysisPage() {
     { day: t("日", "Sun"), value: 32 },
   ];
 
-  const headerButtons = [
-    t("查看高风险航班", "View High-Risk Flights"),
-    t("查看高风险机场", "View High-Risk Airports"),
-    t("查看高风险人员", "View High-Risk Personnel"),
-    t("更多分析", "More Analysis"),
-    t("导出综合报告", "Export Summary Report"),
+  const headerButtons: { label: string; onClick?: () => void }[] = [
+    {
+      label: t("查看高风险航班", "View High-Risk Flights"),
+      onClick: () => navigate("/risk-monitoring/flights?risk=high"),
+    },
+    {
+      label: t("查看高风险机场", "View High-Risk Airports"),
+      onClick: () => navigate("/airport-center/airport-list?risk=high"),
+    },
+    {
+      label: t("查看高风险人员", "View High-Risk Personnel"),
+      onClick: () => navigate("/personnel-center/personnel-list?risk=high"),
+    },
+    { label: t("更多分析", "More Analysis") },
+    { label: t("导出综合报告", "Export Summary Report") },
   ];
 
   return (
@@ -414,8 +444,8 @@ export function AnalysisPage() {
       style={{
         height: "100%",
         overflowY: "auto",
-        background: "#0b1120",
-        color: "#e2e8f0",
+        background: "#000",
+        color: "rgba(255, 255, 255, 0.96)",
       }}
     >
       {/* Breadcrumb */}
@@ -423,13 +453,15 @@ export function AnalysisPage() {
         style={{
           padding: "10px 24px",
           fontSize: 12,
-          color: "#64748b",
-          borderBottom: "1px solid rgba(148,163,184,0.1)",
+          color: "rgba(255, 255, 255, 0.4)",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.06)",
         }}
       >
-        <span>MRIWP</span>
-        <span style={{ margin: "0 8px", color: "#475569" }}>&gt;</span>
-        <span style={{ color: "#e2e8f0" }}>
+        <span>{t("工作台", "Dashboard")}</span>
+        <span style={{ margin: "0 8px", color: "rgba(255, 255, 255, 0.4)" }}>
+          &gt;
+        </span>
+        <span style={{ color: "rgba(255, 255, 255, 0.96)" }}>
           {t("综合分析", "Summary Analysis")}
         </span>
       </div>
@@ -447,7 +479,7 @@ export function AnalysisPage() {
           style={{
             fontSize: 22,
             fontWeight: 700,
-            color: "#f8fafc",
+            color: "rgba(255, 255, 255, 0.96)",
             margin: 0,
           }}
         >
@@ -456,29 +488,30 @@ export function AnalysisPage() {
         <div style={{ display: "flex", gap: 8 }}>
           {headerButtons.map((btn) => (
             <button
-              key={btn}
+              key={btn.label}
+              onClick={btn.onClick}
               style={{
                 padding: "6px 14px",
                 fontSize: 12,
                 fontWeight: 500,
-                color: "#cbd5e1",
-                background: "rgba(30, 41, 59, 0.6)",
-                border: "1px solid rgba(148, 163, 184, 0.25)",
+                color: "rgba(255, 255, 255, 0.62)",
+                background: "rgba(255, 255, 255, 0.08)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
                 borderRadius: 4,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
                 transition: "all 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(51, 65, 85, 0.7)";
-                e.currentTarget.style.color = "#f1f5f9";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.14)";
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.96)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(30, 41, 59, 0.6)";
-                e.currentTarget.style.color = "#cbd5e1";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.62)";
               }}
             >
-              {btn}
+              {btn.label}
             </button>
           ))}
         </div>
@@ -561,11 +594,11 @@ export function AnalysisPage() {
               <select
                 style={{
                   fontSize: 11,
-                  border: "1px solid rgba(148,163,184,0.25)",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
                   borderRadius: 4,
                   padding: "4px 8px",
-                  background: "rgba(30,41,59,0.8)",
-                  color: "#94a3b8",
+                  background: "rgba(255, 255, 255, 0.08)",
+                  color: "rgba(255, 255, 255, 0.4)",
                   outline: "none",
                 }}
               >
@@ -586,7 +619,10 @@ export function AnalysisPage() {
                 <Tooltip {...darkTooltipStyle} />
                 <Legend
                   iconSize={10}
-                  wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}
+                  wrapperStyle={{
+                    fontSize: 11,
+                    color: "rgba(255, 255, 255, 0.4)",
+                  }}
                 />
                 <Area
                   type="monotone"
@@ -628,7 +664,10 @@ export function AnalysisPage() {
                 <Tooltip {...darkTooltipStyle} />
                 <Legend
                   iconSize={10}
-                  wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
+                  wrapperStyle={{
+                    fontSize: 10,
+                    color: "rgba(255, 255, 255, 0.4)",
+                  }}
                 />
                 <Bar dataKey="red" fill="#ef4444" />
                 <Bar dataKey="yellow" fill="#eab308" />
@@ -649,7 +688,10 @@ export function AnalysisPage() {
                 <Tooltip {...darkTooltipStyle} />
                 <Legend
                   iconSize={10}
-                  wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
+                  wrapperStyle={{
+                    fontSize: 10,
+                    color: "rgba(255, 255, 255, 0.4)",
+                  }}
                 />
                 <Bar dataKey="red" fill="#ef4444" />
                 <Bar dataKey="voll" fill="#f97316" />
@@ -705,7 +747,10 @@ export function AnalysisPage() {
                 <Tooltip {...darkTooltipStyle} />
                 <Legend
                   iconSize={10}
-                  wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
+                  wrapperStyle={{
+                    fontSize: 10,
+                    color: "rgba(255, 255, 255, 0.4)",
+                  }}
                 />
                 <Bar dataKey="red" stackId="a" fill="#3b82f6" />
                 <Bar dataKey="voll" stackId="a" fill="#ef4444" />
@@ -804,7 +849,7 @@ export function AnalysisPage() {
             alignItems: "center",
             justifyContent: "space-between",
             fontSize: 11,
-            color: "#475569",
+            color: "rgba(255, 255, 255, 0.4)",
             padding: "0 8px 8px",
           }}
         >

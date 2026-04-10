@@ -132,6 +132,9 @@ interface AppState {
   setTimelineCurrentTime: (time: Date) => void;
   timelineIsPlaying: boolean; // 是否正在播放
   setTimelineIsPlaying: (playing: boolean) => void;
+  // 已关闭的工单ID
+  closedWorkOrderIds: Set<string>;
+  closeWorkOrder: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -243,4 +246,10 @@ export const useAppStore = create<AppState>((set) => ({
   setTimelineCurrentTime: (time) => set({ timelineCurrentTime: time }),
   timelineIsPlaying: false, // 默认不播放
   setTimelineIsPlaying: (playing) => set({ timelineIsPlaying: playing }),
+  // 已关闭的工单
+  closedWorkOrderIds: new Set<string>(),
+  closeWorkOrder: (id) =>
+    set((state) => ({
+      closedWorkOrderIds: new Set(state.closedWorkOrderIds).add(id),
+    })),
 }));

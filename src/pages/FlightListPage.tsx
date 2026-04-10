@@ -243,6 +243,8 @@ export function FlightListPage() {
 
   // Read URL params to pre-fill filters
   useEffect(() => {
+    const risk = searchParams.get("risk");
+    if (risk === "high") setRiskLevelFilter(["High Risk"]);
     const aircraft = searchParams.get("aircraft");
     if (aircraft) setAircraftNumberFilter(aircraft);
   }, [searchParams]);
