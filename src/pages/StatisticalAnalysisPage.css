@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -14,18 +14,18 @@
 .sta-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
 .sta-breadcrumb-sep {
   margin: 0 6px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .sta-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page header bar */
@@ -41,7 +41,7 @@
 .sta-page-title {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
   margin-right: 16px;
 }
@@ -52,16 +52,16 @@
   gap: 6px;
   padding: 6px 14px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .sta-filter-btn:hover {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .sta-header-actions {
@@ -76,16 +76,16 @@
   gap: 6px;
   padding: 6px 14px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .sta-export-btn:hover {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .sta-export-btn.primary {
@@ -101,7 +101,7 @@
 /* ── Tabs ── */
 .sta-tabs {
   display: flex;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   padding: 0 24px;
   flex-shrink: 0;
 }
@@ -109,7 +109,7 @@
 .sta-tab {
   padding: 10px 20px;
   font-size: 13px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   border: none;
   background: none;
@@ -121,7 +121,7 @@
 }
 
 .sta-tab:hover {
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .sta-tab.active {
@@ -145,9 +145,10 @@
 }
 
 .sta-kpi-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px 20px;
   display: flex;
   justify-content: space-between;
@@ -162,14 +163,14 @@
 
 .sta-kpi-label {
   font-size: 12px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 500;
 }
 
 .sta-kpi-value {
   font-size: 28px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   line-height: 1.1;
 }
 
@@ -195,7 +196,7 @@
 .sta-kpi-menu {
   background: none;
   border: none;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 16px;
   cursor: pointer;
   padding: 0 4px;
@@ -203,9 +204,10 @@
 
 /* ── Card ── */
 .sta-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px 20px;
 }
 
@@ -219,7 +221,7 @@
 .sta-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .sta-card-actions {
@@ -230,14 +232,14 @@
 .sta-card-icon-btn {
   background: none;
   border: none;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
   cursor: pointer;
   padding: 2px 4px;
 }
 
 .sta-card-icon-btn:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 /* ── Two-column row ── */
@@ -260,7 +262,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .sta-legend-dot {
@@ -288,8 +290,9 @@
   padding: 8px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #080810;
 }
 
 .sta-table th.sortable {
@@ -299,8 +302,8 @@
 .sta-table td {
   padding: 8px 12px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .sta-risk-dot {
@@ -328,7 +331,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* ── Drill-down section ── */
@@ -342,9 +345,9 @@
 .sta-drill-select {
   padding: 5px 28px 5px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.6);
-  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
@@ -363,9 +366,9 @@
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -374,7 +377,7 @@
 }
 
 .sta-drill-nav-btn:hover {
-  background: rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* ── Performance matrix section ── */
@@ -405,9 +408,9 @@
 }
 
 .sta-map-tooltip {
-  background: rgba(15, 23, 42, 0.85) !important;
-  border: 1px solid rgba(148, 163, 184, 0.2) !important;
-  color: #f8fafc !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: rgba(255, 255, 255, 0.96) !important;
   font-weight: 600 !important;
   font-size: 11px !important;
   padding: 2px 6px !important;
@@ -415,7 +418,7 @@
 }
 
 .sta-map-tooltip::before {
-  border-right-color: rgba(15, 23, 42, 0.85) !important;
+  border-right-color: rgba(0, 0, 0, 0.85) !important;
 }
 
 .sta-perf-fields {
@@ -433,24 +436,42 @@
 
 .sta-perf-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .sta-perf-value {
   font-size: 16px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Footer */
 .sta-footer {
   padding: 10px 24px;
   font-size: 11px;
-  color: #475569;
-  border-top: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   justify-content: space-between;
   flex-shrink: 0;
+}
+
+/* ── Scrollbar ── */
+.sta-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sta-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sta-root::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.sta-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Responsive ── */

@@ -1,5 +1,6 @@
 //@ts-nocheck
 import { useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ReactFlow,
   type Node,
@@ -195,7 +196,7 @@ const causeNodesEn: Node[] = [
     position: { x: 340, y: 130 },
     data: {
       label: "Thrust Reverser\nMalfunction",
-      severity: "orange",
+      severity: "yellow",
       stats: "\u2161 0",
     },
     draggable: false,
@@ -284,7 +285,7 @@ const causeNodesZh: Node[] = [
     position: { x: 340, y: 130 },
     data: {
       label: "反推装置\n故障",
-      severity: "orange",
+      severity: "yellow",
       stats: "\u2161 0",
     },
     draggable: false,
@@ -387,7 +388,7 @@ function CauseNodeComponent({ data }: NodeProps) {
   const d = data as { label: string; severity?: string; stats?: string };
   const severityColors: Record<string, string> = {
     red: "#dc2626",
-    orange: "#f97316",
+    yellow: "#eab308",
     green: "#22c55e",
   };
   return (
@@ -439,6 +440,7 @@ const nodeTypes = {
 
 export function MajorRiskDetailPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const onInit = useCallback(() => {}, []);
 
   const categoryNodes = t(categoryNodesZh, categoryNodesEn);
@@ -450,9 +452,16 @@ export function MajorRiskDetailPage() {
     <div className="mr-root">
       {/* Breadcrumb */}
       <div className="mr-breadcrumb">
-        MRIWP
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="mr-breadcrumb-sep">&gt;</span>
-        {t("风险监控", "Risk Monitoring")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/risk-monitoring/flights")}
+        >
+          {t("航班", "Flights")}
+        </span>
         <span className="mr-breadcrumb-sep">&gt;</span>
         <span className="mr-breadcrumb-active">
           {t("重大风险详情", "Major Risk Detail")}
@@ -461,9 +470,25 @@ export function MajorRiskDetailPage() {
 
       {/* Page Header */}
       <div className="mr-page-header">
-        <h1 className="mr-page-title">
-          {t(`${riskInfo.titleZh}`, riskInfo.title)}
-        </h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            style={{
+              background: "rgba(71,85,105,0.5)",
+              border: "1px solid rgba(148,163,184,0.2)",
+              color: "#e2e8f0",
+              borderRadius: 6,
+              padding: "4px 14px",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+            onClick={() => navigate(-1)}
+          >
+            {t("返回", "Back")}
+          </button>
+          <h1 className="mr-page-title">
+            {t(`${riskInfo.titleZh}`, riskInfo.title)}
+          </h1>
+        </div>
 
         {/* Info Bar */}
         <div className="mr-info-bar">

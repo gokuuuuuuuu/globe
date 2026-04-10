@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -14,17 +14,17 @@
 .smp-breadcrumb {
   padding: 14px 24px;
   font-size: 14px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
 }
 
 .smp-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .smp-breadcrumb-active {
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 600;
 }
 
@@ -63,9 +63,9 @@
   width: 100%;
   padding: 8px 12px 8px 34px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   outline: none;
 }
@@ -79,7 +79,7 @@
   left: 11px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
   pointer-events: none;
 }
@@ -96,15 +96,15 @@
   gap: 6px;
   padding: 7px 16px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
 }
 
 .smp-filter-btn:hover {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .smp-add-btn {
@@ -127,9 +127,10 @@
 
 /* Table */
 .smp-table-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   overflow: hidden;
   flex: 1;
   display: flex;
@@ -151,9 +152,9 @@
   padding: 10px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-  background: #0f172a;
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #080810;
   white-space: nowrap;
   position: sticky;
   top: 0;
@@ -165,24 +166,24 @@
 }
 
 .smp-table th.sortable:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .smp-sort-icon {
   margin-left: 3px;
   font-size: 10px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .smp-table td {
   padding: 10px 12px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .smp-table tr:hover td {
-  background: rgba(148, 163, 184, 0.04);
+  background: #080810;
 }
 
 .smp-checkbox {
@@ -246,14 +247,14 @@
 .smp-more-btn {
   background: none;
   border: none;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 18px;
   cursor: pointer;
   padding: 2px 6px;
 }
 
 .smp-more-btn:hover {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Pagination */
@@ -269,9 +270,9 @@
   width: 28px;
   height: 28px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -280,7 +281,7 @@
 }
 
 .smp-page-btn:hover {
-  background: rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .smp-page-btn.active {
@@ -299,16 +300,17 @@
 }
 
 .smp-right-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px 20px;
 }
 
 .smp-right-title {
   font-size: 15px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin-bottom: 16px;
   padding-bottom: 10px;
   border-bottom: 2px solid #3b82f6;
@@ -324,8 +326,8 @@
   padding: 8px 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .smp-perm-table th:first-child {
@@ -336,8 +338,8 @@
   text-align: center;
   padding: 10px 6px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .smp-perm-table td:first-child {
@@ -354,17 +356,17 @@
 }
 
 .smp-perm-icon.partial {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .smp-perm-icon.denied {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .smp-perm-header-icon {
   display: block;
   font-size: 16px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 2px;
 }
 
@@ -375,16 +377,16 @@
   gap: 8px;
   padding: 10px 0 0;
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .smp-perm-nav-btn {
   width: 24px;
   height: 24px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,7 +395,55 @@
 }
 
 .smp-perm-nav-btn:hover {
-  background: rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ── Scrollbars ── */
+.smp-root::-webkit-scrollbar,
+.smp-table-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.smp-root::-webkit-scrollbar-track,
+.smp-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.smp-root::-webkit-scrollbar-thumb,
+.smp-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.smp-root::-webkit-scrollbar-thumb:hover,
+.smp-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.smp-right::-webkit-scrollbar {
+  width: 5px;
+}
+
+.smp-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.smp-right::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.smp-right::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Firefox scrollbar */
+.smp-root,
+.smp-table-scroll,
+.smp-right {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 /* ── Responsive ── */

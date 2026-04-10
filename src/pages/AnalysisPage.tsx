@@ -20,24 +20,24 @@ import { useLanguage } from "../i18n/useLanguage";
 // ===== Mock Data =====
 
 const riskForecastData = [
-  { time: "4h", red: 25, orange: 2, yellow: 108, green: 200 },
-  { time: "4h", red: 25, orange: 2, yellow: 108, green: 200 },
-  { time: "6h", red: 135, orange: 30, yellow: 215, green: 600 },
-  { time: "9h", red: 115, orange: 90, yellow: 215, green: 800 },
-  { time: "12h", red: 215, orange: 95, yellow: 475, green: 1000 },
-  { time: "15h", red: 135, orange: 5, yellow: 215, green: 1050 },
-  { time: "18h", red: 215, orange: 5, yellow: 215, green: 1000 },
-  { time: "21h", red: 101, orange: 5, yellow: 215, green: 900 },
-  { time: "24h", red: 181, orange: 5, yellow: 215, green: 850 },
+  { time: "4h", red: 25, yellow: 110, green: 200 },
+  { time: "4h", red: 25, yellow: 110, green: 200 },
+  { time: "6h", red: 135, yellow: 245, green: 600 },
+  { time: "9h", red: 115, yellow: 305, green: 800 },
+  { time: "12h", red: 215, yellow: 570, green: 1000 },
+  { time: "15h", red: 135, yellow: 220, green: 1050 },
+  { time: "18h", red: 215, yellow: 220, green: 1000 },
+  { time: "21h", red: 101, yellow: 220, green: 900 },
+  { time: "24h", red: 181, yellow: 220, green: 850 },
 ];
 
 const divisionData = [
-  { name: "Diti", red: 55, orange: 10, yellow: 5 },
-  { name: "Divi", red: 38, orange: 8, yellow: 3 },
-  { name: "Red", red: 31, orange: 5, yellow: 2 },
-  { name: "Yellow", red: 28, orange: 4, yellow: 6 },
-  { name: "Yellow", red: 23, orange: 3, yellow: 2 },
-  { name: "Green", red: 18, orange: 2, yellow: 1 },
+  { name: "Diti", red: 55, yellow: 15 },
+  { name: "Divi", red: 38, yellow: 11 },
+  { name: "Red", red: 31, yellow: 7 },
+  { name: "Yellow", red: 28, yellow: 10 },
+  { name: "Yellow", red: 23, yellow: 5 },
+  { name: "Green", red: 18, yellow: 3 },
 ];
 
 const squadronData = [
@@ -513,10 +513,10 @@ export function AnalysisPage() {
             trend="up"
           />
           <StatCard
-            label={t("橙色风险", "Orange risk")}
+            label={t("黄色风险", "Yellow risk")}
             value="137"
             change="(1.4%)"
-            color="#f97316"
+            color="#eab308"
             trend="down"
           />
           <StatCard
@@ -604,13 +604,6 @@ export function AnalysisPage() {
                 />
                 <Area
                   type="monotone"
-                  dataKey="orange"
-                  stackId="1"
-                  stroke="#f97316"
-                  fill="rgba(249,115,22,0.3)"
-                />
-                <Area
-                  type="monotone"
                   dataKey="red"
                   stackId="1"
                   stroke="#ef4444"
@@ -638,7 +631,6 @@ export function AnalysisPage() {
                   wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
                 />
                 <Bar dataKey="red" fill="#ef4444" />
-                <Bar dataKey="orange" fill="#f97316" />
                 <Bar dataKey="yellow" fill="#eab308" />
               </BarChart>
             </ResponsiveContainer>

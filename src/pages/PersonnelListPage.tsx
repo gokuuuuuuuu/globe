@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./PersonnelListPage.css";
 
@@ -118,6 +118,7 @@ const MOCK_PERSONNEL = generateMockData();
 export function PersonnelListPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [filterCollapsed, setFilterCollapsed] = useState(true);
 
@@ -132,7 +133,17 @@ export function PersonnelListPage() {
   const [dateTo, setDateTo] = useState("2024-05-15");
 
   // Pagination
-  const [page, setPage] = useState(1);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const setPage = (pageOrFn: number | ((prev: number) => number)) => {
+    const newPage = typeof pageOrFn === "function" ? pageOrFn(page) : pageOrFn;
+    const sp = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      sp.delete("page");
+    } else {
+      sp.set("page", String(newPage));
+    }
+    setSearchParams(sp, { replace: true });
+  };
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
   const filteredData = useMemo(() => {
@@ -227,9 +238,16 @@ export function PersonnelListPage() {
     <div className="pl-root">
       {/* Breadcrumb */}
       <div className="pl-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="pl-breadcrumb-sep">&gt;</span>
-        <span>{t("人", "Personnel")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/personnel-center/personnel-list")}
+        >
+          {t("人", "Personnel")}
+        </span>
         <span className="pl-breadcrumb-sep">&gt;</span>
         <span className="pl-breadcrumb-active">
           {t("人员列表", "Personnel List")}
@@ -434,7 +452,7 @@ export function PersonnelListPage() {
           </svg>
           <input
             placeholder={t(
-              "搜索员工ID、姓名、运营单位...",
+              "搜索员工ID、姓名、单位...",
               "Search employee ID, name, unit...",
             )}
             value={searchText}
@@ -468,16 +486,13 @@ export function PersonnelListPage() {
         <table className="pl-table">
           <thead>
             <tr>
-              <th className="pl-th-check">
-                <input type="checkbox" />
-              </th>
+              <th className="pl-th-check" />
               <th>{t("员工ID", "Employee ID")}</th>
               <th>{t("姓名", "Name")}</th>
-              <th>{t("运营单位", "Operating Unit")}</th>
+              <th>{t("单位", "Unit")}</th>
               <th>{t("综合风险等级", "Composite Risk Level")}</th>
               <th>{t("主要人为因素标签", "Main Human Factor Tags")}</th>
               <th>{t("相关高风险航班", "Related High-Risk Flights")}</th>
-              <th>{t("操作", "Actions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -490,9 +505,7 @@ export function PersonnelListPage() {
                   navigate(`/personnel-center/personnel-detail?id=${person.id}`)
                 }
               >
-                <td className="pl-td-check">
-                  <input type="checkbox" />
-                </td>
+                <td className="pl-td-check" />
                 <td className="pl-td-empid">{person.employeeId}</td>
                 <td>{person.name}</td>
                 <td>{person.operatingUnit}</td>
@@ -509,30 +522,6 @@ export function PersonnelListPage() {
                   </span>
                 </td>
                 <td>{person.relatedHighRiskFlights}</td>
-                <td onClick={(e) => e.stopPropagation()}>
-                  <div className="pl-actions-cell">
-                    <button
-                      className="pl-action-link"
-                      onClick={() =>
-                        navigate(
-                          `/personnel-center/personnel-detail?id=${person.id}&tab=historical-flights`,
-                        )
-                      }
-                    >
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-                      </svg>
-                      {t("查看历史航班", "View Historical Flights")}
-                    </button>
-                  </div>
-                </td>
               </tr>
             ))}
           </tbody>

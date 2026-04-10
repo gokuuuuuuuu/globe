@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./HistoricalFlightsPage.css";
 
@@ -126,16 +127,27 @@ const TOTAL_RECORDS = 150;
 
 export function HistoricalFlightsPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [startDate, setStartDate] = useState("2023-01-01");
   const [endDate, setEndDate] = useState("2024-05-31");
   const [activeFilter, setActiveFilter] = useState<TimeFilter>("custom");
   const [searchText, setSearchText] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const currentPage = parseInt(searchParams.get("page") || "1", 10);
+  const setCurrentPage = (pageOrFn: number | ((prev: number) => number)) => {
+    const newPage =
+      typeof pageOrFn === "function" ? pageOrFn(currentPage) : pageOrFn;
+    const sp = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      sp.delete("page");
+    } else {
+      sp.set("page", String(newPage));
+    }
+    setSearchParams(sp, { replace: true });
+  };
   const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-
   const handleQuickFilter = (filter: TimeFilter) => {
     setActiveFilter(filter);
     const now = new Date("2024-05-31");
@@ -187,26 +199,6 @@ export function HistoricalFlightsPage() {
     }
     return data;
   }, [searchText, sortColumn, sortDirection]);
-
-  const allSelected =
-    filteredData.length > 0 && filteredData.every((r) => selectedIds.has(r.id));
-
-  const toggleSelectAll = () => {
-    if (allSelected) {
-      setSelectedIds(new Set());
-    } else {
-      setSelectedIds(new Set(filteredData.map((r) => r.id)));
-    }
-  };
-
-  const toggleSelect = (id: number) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   const totalPages = Math.ceil(TOTAL_RECORDS / PAGE_SIZE);
   const pageStart = (currentPage - 1) * PAGE_SIZE + 1;
@@ -278,6 +270,21 @@ export function HistoricalFlightsPage() {
     <div className="hf-page">
       {/* Header */}
       <div className="hf-header">
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+            marginRight: 8,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
         <h1 className="hf-title">
           {t("历史航班", "Historical Flights")}: [Object ID - P18] /{" "}
           {t("机型", "Unit")}: 737-800
@@ -414,13 +421,7 @@ export function HistoricalFlightsPage() {
           <table className="hf-table">
             <thead>
               <tr>
-                <th style={{ width: 40 }}>
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={toggleSelectAll}
-                  />
-                </th>
+                <th style={{ width: 40 }} />
                 <th>{t("航班时间", "Flight Time")}</th>
                 <th
                   className="hf-th-sortable"
@@ -450,13 +451,7 @@ export function HistoricalFlightsPage() {
             <tbody>
               {filteredData.map((row) => (
                 <tr key={row.id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.has(row.id)}
-                      onChange={() => toggleSelect(row.id)}
-                    />
-                  </td>
+                  <td />
                   <td>{row.flightTime}</td>
                   <td>{row.flightNumber}</td>
                   <td>

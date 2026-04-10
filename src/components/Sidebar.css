@@ -354,10 +354,6 @@
   background: #ef4444;
 }
 
-.risk-zone-color.orange {
-  background: #f97316;
-}
-
 .risk-zone-color.yellow {
   background: #eab308;
 }
@@ -426,10 +422,6 @@
   border-color: #ef4444;
 }
 
-.risk-zone-checkbox-input.orange {
-  border-color: #f97316;
-}
-
 .risk-zone-checkbox-input.yellow {
   border-color: #eab308;
 }
@@ -456,10 +448,6 @@
 
 .risk-zone-checkbox-input.red:checked::after {
   color: #ef4444;
-}
-
-.risk-zone-checkbox-input.orange:checked::after {
-  color: #f97316;
 }
 
 .risk-zone-checkbox-input.yellow:checked::after {
@@ -582,36 +570,6 @@
       0 0 20px rgba(239, 68, 68, 1),
       0 0 40px rgba(239, 68, 68, 0.7),
       inset 0 0 16px rgba(239, 68, 68, 0.25);
-  }
-}
-
-/* 橙色风险区间高亮 */
-.sidebar-item.highlighted-orange {
-  border-color: #f97316 !important;
-  animation: highlightPulseOrange 2s ease-in-out infinite;
-}
-
-.sidebar-item.highlighted-orange::before {
-  background: linear-gradient(
-    135deg,
-    rgba(249, 115, 22, 0.3),
-    rgba(249, 115, 22, 0.1)
-  );
-}
-
-@keyframes highlightPulseOrange {
-  0%,
-  100% {
-    box-shadow:
-      0 0 16px rgba(249, 115, 22, 0.8),
-      0 0 32px rgba(249, 115, 22, 0.5),
-      inset 0 0 12px rgba(249, 115, 22, 0.15);
-  }
-  50% {
-    box-shadow:
-      0 0 20px rgba(249, 115, 22, 1),
-      0 0 40px rgba(249, 115, 22, 0.7),
-      inset 0 0 16px rgba(249, 115, 22, 0.25);
   }
 }
 
@@ -944,20 +902,6 @@
     135deg,
     rgba(239, 68, 68, 0.3),
     rgba(239, 68, 68, 0.1)
-  );
-}
-
-/* 橙色风险区间高亮 */
-.sidebar-flight-item.highlighted-orange {
-  border-color: #f97316 !important;
-  animation: highlightPulseOrange 2s ease-in-out infinite;
-}
-
-.sidebar-flight-item.highlighted-orange::before {
-  background: linear-gradient(
-    135deg,
-    rgba(249, 115, 22, 0.3),
-    rgba(249, 115, 22, 0.1)
   );
 }
 

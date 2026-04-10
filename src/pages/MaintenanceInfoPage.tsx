@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./MaintenanceInfoPage.css";
 
@@ -48,11 +49,11 @@ const timelineEvents = [
 const timelineRisks = [
   { day: 2, level: "Red" as const },
   { day: 5, level: "Green" as const },
-  { day: 8, level: "Orange" as const },
+  { day: 8, level: "Yellow" as const },
   { day: 11, level: "Yellow" as const },
   { day: 14, level: "Red" as const },
   { day: 17, level: "Green" as const },
-  { day: 20, level: "Orange" as const },
+  { day: 20, level: "Yellow" as const },
   { day: 24, level: "Open" as const },
 ];
 
@@ -67,7 +68,7 @@ interface MaintenanceRecord {
   criticalSystems: string;
   status: "Closed" | "Open";
   repeated: boolean;
-  criticality: "High" | "Orange" | "Green" | "Yellow" | "Red";
+  criticality: "High" | "Yellow" | "Green" | "Red";
   phases: string[];
   highlighted?: boolean;
 }
@@ -92,7 +93,7 @@ const tableData: MaintenanceRecord[] = [
     criticalSystems: "ATA 27",
     status: "Closed",
     repeated: false,
-    criticality: "Orange",
+    criticality: "Yellow",
     phases: ["Takeoff", "Landing", "Cruise"],
   },
   {
@@ -115,7 +116,7 @@ const tableData: MaintenanceRecord[] = [
     criticalSystems: "ATA 32",
     status: "Open",
     repeated: false,
-    criticality: "Orange",
+    criticality: "Yellow",
     phases: ["Takeoff", "Landing"],
   },
   {
@@ -149,14 +150,12 @@ const TIMELINE_DAYS = [
 const criticalityOrder: Record<string, number> = {
   Red: 4,
   High: 4,
-  Orange: 3,
   Yellow: 2,
   Green: 1,
 };
 
 function getCriticalityClass(c: string) {
   if (c === "High" || c === "Red") return "mt-criticality-red";
-  if (c === "Orange") return "mt-criticality-orange";
   if (c === "Yellow") return "mt-criticality-yellow";
   return "mt-criticality-green";
 }
@@ -170,7 +169,6 @@ function getPhaseClass(phase: string) {
 
 function getBadgeClass(level: string) {
   if (level === "Red") return "mt-badge-red";
-  if (level === "Orange") return "mt-badge-orange";
   if (level === "Yellow") return "mt-badge-yellow";
   if (level === "Green") return "mt-badge-green";
   return "mt-badge-open";
@@ -263,6 +261,7 @@ function SortIcon({ active, dir }: { active: boolean; dir: SortDir }) {
 
 export function MaintenanceInfoPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [hoveredEvent, setHoveredEvent] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({
     x: 0,
@@ -313,11 +312,36 @@ export function MaintenanceInfoPage() {
     <div className="mt-root">
       {/* Breadcrumb */}
       <div className="mt-breadcrumb">
-        <span>{t("飞机主题", "Aircraft Topic")}</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
+        <span className="mt-breadcrumb-sep">&gt;</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/aircraft-topic/aircraft-list")}
+        >
+          {t("机", "Aircraft")}
+        </span>
         <span className="mt-breadcrumb-sep">&gt;</span>
         <span className="mt-breadcrumb-active">
           {t("维修信息", "Maintenance Info")}: P20 Asset
         </span>
+      </div>
+      <div style={{ margin: "8px 0 0 0" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
       </div>
 
       {/* Top 4 Cards */}
@@ -543,15 +567,13 @@ export function MaintenanceInfoPage() {
                     >
                       {risk.level === "Red"
                         ? t("红色", "Red")
-                        : risk.level === "Orange"
-                          ? t("橙色", "Orange")
-                          : risk.level === "Yellow"
-                            ? t("黄色", "Yellow")
-                            : risk.level === "Green"
-                              ? t("绿色", "Green")
-                              : risk.level === "Open"
-                                ? t("进行中", "Open")
-                                : risk.level}
+                        : risk.level === "Yellow"
+                          ? t("黄色", "Yellow")
+                          : risk.level === "Green"
+                            ? t("绿色", "Green")
+                            : risk.level === "Open"
+                              ? t("进行中", "Open")
+                              : risk.level}
                     </div>
                   ))}
                 </div>
@@ -696,15 +718,13 @@ export function MaintenanceInfoPage() {
                   >
                     {row.criticality === "High"
                       ? t("高", "High")
-                      : row.criticality === "Orange"
-                        ? t("橙色", "Orange")
-                        : row.criticality === "Yellow"
-                          ? t("黄色", "Yellow")
-                          : row.criticality === "Green"
-                            ? t("绿色", "Green")
-                            : row.criticality === "Red"
-                              ? t("红色", "Red")
-                              : row.criticality}
+                      : row.criticality === "Yellow"
+                        ? t("黄色", "Yellow")
+                        : row.criticality === "Green"
+                          ? t("绿色", "Green")
+                          : row.criticality === "Red"
+                            ? t("红色", "Red")
+                            : row.criticality}
                   </span>
                 </td>
                 <td>

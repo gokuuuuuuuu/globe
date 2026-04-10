@@ -92,7 +92,7 @@ function GaugeSVG({ score }: { score: number }) {
   const r = 90;
   const scoreAngle = Math.PI - (score / 100) * Math.PI;
 
-  // Build arc segments: green -> yellow -> orange -> red
+  // Build arc segments: green -> yellow -> red
   const segments = [
     { start: 0, end: 0.25, color: "#22c55e" },
     { start: 0.25, end: 0.5, color: "#eab308" },
@@ -257,11 +257,36 @@ export function AircraftDetailPage() {
     <div className="acd-root">
       {/* Breadcrumb */}
       <div className="acd-breadcrumb">
-        <span>{t("机", "Aircraft")}</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
+        <span className="acd-breadcrumb-sep">&gt;</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/aircraft-topic/aircraft-list")}
+        >
+          {t("机", "Aircraft")}
+        </span>
         <span className="acd-breadcrumb-sep">&gt;</span>
         <span className="acd-breadcrumb-active">
           {t("飞机详情", "Aircraft Detail")}: {aircraftInfo.tailNumber}
         </span>
+      </div>
+      <div style={{ margin: "8px 0 0 0" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
       </div>
 
       {/* Aircraft Info Card */}
@@ -408,8 +433,8 @@ export function AircraftDetailPage() {
                 </span>
               </div>
               <div className="acd-flights-breakdown-item">
-                <span className="acd-dot acd-dot-orange" />
-                <span style={{ color: "#f97316" }}>
+                <span className="acd-dot acd-dot-yellow" />
+                <span style={{ color: "#eab308" }}>
                   {relatedFlights.medium} {t("中", "Medium")}
                 </span>
               </div>

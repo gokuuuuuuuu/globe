@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AreaChart,
   Area,
@@ -47,7 +48,7 @@ const anomalySummary = [
     duration: "+5%",
     relatedRisk: "Safety Incident (Minor)",
     relatedRiskZh: "安全事件（轻微）",
-    riskLevel: "orange",
+    riskLevel: "yellow",
     actionLevel: "green",
   },
 ];
@@ -78,7 +79,7 @@ const historicalFlights = [
     duration: "7h 30m",
     relatedRisk: "Safety Incident (Minor)",
     relatedRiskZh: "安全事件（轻微）",
-    riskLevel: "orange",
+    riskLevel: "yellow",
   },
   {
     id: "AR104",
@@ -146,6 +147,7 @@ function AnomalyDot(props: any) {
 // ---------- Component ----------
 
 export function PersonnelTrendPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("30d");
 
@@ -160,7 +162,6 @@ export function PersonnelTrendPage() {
     const labels: Record<string, string> = {
       green: t("绿色", "Green"),
       yellow: t("黄色", "Yellow"),
-      orange: t("橙色", "Orange"),
       red: t("红色", "Red"),
     };
     return <span className={cls}>{labels[level] || level}</span>;
@@ -170,9 +171,16 @@ export function PersonnelTrendPage() {
     <div className="pt-root">
       {/* Breadcrumb */}
       <div className="pt-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="pt-breadcrumb-sep">&gt;</span>
-        <span>{t("人员中心", "Personnel Center")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/personnel-center/personnel-list")}
+        >
+          {t("人", "Personnel")}
+        </span>
         <span className="pt-breadcrumb-sep">&gt;</span>
         <span className="pt-breadcrumb-active">
           {t("个人趋势", "Personal Trend")}
@@ -181,6 +189,21 @@ export function PersonnelTrendPage() {
 
       {/* Page Title */}
       <div className="pt-page-header">
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+            marginRight: 8,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
         <h1 className="pt-page-title">
           {t(
             "人员风险趋势分析：John Doe (ID: JD123)",
@@ -368,15 +391,15 @@ export function PersonnelTrendPage() {
                       <td>{t(row.aggregateZh, row.aggregate)}</td>
                       <td>{row.riskFactor}</td>
                       <td>
-                        <span className="pt-change-orange">
+                        <span className="pt-change-yellow">
                           {row.riskScore}
                         </span>
                       </td>
                       <td>
-                        <span className="pt-change-orange">{row.duration}</span>
+                        <span className="pt-change-yellow">{row.duration}</span>
                       </td>
                       <td>
-                        <span className="pt-change-orange">{row.duration}</span>
+                        <span className="pt-change-yellow">{row.duration}</span>
                       </td>
                       <td>{t(row.relatedRiskZh, row.relatedRisk)}</td>
                       <td>{riskLevelBadge(row.riskLevel)}</td>

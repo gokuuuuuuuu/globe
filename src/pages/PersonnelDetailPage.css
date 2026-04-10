@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -12,27 +12,28 @@
 .pd-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
 .pd-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pd-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Header Card */
 .pd-header-card {
   margin: 16px 24px 0;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   flex-shrink: 0;
+  backdrop-filter: blur(12px);
 }
 
 .pd-header-top {
@@ -40,13 +41,13 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pd-header-title {
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
 }
 
@@ -59,7 +60,7 @@
 .pd-icon-btn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 4px;
   display: flex;
@@ -70,7 +71,7 @@
 }
 
 .pd-icon-btn:hover {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .pd-header-info {
@@ -82,7 +83,7 @@
 .pd-info-item {
   flex: 1;
   padding: 14px 20px;
-  border-right: 1px solid rgba(148, 163, 184, 0.1);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   min-width: 0;
 }
 
@@ -92,14 +93,14 @@
 
 .pd-info-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 4px;
 }
 
 .pd-info-value {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -130,13 +131,13 @@
 .pd-hf-score-text {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .pd-hf-bar-bg {
   flex: 1;
   height: 6px;
-  background: rgba(148, 163, 184, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   max-width: 80px;
   overflow: hidden;
@@ -162,11 +163,12 @@
 .pd-sidebar {
   width: 220px;
   flex-shrink: 0;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 8px 0;
   align-self: flex-start;
+  backdrop-filter: blur(12px);
 }
 
 .pd-nav-item {
@@ -175,7 +177,7 @@
   gap: 10px;
   padding: 10px 16px;
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   border: none;
   background: none;
@@ -186,8 +188,8 @@
 }
 
 .pd-nav-item:hover {
-  color: #e2e8f0;
-  background: rgba(51, 65, 85, 0.3);
+  color: rgba(255, 255, 255, 0.96);
+  background: #080810;
 }
 
 .pd-nav-item-active {
@@ -213,10 +215,11 @@
 
 /* Card */
 .pd-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px;
+  backdrop-filter: blur(12px);
 }
 
 .pd-card-header {
@@ -229,17 +232,17 @@
 .pd-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
 }
 
 .pd-dropdown {
   font-size: 11px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 4px;
   padding: 4px 8px;
-  background: rgba(30, 41, 59, 0.8);
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
   outline: none;
   cursor: pointer;
 }
@@ -270,7 +273,7 @@
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .pd-indicator-dot {
@@ -292,16 +295,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .pd-action-link:hover {
-  background: rgba(51, 65, 85, 0.5);
-  border-color: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .pd-action-link-text {
@@ -313,16 +316,16 @@
 .pd-action-link-title {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .pd-action-link-sub {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pd-action-link-chevron {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
 }
 
@@ -339,7 +342,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pd-legend-line {
@@ -364,10 +367,10 @@
 }
 
 .pd-root::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .pd-root::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.14);
 }

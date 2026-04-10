@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -11,6 +12,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useLanguage } from "../i18n/useLanguage";
+import { AIRPORTS } from "../data/flightData";
 import "./EnvironmentDetailPage.css";
 
 // ===== Mock Data =====
@@ -86,7 +88,7 @@ const hourlyForecast = [
 
 const alertsData = [
   {
-    level: "orange" as const,
+    level: "yellow" as const,
     alert: "Strong Crosswinds",
     area: "RWY 09",
     timestamp: "2023-10-23 18:08:54",
@@ -108,9 +110,9 @@ const alertsData = [
 const anomaliesData = [
   {
     time: "17:00",
-    dotColor: "#f97316",
+    dotColor: "#eab308",
     tag: "Unusual Wind Gusts Detected",
-    tagLevel: "orange" as const,
+    tagLevel: "yellow" as const,
     desc: "Unusual Wind Gusts Detected at Northern Taxiway B.",
   },
   {
@@ -455,7 +457,7 @@ const phaseEnvData = {
         timestamp: "2024-06-15 14:15",
       },
       {
-        level: "orange" as const,
+        level: "yellow" as const,
         alert: "低能见度",
         area: "RWY 01",
         timestamp: "2024-06-15 14:00",
@@ -472,25 +474,31 @@ const phaseEnvData = {
 
 export function EnvironmentDetailPage() {
   const { t } = useLanguage();
-  const [envPhase, setEnvPhase] = useState<"takeoff" | "landing">("takeoff");
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const codeParam = searchParams.get("code");
+  const [selectedAirportCode, setSelectedAirportCode] = useState<string | null>(
+    codeParam,
+  );
+  const [envPhase] = useState<"takeoff" | "landing">("takeoff");
+  const [envSearch, setEnvSearch] = useState("");
+  const [envRiskFilter, setEnvRiskFilter] = useState<
+    "all" | "red" | "yellow" | "green"
+  >("all");
 
   const pillClass = (level: string) =>
     level === "red"
       ? "env-pill env-pill-red"
-      : level === "orange"
-        ? "env-pill env-pill-orange"
-        : level === "yellow"
-          ? "env-pill env-pill-yellow"
-          : "env-pill env-pill-green";
+      : level === "yellow"
+        ? "env-pill env-pill-yellow"
+        : "env-pill env-pill-green";
 
   const levelLabel = (level: string) =>
     level === "red"
       ? t("高", "High")
-      : level === "orange"
-        ? t("中高", "Medium")
-        : level === "yellow"
-          ? t("中", "Low-Med")
-          : t("低", "Low");
+      : level === "yellow"
+        ? t("中", "Medium")
+        : t("低", "Low");
 
   const dayMap: Record<string, string> = {
     Mon: "周一",
@@ -509,982 +517,1145 @@ export function EnvironmentDetailPage() {
     <div className="env-root">
       {/* Breadcrumb */}
       <div className="env-breadcrumb">
-        {t("环境分析", "Environmental Analysis")}
-        <span className="env-breadcrumb-sep">/</span>
-        <span className="env-breadcrumb-active">{t("详情", "Detail")}</span>
-      </div>
-
-      {/* Phase Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: 4,
-          margin: "12px 24px",
-          padding: "3px",
-          background: "rgba(15,23,42,0.6)",
-          borderRadius: 8,
-          width: "fit-content",
-          border: "1px solid rgba(148,163,184,0.12)",
-        }}
-      >
-        <button
-          onClick={() => setEnvPhase("takeoff")}
-          style={{
-            padding: "6px 20px",
-            borderRadius: 6,
-            border: "none",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.15s",
-            background:
-              envPhase === "takeoff" ? "rgba(59,130,246,0.2)" : "transparent",
-            color: envPhase === "takeoff" ? "#60a5fa" : "#94a3b8",
-          }}
-        >
-          {t("起飞阶段", "Takeoff Phase")}
-        </button>
-        <button
-          onClick={() => setEnvPhase("landing")}
-          style={{
-            padding: "6px 20px",
-            borderRadius: 6,
-            border: "none",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "all 0.15s",
-            background:
-              envPhase === "landing" ? "rgba(59,130,246,0.2)" : "transparent",
-            color: envPhase === "landing" ? "#60a5fa" : "#94a3b8",
-          }}
-        >
-          {t("降落阶段", "Landing Phase")}
-        </button>
-      </div>
-
-      {/* Phase Environment Card */}
-      {(() => {
-        const pd = phaseEnvData[envPhase];
-        const riskColor =
-          pd.risk.level === "High"
-            ? "#ef4444"
-            : pd.risk.level === "Medium"
-              ? "#eab308"
-              : "#22c55e";
-        return (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              margin: "0 24px",
-              gap: 16,
-              marginBottom: 16,
-            }}
-          >
-            <div
-              style={{
-                background: "rgba(15,23,42,0.6)",
-                borderRadius: 10,
-                border: "1px solid rgba(148,163,184,0.12)",
-                padding: 16,
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
+        <span className="env-breadcrumb-sep">&gt;</span>
+        {selectedAirportCode ? (
+          <>
+            <span
+              style={{ cursor: "pointer" }}
+              onClick={() => {
+                if (codeParam) {
+                  navigate("/environment-topic/environment-detail", {
+                    replace: true,
+                  });
+                } else {
+                  setSelectedAirportCode(null);
+                }
               }}
             >
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "#f8fafc",
-                  marginBottom: 12,
-                }}
-              >
-                {envPhase === "takeoff"
-                  ? t("起飞机场环境", "Takeoff Airport Environment")
-                  : t("降落机场环境", "Landing Airport Environment")}
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 400,
-                    color: "#94a3b8",
-                    marginLeft: 8,
-                  }}
+              {t("环", "Environment")}
+            </span>
+            <span className="env-breadcrumb-sep">&gt;</span>
+            <span className="env-breadcrumb-active">
+              {AIRPORTS.find((a) => a.code === selectedAirportCode)?.code4 ||
+                selectedAirportCode}
+            </span>
+          </>
+        ) : (
+          <span className="env-breadcrumb-active">
+            {t("环", "Environment")}
+          </span>
+        )}
+      </div>
+
+      {/* Airport List or Detail */}
+      {!selectedAirportCode ? (
+        <div className="env-airport-list">
+          <div className="env-airport-list-header">
+            <h2 className="env-airport-list-title">
+              {t("机场环境总览", "Airport Environment Overview")}
+            </h2>
+            <span className="env-airport-list-count">
+              {AIRPORTS.length} {t("个机场", "airports")}
+            </span>
+          </div>
+          {/* Filters */}
+          <div className="env-airport-filters">
+            <input
+              className="env-airport-search"
+              placeholder={t(
+                "搜索机场名称或代码...",
+                "Search airport name or code...",
+              )}
+              value={envSearch}
+              onChange={(e) => setEnvSearch(e.target.value)}
+            />
+            <div className="env-airport-risk-btns">
+              {(["all", "red", "yellow", "green"] as const).map((level) => (
+                <button
+                  key={level}
+                  className={`env-airport-risk-btn ${envRiskFilter === level ? "active" : ""} ${level !== "all" ? level : ""}`}
+                  onClick={() => setEnvRiskFilter(level)}
                 >
-                  {pd.location}
-                </span>
-              </div>
+                  {level === "all"
+                    ? t("全部", "All")
+                    : level === "red"
+                      ? t("高风险", "High")
+                      : level === "yellow"
+                        ? t("中风险", "Medium")
+                        : t("低风险", "Low")}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="env-airport-grid">
+            {[...AIRPORTS]
+              .filter((a) => {
+                const q = envSearch.toLowerCase();
+                if (
+                  q &&
+                  !a.nameZh.toLowerCase().includes(q) &&
+                  !a.name.toLowerCase().includes(q) &&
+                  !a.code.toLowerCase().includes(q) &&
+                  !a.code4.toLowerCase().includes(q)
+                )
+                  return false;
+                if (envRiskFilter === "red") return a.environmentRisk >= 7;
+                if (envRiskFilter === "yellow")
+                  return a.environmentRisk >= 5 && a.environmentRisk < 7;
+                if (envRiskFilter === "green") return a.environmentRisk < 5;
+                return true;
+              })
+              .sort((a, b) => b.environmentRisk - a.environmentRisk)
+              .map((airport) => {
+                const riskZone =
+                  airport.environmentRisk >= 7
+                    ? "red"
+                    : airport.environmentRisk >= 5
+                      ? "yellow"
+                      : "green";
+                const riskColor =
+                  riskZone === "red"
+                    ? "#ef4444"
+                    : riskZone === "yellow"
+                      ? "#eab308"
+                      : "#22c55e";
+                return (
+                  <div
+                    key={airport.id}
+                    className="env-airport-card"
+                    onClick={() => setSelectedAirportCode(airport.code)}
+                  >
+                    <div className="env-airport-card-top">
+                      <div className="env-airport-card-code">
+                        {airport.code4}
+                      </div>
+                      <span className={pillClass(riskZone)}>
+                        {riskZone === "red"
+                          ? t("高风险", "High")
+                          : riskZone === "yellow"
+                            ? t("中风险", "Medium")
+                            : t("低风险", "Low")}
+                      </span>
+                    </div>
+                    <div className="env-airport-card-name">
+                      {airport.nameZh || airport.name}
+                    </div>
+                    <div className="env-airport-card-meta">
+                      <span>{airport.countryCode}</span>
+                      <span>
+                        {airport.flightCount} {t("航班", "flights")}
+                      </span>
+                      <span>
+                        {airport.operatorCount} {t("人员", "staff")}
+                      </span>
+                    </div>
+                    <div className="env-airport-card-risk">
+                      <div className="env-airport-card-risk-bar">
+                        <div
+                          className="env-airport-card-risk-fill"
+                          style={{
+                            width: `${airport.environmentRisk * 10}%`,
+                            background: riskColor,
+                          }}
+                        />
+                      </div>
+                      <span
+                        className="env-airport-card-risk-score"
+                        style={{ color: riskColor }}
+                      >
+                        {airport.environmentRisk.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Back button */}
+          <div style={{ padding: "8px 24px 0" }}>
+            <button
+              className="env-back-btn"
+              onClick={() => {
+                if (codeParam) {
+                  navigate(-1);
+                } else {
+                  setSelectedAirportCode(null);
+                }
+              }}
+            >
+              {t("返回", "Back")}
+            </button>
+          </div>
+          {/* Phase Environment Card */}
+          {(() => {
+            const pd = phaseEnvData[envPhase];
+            const riskColor =
+              pd.risk.level === "High"
+                ? "#ef4444"
+                : pd.risk.level === "Medium"
+                  ? "#eab308"
+                  : "#22c55e";
+            return (
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                  gap: 12,
+                  gridTemplateColumns: "1fr 1fr",
+                  margin: "0 24px",
+                  gap: 16,
+                  marginBottom: 16,
                 }}
               >
-                <div>
-                  <div
-                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
-                  >
-                    {t("温度", "Temp")}
-                  </div>
-                  <div
-                    style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc" }}
-                  >
-                    {pd.temperature}°C
-                  </div>
-                </div>
-                <div>
-                  <div
-                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
-                  >
-                    {t("风速/风向", "Wind")}
-                  </div>
-                  <div
-                    style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc" }}
-                  >
-                    {pd.wind.speed}kt{" "}
-                    <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                      {pd.wind.direction}
-                    </span>
-                  </div>
-                </div>
-                <div>
-                  <div
-                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
-                  >
-                    {t("能见度", "Visibility")}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: pd.visibility < 5 ? "#ef4444" : "#f8fafc",
-                    }}
-                  >
-                    {pd.visibility}km
-                  </div>
-                </div>
-                <div>
-                  <div
-                    style={{ fontSize: 10, color: "#64748b", marginBottom: 4 }}
-                  >
-                    {t("湿度", "Humidity")}
-                  </div>
-                  <div
-                    style={{ fontSize: 18, fontWeight: 700, color: "#f8fafc" }}
-                  >
-                    {pd.humidity}%
-                  </div>
-                </div>
-              </div>
-              <div
-                style={{
-                  marginTop: 12,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <span style={{ fontSize: 11, color: "#64748b" }}>
-                  {t("环境风险评分", "Env Risk Score")}:
-                </span>
-                <span
-                  style={{ fontSize: 16, fontWeight: 700, color: riskColor }}
-                >
-                  {pd.risk.score}
-                </span>
-                <span
+                <div
                   style={{
-                    fontSize: 11,
-                    padding: "1px 8px",
-                    borderRadius: 4,
-                    background: `${riskColor}20`,
-                    color: riskColor,
+                    background: "rgba(15,23,42,0.6)",
+                    borderRadius: 10,
+                    border: "1px solid rgba(148,163,184,0.12)",
+                    padding: 16,
                   }}
                 >
-                  {pd.risk.level === "High"
-                    ? t("高", "High")
-                    : pd.risk.level === "Medium"
-                      ? t("中", "Medium")
-                      : t("低", "Low")}
-                </span>
-              </div>
-            </div>
-            <div
-              style={{
-                background: "rgba(15,23,42,0.6)",
-                borderRadius: 10,
-                border: "1px solid rgba(148,163,184,0.12)",
-                padding: 16,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "#f8fafc",
-                  marginBottom: 12,
-                }}
-              >
-                {t("气象告警", "Weather Alerts")}
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {pd.alerts.map((a, i) => (
                   <div
-                    key={i}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      padding: "6px 10px",
-                      borderRadius: 6,
-                      background:
-                        a.level === "red"
-                          ? "rgba(239,68,68,0.08)"
-                          : a.level === "orange"
-                            ? "rgba(249,115,22,0.08)"
-                            : a.level === "yellow"
-                              ? "rgba(234,179,8,0.08)"
-                              : "rgba(34,197,94,0.08)",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#f8fafc",
+                      marginBottom: 12,
                     }}
                   >
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: "50%",
-                        flexShrink: 0,
-                        background:
-                          a.level === "red"
-                            ? "#ef4444"
-                            : a.level === "orange"
-                              ? "#f97316"
-                              : a.level === "yellow"
-                                ? "#eab308"
-                                : "#22c55e",
-                      }}
-                    />
+                    {t("机场环境", "Airport Environment")}
                     <span
                       style={{
                         fontSize: 12,
-                        color: "#e2e8f0",
-                        fontWeight: 600,
-                        flex: 1,
+                        fontWeight: 400,
+                        color: "#94a3b8",
+                        marginLeft: 8,
                       }}
                     >
-                      {a.alert}
-                    </span>
-                    <span style={{ fontSize: 11, color: "#94a3b8" }}>
-                      {a.area}
-                    </span>
-                    <span style={{ fontSize: 10, color: "#64748b" }}>
-                      {a.timestamp}
+                      {pd.location}
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      <div className="env-body">
-        {/* ===== Row 1: Overall Risk + Key Factors ===== */}
-        <div className="env-row">
-          {/* LEFT: Overall Environmental Risk */}
-          <div className="env-card">
-            <div className="env-card-header">
-              <div className="env-card-title">
-                {t("整体环境风险", "Overall Environmental Risk")}
-              </div>
-              <div className="env-card-actions">
-                <span className="env-card-link">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr 1fr 1fr",
+                      gap: 12,
+                    }}
                   >
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                  </svg>
-                  {t("趋势", "Trend")}
-                </span>
-                <span className="env-card-menu">...</span>
-              </div>
-            </div>
-
-            <div className="env-gauge-layout">
-              <div className="env-gauge-wrapper">
-                <GaugeSVG score={overallRisk.score} />
-                <span className="env-risk-badge env-risk-badge-orange">
-                  ▲ {t("中等风险", "MEDIUM RISK")}
-                </span>
-              </div>
-
-              <div className="env-factor-list">
-                {overallRisk.factors.map((f, i) => (
-                  <div className="env-factor-item" key={i}>
-                    <span
-                      className="env-factor-dot"
-                      style={{ background: f.color }}
-                    />
-                    <span className="env-factor-name">
-                      {t(
-                        f.name === "Air Quality"
-                          ? "空气质量"
-                          : f.name === "Precipitation"
-                            ? "降水"
-                            : "极端事件",
-                        f.name,
-                      )}
-                      :
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#64748b",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {t("温度", "Temp")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 700,
+                          color: "#f8fafc",
+                        }}
+                      >
+                        {pd.temperature}°C
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#64748b",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {t("风速/风向", "Wind")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 700,
+                          color: "#f8fafc",
+                        }}
+                      >
+                        {pd.wind.speed}kt{" "}
+                        <span style={{ fontSize: 12, color: "#94a3b8" }}>
+                          {pd.wind.direction}
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#64748b",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {t("能见度", "Visibility")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 700,
+                          color: pd.visibility < 5 ? "#ef4444" : "#f8fafc",
+                        }}
+                      >
+                        {pd.visibility}km
+                      </div>
+                    </div>
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 10,
+                          color: "#64748b",
+                          marginBottom: 4,
+                        }}
+                      >
+                        {t("湿度", "Humidity")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 18,
+                          fontWeight: 700,
+                          color: "#f8fafc",
+                        }}
+                      >
+                        {pd.humidity}%
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      marginTop: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <span style={{ fontSize: 11, color: "#64748b" }}>
+                      {t("环境风险评分", "Env Risk Score")}:
                     </span>
                     <span
-                      className="env-factor-value"
-                      style={{ color: f.color }}
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 700,
+                        color: riskColor,
+                      }}
                     >
-                      {t(
-                        f.status === "Moderate"
-                          ? "中等"
-                          : f.status === "Low"
-                            ? "低"
-                            : "无",
-                        f.status,
-                      )}{" "}
-                      (
-                      {f.status === "Moderate"
-                        ? t("黄色", "Yellow")
-                        : t("绿色", "Green")}
-                      )
+                      {pd.risk.score}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        padding: "1px 8px",
+                        borderRadius: 4,
+                        background: `${riskColor}20`,
+                        color: riskColor,
+                      }}
+                    >
+                      {pd.risk.level === "High"
+                        ? t("高", "High")
+                        : pd.risk.level === "Medium"
+                          ? t("中", "Medium")
+                          : t("低", "Low")}
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT: Key Factor Status */}
-          <div className="env-card">
-            <div className="env-card-header">
-              <div className="env-card-title">
-                {t("关键因素状态", "Key Factor Status")}
-              </div>
-              <div className="env-card-actions">
-                <span className="env-card-link">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
+                </div>
+                <div
+                  style={{
+                    background: "rgba(15,23,42,0.6)",
+                    borderRadius: 10,
+                    border: "1px solid rgba(148,163,184,0.12)",
+                    padding: 16,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 700,
+                      color: "#f8fafc",
+                      marginBottom: 12,
+                    }}
                   >
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                  </svg>
-                  {t("趋势", "Trend")}
-                </span>
-                <span className="env-card-menu">...</span>
+                    {t("气象告警", "Weather Alerts")}
+                  </div>
+                  <div
+                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                  >
+                    {pd.alerts.map((a, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          background:
+                            a.level === "red"
+                              ? "rgba(239,68,68,0.08)"
+                              : a.level === "yellow"
+                                ? "rgba(234,179,8,0.08)"
+                                : "rgba(34,197,94,0.08)",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            flexShrink: 0,
+                            background:
+                              a.level === "red"
+                                ? "#ef4444"
+                                : a.level === "yellow"
+                                  ? "#eab308"
+                                  : "#22c55e",
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: "#e2e8f0",
+                            fontWeight: 600,
+                            flex: 1,
+                          }}
+                        >
+                          {a.alert}
+                        </span>
+                        <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                          {a.area}
+                        </span>
+                        <span style={{ fontSize: 10, color: "#64748b" }}>
+                          {a.timestamp}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          <div className="env-body">
+            {/* ===== Row 1: Overall Risk + Key Factors ===== */}
+            <div className="env-row">
+              {/* LEFT: Overall Environmental Risk */}
+              <div className="env-card">
+                <div className="env-card-header">
+                  <div className="env-card-title">
+                    {t("整体环境风险", "Overall Environmental Risk")}
+                  </div>
+                  <div className="env-card-actions">
+                    <span className="env-card-link">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                      </svg>
+                      {t("趋势", "Trend")}
+                    </span>
+                    <span className="env-card-menu">...</span>
+                  </div>
+                </div>
+
+                <div className="env-gauge-layout">
+                  <div className="env-gauge-wrapper">
+                    <GaugeSVG score={overallRisk.score} />
+                    <span className="env-risk-badge env-risk-badge-yellow">
+                      ▲ {t("中等风险", "MEDIUM RISK")}
+                    </span>
+                  </div>
+
+                  <div className="env-factor-list">
+                    {overallRisk.factors.map((f, i) => (
+                      <div className="env-factor-item" key={i}>
+                        <span
+                          className="env-factor-dot"
+                          style={{ background: f.color }}
+                        />
+                        <span className="env-factor-name">
+                          {t(
+                            f.name === "Air Quality"
+                              ? "空气质量"
+                              : f.name === "Precipitation"
+                                ? "降水"
+                                : "极端事件",
+                            f.name,
+                          )}
+                          :
+                        </span>
+                        <span
+                          className="env-factor-value"
+                          style={{ color: f.color }}
+                        >
+                          {t(
+                            f.status === "Moderate"
+                              ? "中等"
+                              : f.status === "Low"
+                                ? "低"
+                                : "无",
+                            f.status,
+                          )}{" "}
+                          (
+                          {f.status === "Moderate"
+                            ? t("黄色", "Yellow")
+                            : t("绿色", "Green")}
+                          )
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT: Key Factor Status */}
+              <div className="env-card">
+                <div className="env-card-header">
+                  <div className="env-card-title">
+                    {t("关键因素状态", "Key Factor Status")}
+                  </div>
+                  <div className="env-card-actions">
+                    <span className="env-card-link">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                      </svg>
+                      {t("趋势", "Trend")}
+                    </span>
+                    <span className="env-card-menu">...</span>
+                  </div>
+                </div>
+
+                <div className="env-kf-grid">
+                  {/* Temperature */}
+                  <div className="env-kf-box">
+                    <div className="env-kf-top">
+                      <div className="env-kf-icon env-kf-icon-temp">🌡</div>
+                      <div>
+                        <div className="env-kf-label">
+                          {t("温度", "Temperature")}
+                        </div>
+                        <div className="env-kf-value">
+                          {keyFactors.temperature}°C
+                        </div>
+                      </div>
+                    </div>
+                    <Sparkline data={tempSparkline} color="#f97316" />
+                  </div>
+
+                  {/* Wind */}
+                  <div className="env-kf-box">
+                    <div className="env-kf-top">
+                      <div className="env-kf-icon env-kf-icon-wind">W</div>
+                      <div>
+                        <div className="env-kf-label">{t("风速", "Wind")}</div>
+                        <div className="env-kf-value">
+                          {keyFactors.wind.speed} km/h
+                          <span className="env-kf-sub">
+                            , {keyFactors.wind.direction}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <svg width="80" height="28" viewBox="0 0 80 28">
+                      <line
+                        x1="10"
+                        y1="14"
+                        x2="70"
+                        y2="14"
+                        stroke="#60a5fa"
+                        strokeWidth="1.5"
+                        opacity="0.6"
+                      />
+                      <polygon
+                        points="10,14 18,10 18,18"
+                        fill="#60a5fa"
+                        opacity="0.7"
+                      />
+                    </svg>
+                  </div>
+
+                  {/* Visibility */}
+                  <div className="env-kf-box">
+                    <div className="env-kf-top">
+                      <div className="env-kf-icon env-kf-icon-vis">👁</div>
+                      <div>
+                        <div className="env-kf-label">
+                          {t("能见度", "Visibility")}
+                        </div>
+                        <div className="env-kf-value">
+                          {keyFactors.visibility} km
+                        </div>
+                      </div>
+                    </div>
+                    <Sparkline data={visSparkline} color="#8b5cf6" />
+                  </div>
+
+                  {/* Humidity */}
+                  <div className="env-kf-box">
+                    <div className="env-kf-top">
+                      <div className="env-kf-icon env-kf-icon-hum">💧</div>
+                      <div>
+                        <div className="env-kf-label">
+                          {t("湿度", "Humidity")}
+                        </div>
+                        <div className="env-kf-value">
+                          {keyFactors.humidity}%
+                        </div>
+                      </div>
+                    </div>
+                    <Sparkline data={humSparkline} color="#22c55e" />
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="env-kf-grid">
-              {/* Temperature */}
-              <div className="env-kf-box">
-                <div className="env-kf-top">
-                  <div className="env-kf-icon env-kf-icon-temp">🌡</div>
-                  <div>
-                    <div className="env-kf-label">
-                      {t("温度", "Temperature")}
-                    </div>
-                    <div className="env-kf-value">
-                      {keyFactors.temperature}°C
-                    </div>
+            {/* ===== Row 2: Weather Summary + Alerts ===== */}
+            <div className="env-row">
+              {/* LEFT: Weather Summary */}
+              <div className="env-card">
+                <div className="env-card-header">
+                  <div className="env-card-title">
+                    {t("天气概况", "Weather Summary")}
                   </div>
+                  <span className="env-card-menu">...</span>
                 </div>
-                <Sparkline data={tempSparkline} color="#f97316" />
-              </div>
 
-              {/* Wind */}
-              <div className="env-kf-box">
-                <div className="env-kf-top">
-                  <div className="env-kf-icon env-kf-icon-wind">W</div>
-                  <div>
-                    <div className="env-kf-label">{t("风速", "Wind")}</div>
-                    <div className="env-kf-value">
-                      {keyFactors.wind.speed} km/h
-                      <span className="env-kf-sub">
-                        , {keyFactors.wind.direction}
+                <div className="env-weather-layout">
+                  <div className="env-weather-left">
+                    <div className="env-weather-title-row">
+                      <span className="env-weather-icon">⛅</span>
+                      <span className="env-weather-title">
+                        {t("多云", "Partly Cloudy")}
                       </span>
                     </div>
+                    <div className="env-weather-info">
+                      {t(
+                        "天气: 多云 | 降水概率: 8%",
+                        "Time: Partly cloudy | Precipitation: 8%",
+                      )}
+                    </div>
+
+                    <div className="env-weather-stats">
+                      <div className="env-weather-stat">
+                        <span className="env-weather-stat-label">
+                          {t("当前温度", "Current conditions")}
+                        </span>
+                        <span className="env-weather-stat-value">18°C</span>
+                      </div>
+                      <div className="env-weather-stat">
+                        <span className="env-weather-stat-label">
+                          {t("降水趋势", "Precipitation trend")}
+                        </span>
+                        <span className="env-weather-stat-value">5</span>
+                      </div>
+                      <div className="env-weather-stat">
+                        <span className="env-weather-stat-label">
+                          {t("能见度", "Visibility")}
+                        </span>
+                        <span className="env-weather-stat-value">12 km</span>
+                      </div>
+                      <div className="env-weather-stat">
+                        <span className="env-weather-stat-label">
+                          {t("风速", "Wind")}
+                        </span>
+                        <span className="env-weather-stat-value">
+                          15 km/h, W
+                        </span>
+                      </div>
+                      <div className="env-weather-stat">
+                        <span className="env-weather-stat-label">
+                          {t("极端事件", "Extreme Events")}
+                        </span>
+                        <span className="env-weather-stat-value">
+                          {t("无", "None")}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="env-weather-right">
+                    <div className="env-weather-chart-title">
+                      {t("24小时温度趋势", "24 Hour Temperature Trend")}
+                    </div>
+                    <div className="env-weather-chart">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={tempTrendData}>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="rgba(148,163,184,0.08)"
+                          />
+                          <XAxis
+                            dataKey="time"
+                            tick={{ fill: "#64748b", fontSize: 10 }}
+                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                            tickLine={false}
+                          />
+                          <YAxis
+                            domain={[5, 30]}
+                            tick={{ fill: "#64748b", fontSize: 10 }}
+                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                            tickLine={false}
+                            width={28}
+                          />
+                          <Tooltip {...darkTooltipStyle} />
+                          <Line
+                            type="monotone"
+                            dataKey="temp"
+                            stroke="#f97316"
+                            strokeWidth={2}
+                            dot={{ fill: "#f97316", r: 3, strokeWidth: 0 }}
+                            activeDot={{ r: 5, fill: "#f97316" }}
+                            name={t("温度", "Temperature")}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Hourly forecast strip */}
+                    <div className="env-hourly-strip">
+                      {hourlyForecast.map((h, i) => (
+                        <div className="env-hourly-item" key={i}>
+                          <span className="env-hourly-time">
+                            {t(
+                              h.time
+                                .replace(" AM", " 上午")
+                                .replace(" PM", " 下午"),
+                              h.time,
+                            )}
+                          </span>
+                          <span className="env-hourly-icon">{h.icon}</span>
+                          <span className="env-hourly-temp">{h.temp}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <svg width="80" height="28" viewBox="0 0 80 28">
-                  <line
-                    x1="10"
-                    y1="14"
-                    x2="70"
-                    y2="14"
-                    stroke="#60a5fa"
-                    strokeWidth="1.5"
-                    opacity="0.6"
-                  />
-                  <polygon
-                    points="10,14 18,10 18,18"
-                    fill="#60a5fa"
-                    opacity="0.7"
-                  />
-                </svg>
               </div>
 
-              {/* Visibility */}
-              <div className="env-kf-box">
-                <div className="env-kf-top">
-                  <div className="env-kf-icon env-kf-icon-vis">👁</div>
-                  <div>
-                    <div className="env-kf-label">
-                      {t("能见度", "Visibility")}
-                    </div>
-                    <div className="env-kf-value">
-                      {keyFactors.visibility} km
-                    </div>
+              {/* RIGHT: Runway and Airport Environment Alerts */}
+              <div className="env-card">
+                <div className="env-card-header">
+                  <div className="env-card-title">
+                    {t(
+                      "跑道与机场环境警报",
+                      "Runway and Airport Environment Alerts",
+                    )}
                   </div>
+                  <button className="env-alerts-dropdown">
+                    {t("最近警报", "Recent alerts")} ▾
+                  </button>
                 </div>
-                <Sparkline data={visSparkline} color="#8b5cf6" />
-              </div>
 
-              {/* Humidity */}
-              <div className="env-kf-box">
-                <div className="env-kf-top">
-                  <div className="env-kf-icon env-kf-icon-hum">💧</div>
-                  <div>
-                    <div className="env-kf-label">{t("湿度", "Humidity")}</div>
-                    <div className="env-kf-value">{keyFactors.humidity}%</div>
-                  </div>
-                </div>
-                <Sparkline data={humSparkline} color="#22c55e" />
+                <table className="env-table">
+                  <thead>
+                    <tr>
+                      <th>{t("风险等级", "Risk Level")}</th>
+                      <th>{t("警报", "Alert")}</th>
+                      <th>{t("影响区域", "Affected Area")}</th>
+                      <th>{t("时间戳", "Timestamp")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {alertsData.map((a, i) => (
+                      <tr key={i}>
+                        <td>
+                          <span className={pillClass(a.level)}>
+                            {levelLabel(a.level)}
+                          </span>
+                        </td>
+                        <td
+                          style={{
+                            color: a.level === "red" ? "#dc2626" : "#eab308",
+                          }}
+                        >
+                          {t(
+                            a.alert === "Strong Crosswinds"
+                              ? "强侧风"
+                              : a.alert === "Foggy Conditions"
+                                ? "大雾条件"
+                                : "危险结冰",
+                            a.alert,
+                          )}
+                        </td>
+                        <td>
+                          {t(
+                            a.area === "Near Northern Taxiway"
+                              ? "北滑行道附近"
+                              : a.area,
+                            a.area,
+                          )}
+                        </td>
+                        <td style={{ color: "#64748b" }}>{a.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* ===== Row 2: Weather Summary + Alerts ===== */}
-        <div className="env-row">
-          {/* LEFT: Weather Summary */}
-          <div className="env-card">
-            <div className="env-card-header">
-              <div className="env-card-title">
-                {t("天气概况", "Weather Summary")}
-              </div>
-              <span className="env-card-menu">...</span>
-            </div>
-
-            <div className="env-weather-layout">
-              <div className="env-weather-left">
-                <div className="env-weather-title-row">
-                  <span className="env-weather-icon">⛅</span>
-                  <span className="env-weather-title">
-                    {t("多云", "Partly Cloudy")}
-                  </span>
-                </div>
-                <div className="env-weather-info">
-                  {t(
-                    "天气: 多云 | 降水概率: 8%",
-                    "Time: Partly cloudy | Precipitation: 8%",
-                  )}
+            {/* ===== Row 3: Anomalies + Time-Window Charts ===== */}
+            <div className="env-row">
+              {/* LEFT: Major Environmental Anomalies */}
+              <div className="env-card">
+                <div className="env-card-header">
+                  <div className="env-card-title">
+                    {t("重大环境异常", "Major Environmental Anomalies")}
+                  </div>
+                  <span className="env-card-menu">...</span>
                 </div>
 
-                <div className="env-weather-stats">
-                  <div className="env-weather-stat">
-                    <span className="env-weather-stat-label">
-                      {t("当前温度", "Current conditions")}
-                    </span>
-                    <span className="env-weather-stat-value">18°C</span>
-                  </div>
-                  <div className="env-weather-stat">
-                    <span className="env-weather-stat-label">
-                      {t("降水趋势", "Precipitation trend")}
-                    </span>
-                    <span className="env-weather-stat-value">5</span>
-                  </div>
-                  <div className="env-weather-stat">
-                    <span className="env-weather-stat-label">
-                      {t("能见度", "Visibility")}
-                    </span>
-                    <span className="env-weather-stat-value">12 km</span>
-                  </div>
-                  <div className="env-weather-stat">
-                    <span className="env-weather-stat-label">
-                      {t("风速", "Wind")}
-                    </span>
-                    <span className="env-weather-stat-value">15 km/h, W</span>
-                  </div>
-                  <div className="env-weather-stat">
-                    <span className="env-weather-stat-label">
-                      {t("极端事件", "Extreme Events")}
-                    </span>
-                    <span className="env-weather-stat-value">
-                      {t("无", "None")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="env-weather-right">
-                <div className="env-weather-chart-title">
-                  {t("24小时温度趋势", "24 Hour Temperature Trend")}
-                </div>
-                <div className="env-weather-chart">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={tempTrendData}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="rgba(148,163,184,0.08)"
+                <div className="env-anomaly-list">
+                  {anomaliesData.map((a, i) => (
+                    <div className="env-anomaly-item" key={i}>
+                      <span className="env-anomaly-time">{a.time}</span>
+                      <span
+                        className="env-anomaly-dot"
+                        style={{ background: a.dotColor }}
                       />
-                      <XAxis
-                        dataKey="time"
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        domain={[5, 30]}
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                        tickLine={false}
-                        width={28}
-                      />
-                      <Tooltip {...darkTooltipStyle} />
-                      <Line
-                        type="monotone"
-                        dataKey="temp"
-                        stroke="#f97316"
-                        strokeWidth={2}
-                        dot={{ fill: "#f97316", r: 3, strokeWidth: 0 }}
-                        activeDot={{ r: 5, fill: "#f97316" }}
-                        name={t("温度", "Temperature")}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Hourly forecast strip */}
-                <div className="env-hourly-strip">
-                  {hourlyForecast.map((h, i) => (
-                    <div className="env-hourly-item" key={i}>
-                      <span className="env-hourly-time">
-                        {t(
-                          h.time
-                            .replace(" AM", " 上午")
-                            .replace(" PM", " 下午"),
-                          h.time,
-                        )}
-                      </span>
-                      <span className="env-hourly-icon">{h.icon}</span>
-                      <span className="env-hourly-temp">{h.temp}</span>
+                      <div className="env-anomaly-content">
+                        <div className="env-anomaly-tag">
+                          <span className={pillClass(a.tagLevel)}>
+                            {t(
+                              a.tag === "Unusual Wind Gusts Detected"
+                                ? "异常阵风检测"
+                                : a.tag === "Sudden Drop in Pressure"
+                                  ? "气压骤降"
+                                  : "D区附近雷击",
+                              a.tag,
+                            )}{" "}
+                            (
+                            {a.tagLevel === "yellow"
+                              ? t("黄色", "Yellow")
+                              : t("红色", "Red")}
+                            )
+                          </span>
+                        </div>
+                        <div className="env-anomaly-desc">
+                          {t(
+                            a.desc
+                              .replace(
+                                "Unusual Wind Gusts Detected at",
+                                "异常阵风检测于",
+                              )
+                              .replace("Northern Taxiway B.", "北滑行道B。")
+                              .replace(
+                                "Sudden drop in Pressure is near Northern Taxiway",
+                                "气压骤降，发生于北滑行道附近",
+                              )
+                              .replace(
+                                "Lightning Strike Near Sector D Instant",
+                                "D区附近闪电雷击",
+                              ),
+                            a.desc,
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* RIGHT: Runway and Airport Environment Alerts */}
-          <div className="env-card">
-            <div className="env-card-header">
-              <div className="env-card-title">
-                {t(
-                  "跑道与机场环境警报",
-                  "Runway and Airport Environment Alerts",
-                )}
-              </div>
-              <button className="env-alerts-dropdown">
-                {t("最近警报", "Recent alerts")} ▾
-              </button>
-            </div>
+              {/* RIGHT: Time-Window Changes */}
+              <div className="env-card">
+                <div className="env-card-header">
+                  <div className="env-card-title">
+                    {t("时间窗口变化", "Time-Window Changes")}
+                  </div>
+                  <span className="env-card-menu">...</span>
+                </div>
 
-            <table className="env-table">
-              <thead>
-                <tr>
-                  <th>{t("风险等级", "Risk Level")}</th>
-                  <th>{t("警报", "Alert")}</th>
-                  <th>{t("影响区域", "Affected Area")}</th>
-                  <th>{t("时间戳", "Timestamp")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {alertsData.map((a, i) => (
-                  <tr key={i}>
-                    <td>
-                      <span className={pillClass(a.level)}>
-                        {levelLabel(a.level)}
-                      </span>
-                    </td>
-                    <td
-                      style={{
-                        color:
-                          a.level === "red"
-                            ? "#dc2626"
-                            : a.level === "orange"
-                              ? "#ea580c"
-                              : "#eab308",
-                      }}
-                    >
-                      {t(
-                        a.alert === "Strong Crosswinds"
-                          ? "强侧风"
-                          : a.alert === "Foggy Conditions"
-                            ? "大雾条件"
-                            : "危险结冰",
-                        a.alert,
-                      )}
-                    </td>
-                    <td>
-                      {t(
-                        a.area === "Near Northern Taxiway"
-                          ? "北滑行道附近"
-                          : a.area,
-                        a.area,
-                      )}
-                    </td>
-                    <td style={{ color: "#64748b" }}>{a.timestamp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* ===== Row 3: Anomalies + Time-Window Charts ===== */}
-        <div className="env-row">
-          {/* LEFT: Major Environmental Anomalies */}
-          <div className="env-card">
-            <div className="env-card-header">
-              <div className="env-card-title">
-                {t("重大环境异常", "Major Environmental Anomalies")}
-              </div>
-              <span className="env-card-menu">...</span>
-            </div>
-
-            <div className="env-anomaly-list">
-              {anomaliesData.map((a, i) => (
-                <div className="env-anomaly-item" key={i}>
-                  <span className="env-anomaly-time">{a.time}</span>
-                  <span
-                    className="env-anomaly-dot"
-                    style={{ background: a.dotColor }}
-                  />
-                  <div className="env-anomaly-content">
-                    <div className="env-anomaly-tag">
-                      <span className={pillClass(a.tagLevel)}>
-                        {t(
-                          a.tag === "Unusual Wind Gusts Detected"
-                            ? "异常阵风检测"
-                            : a.tag === "Sudden Drop in Pressure"
-                              ? "气压骤降"
-                              : "D区附近雷击",
-                          a.tag,
-                        )}{" "}
-                        (
-                        {a.tagLevel === "orange"
-                          ? t("橙色", "Orange")
-                          : a.tagLevel === "yellow"
-                            ? t("黄色", "Yellow")
-                            : t("红色", "Red")}
-                        )
-                      </span>
+                <div className="env-tw-grid">
+                  {/* Visibility Change Trend */}
+                  <div>
+                    <div className="env-tw-chart-title">
+                      {t("能见度变化趋势", "Visibility Change Trend")}
                     </div>
-                    <div className="env-anomaly-desc">
-                      {t(
-                        a.desc
-                          .replace(
-                            "Unusual Wind Gusts Detected at",
-                            "异常阵风检测于",
-                          )
-                          .replace("Northern Taxiway B.", "北滑行道B。")
-                          .replace(
-                            "Sudden drop in Pressure is near Northern Taxiway",
-                            "气压骤降，发生于北滑行道附近",
-                          )
-                          .replace(
-                            "Lightning Strike Near Sector D Instant",
-                            "D区附近闪电雷击",
-                          ),
-                        a.desc,
-                      )}
+                    <div className="env-tw-chart">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={visibilityTrend}>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="rgba(148,163,184,0.08)"
+                          />
+                          <XAxis
+                            dataKey="day"
+                            tick={{ fill: "#64748b", fontSize: 10 }}
+                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                            tickLine={false}
+                            tickFormatter={translateDay}
+                          />
+                          <YAxis
+                            domain={[0, 100]}
+                            tick={{ fill: "#64748b", fontSize: 10 }}
+                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                            tickLine={false}
+                            width={28}
+                          />
+                          <Tooltip {...darkTooltipStyle} />
+                          <Area
+                            type="monotone"
+                            dataKey="val"
+                            stroke="#3b82f6"
+                            strokeWidth={2}
+                            fill="rgba(59,130,246,0.15)"
+                            name={t("能见度", "Visibility")}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Wind Pattern Evolution */}
+                  <div>
+                    <div className="env-tw-chart-title">
+                      {t("风型演变", "Wind Pattern Evolution")}
+                    </div>
+                    <div className="env-tw-chart">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={windPatternData}>
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="rgba(148,163,184,0.08)"
+                          />
+                          <XAxis
+                            dataKey="day"
+                            tick={{ fill: "#64748b", fontSize: 10 }}
+                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                            tickLine={false}
+                            tickFormatter={translateDay}
+                          />
+                          <YAxis
+                            domain={[0, 30]}
+                            tick={{ fill: "#64748b", fontSize: 10 }}
+                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                            tickLine={false}
+                            width={28}
+                          />
+                          <Tooltip
+                            content={
+                              <WindTooltip
+                                active={true}
+                                payload={windPatternData.map((d) => ({
+                                  day: d.day,
+                                  value: d.val,
+                                }))}
+                                t={t}
+                              />
+                            }
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="val"
+                            stroke="#ef4444"
+                            strokeWidth={2}
+                            dot={{ fill: "#ef4444", r: 4, strokeWidth: 0 }}
+                            activeDot={{ r: 6, fill: "#ef4444" }}
+                            name={t("风速", "Wind")}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
                 </div>
-              ))}
+
+                <div className="env-tw-windows">
+                  <div className="env-tw-window">
+                    {t("运营窗口", "Operational Window")} 08:00-12:00:{" "}
+                    <span className="env-tw-normal">{t("正常", "Normal")}</span>
+                  </div>
+                  <div className="env-tw-window">
+                    {t("运营窗口", "Operational Window")} 12:00-16:00:{" "}
+                    <span className="env-tw-disruption">
+                      {t("可能中断", "Disruption Likely")}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* RIGHT: Time-Window Changes */}
-          <div className="env-card">
-            <div className="env-card-header">
-              <div className="env-card-title">
-                {t("时间窗口变化", "Time-Window Changes")}
-              </div>
-              <span className="env-card-menu">...</span>
-            </div>
-
-            <div className="env-tw-grid">
-              {/* Visibility Change Trend */}
-              <div>
-                <div className="env-tw-chart-title">
-                  {t("能见度变化趋势", "Visibility Change Trend")}
-                </div>
-                <div className="env-tw-chart">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={visibilityTrend}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="rgba(148,163,184,0.08)"
-                      />
-                      <XAxis
-                        dataKey="day"
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                        tickLine={false}
-                        tickFormatter={translateDay}
-                      />
-                      <YAxis
-                        domain={[0, 100]}
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                        tickLine={false}
-                        width={28}
-                      />
-                      <Tooltip {...darkTooltipStyle} />
-                      <Area
-                        type="monotone"
-                        dataKey="val"
-                        stroke="#3b82f6"
-                        strokeWidth={2}
-                        fill="rgba(59,130,246,0.15)"
-                        name={t("能见度", "Visibility")}
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              {/* Wind Pattern Evolution */}
-              <div>
-                <div className="env-tw-chart-title">
-                  {t("风型演变", "Wind Pattern Evolution")}
-                </div>
-                <div className="env-tw-chart">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={windPatternData}>
-                      <CartesianGrid
-                        strokeDasharray="3 3"
-                        stroke="rgba(148,163,184,0.08)"
-                      />
-                      <XAxis
-                        dataKey="day"
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                        tickLine={false}
-                        tickFormatter={translateDay}
-                      />
-                      <YAxis
-                        domain={[0, 30]}
-                        tick={{ fill: "#64748b", fontSize: 10 }}
-                        axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                        tickLine={false}
-                        width={28}
-                      />
-                      <Tooltip
-                        content={
-                          <WindTooltip
-                            active={true}
-                            payload={windPatternData.map((d) => ({
-                              day: d.day,
-                              value: d.val,
-                            }))}
-                            t={t}
-                          />
-                        }
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="val"
-                        stroke="#ef4444"
-                        strokeWidth={2}
-                        dot={{ fill: "#ef4444", r: 4, strokeWidth: 0 }}
-                        activeDot={{ r: 6, fill: "#ef4444" }}
-                        name={t("风速", "Wind")}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
-            <div className="env-tw-windows">
-              <div className="env-tw-window">
-                {t("运营窗口", "Operational Window")} 08:00-12:00:{" "}
-                <span className="env-tw-normal">{t("正常", "Normal")}</span>
-              </div>
-              <div className="env-tw-window">
-                {t("运营窗口", "Operational Window")} 12:00-16:00:{" "}
-                <span className="env-tw-disruption">
-                  {t("可能中断", "Disruption Likely")}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Messages & Notices (merged from MessageDetailPage & NoticeDetailPage) */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 16,
-          marginTop: 20,
-        }}
-      >
-        {/* METAR Messages */}
-        <div
-          style={{
-            background: "rgba(15,23,42,0.6)",
-            borderRadius: 10,
-            border: "1px solid rgba(148,163,184,0.12)",
-            padding: 20,
-          }}
-        >
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: "#f8fafc",
-              marginBottom: 12,
-            }}
-          >
-            {t("报文信息", "Message Information")}
-          </h3>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 8,
-                marginBottom: 12,
-              }}
-            >
-              <div>
-                <span style={{ color: "#64748b" }}>
-                  {t("报文ID", "Message ID")}:
-                </span>{" "}
-                <span style={{ color: "#e2e8f0" }}>MSG-123456</span>
-              </div>
-              <div>
-                <span style={{ color: "#64748b" }}>{t("来源", "Source")}:</span>{" "}
-                <span style={{ color: "#e2e8f0" }}>FAA NOTAM</span>
-              </div>
-              <div>
-                <span style={{ color: "#64748b" }}>{t("类型", "Type")}:</span>{" "}
-                <span style={{ color: "#e2e8f0" }}>
-                  {t("空域限制", "Airspace Restriction")}
-                </span>
-              </div>
-              <div>
-                <span style={{ color: "#64748b" }}>
-                  {t("接收时间", "Received")}:
-                </span>{" "}
-                <span style={{ color: "#e2e8f0" }}>11/22/23, 11:39 PM</span>
-              </div>
-            </div>
-          </div>
+          {/* Messages & Notices (merged from MessageDetailPage & NoticeDetailPage) */}
           <div
             style={{
-              background: "rgba(0,0,0,0.3)",
-              borderRadius: 6,
-              padding: 12,
-              fontSize: 11,
-              fontFamily: "monospace",
-              color: "#94a3b8",
-              maxHeight: 120,
-              overflow: "auto",
-              whiteSpace: "pre-wrap",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 16,
+              marginTop: 20,
             }}
           >
-            {`METAR ZBAA 150600Z 20008G18KT 150V250
+            {/* METAR Messages */}
+            <div
+              style={{
+                background: "rgba(15,23,42,0.6)",
+                borderRadius: 10,
+                border: "1px solid rgba(148,163,184,0.12)",
+                padding: 20,
+              }}
+            >
+              <h3
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#f8fafc",
+                  marginBottom: 12,
+                }}
+              >
+                {t("报文信息", "Message Information")}
+              </h3>
+              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 8,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("报文ID", "Message ID")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>MSG-123456</span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("来源", "Source")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>FAA NOTAM</span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("类型", "Type")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>
+                      {t("空域限制", "Airspace Restriction")}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("接收时间", "Received")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>11/22/23, 11:39 PM</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  borderRadius: 6,
+                  padding: 12,
+                  fontSize: 11,
+                  fontFamily: "monospace",
+                  color: "#94a3b8",
+                  maxHeight: 120,
+                  overflow: "auto",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {`METAR ZBAA 150600Z 20008G18KT 150V250
 1500 R01/1000N R36R/1200D +TSRA SCT015CB
 BKN030 25/18 Q1005 NOSIG TEMPO 1200
 +TSRA GR GS CB`}
-          </div>
-        </div>
+              </div>
+            </div>
 
-        {/* Notices */}
-        <div
-          style={{
-            background: "rgba(15,23,42,0.6)",
-            borderRadius: 10,
-            border: "1px solid rgba(148,163,184,0.12)",
-            padding: 20,
-          }}
-        >
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: "#f8fafc",
-              marginBottom: 12,
-            }}
-          >
-            {t("通告信息", "Notice Information")}
-          </h3>
-          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+            {/* Notices */}
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 8,
-                marginBottom: 12,
+                background: "rgba(15,23,42,0.6)",
+                borderRadius: 10,
+                border: "1px solid rgba(148,163,184,0.12)",
+                padding: 20,
               }}
             >
-              <div>
-                <span style={{ color: "#64748b" }}>{t("通告", "Notice")}:</span>{" "}
-                <span style={{ color: "#e2e8f0" }}>
-                  {t("ZBAA雷暴警告", "ZBAA Thunderstorm Warning")}
-                </span>
-              </div>
-              <div>
-                <span style={{ color: "#64748b" }}>
-                  {t("生效时间", "Effective")}:
-                </span>{" "}
-                <span style={{ color: "#e2e8f0" }}>2024-06-15 14:00 (CST)</span>
-              </div>
-              <div>
-                <span style={{ color: "#64748b" }}>
-                  {t("到期时间", "Expiration")}:
-                </span>{" "}
-                <span style={{ color: "#e2e8f0" }}>2024-06-15 18:00 (CST)</span>
-              </div>
-              <div>
-                <span style={{ color: "#64748b" }}>{t("来源", "Source")}:</span>{" "}
-                <span style={{ color: "#e2e8f0" }}>
-                  Aviation Weather Center
-                </span>
-              </div>
-            </div>
-            <div style={{ marginTop: 8 }}>
-              <div style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}>
-                {t("影响范围", "Impact Area")}
-              </div>
-              <div style={{ color: "#e2e8f0", fontSize: 12 }}>
-                {t(
-                  "影响机场：ZBAA, ZBAD, ZBTJ · 半径约100km · 雷暴、冰雹",
-                  "Affected: ZBAA, ZBAD, ZBTJ · Radius ~100km · Thunderstorm, Hail",
-                )}
+              <h3
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color: "#f8fafc",
+                  marginBottom: 12,
+                }}
+              >
+                {t("通告信息", "Notice Information")}
+              </h3>
+              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 8,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("通告", "Notice")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>
+                      {t("ZBAA雷暴警告", "ZBAA Thunderstorm Warning")}
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("生效时间", "Effective")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>
+                      2024-06-15 14:00 (CST)
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("到期时间", "Expiration")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>
+                      2024-06-15 18:00 (CST)
+                    </span>
+                  </div>
+                  <div>
+                    <span style={{ color: "#64748b" }}>
+                      {t("来源", "Source")}:
+                    </span>{" "}
+                    <span style={{ color: "#e2e8f0" }}>
+                      Aviation Weather Center
+                    </span>
+                  </div>
+                </div>
+                <div style={{ marginTop: 8 }}>
+                  <div
+                    style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("影响范围", "Impact Area")}
+                  </div>
+                  <div style={{ color: "#e2e8f0", fontSize: 12 }}>
+                    {t(
+                      "影响机场：ZBAA, ZBAD, ZBTJ · 半径约100km · 雷暴、冰雹",
+                      "Affected: ZBAA, ZBAD, ZBTJ · Radius ~100km · Thunderstorm, Hail",
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }

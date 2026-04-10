@@ -1,7 +1,11 @@
 // @ts-nocheck
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { FLIGHTS, calculateRiskFromEnvironmentRisk } from "../data/flightData";
+import {
+  FLIGHTS,
+  calculateRiskFromEnvironmentRisk,
+  getIcaoCode,
+} from "../data/flightData";
 import type { Flight } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
 import "./FlightListPage.css";
@@ -18,8 +22,22 @@ function getUniqueValues(key: keyof Flight): string[] {
   return Array.from(set).sort();
 }
 
-const ALL_DEPARTURE_AIRPORTS = getUniqueValues("fromAirport");
-const ALL_ARRIVAL_AIRPORTS = getUniqueValues("toAirport");
+const ALL_DEPARTURE_AIRPORTS = (() => {
+  const set = new Set<string>();
+  FLIGHTS.forEach((f) => {
+    const code = f.fromAirportCode4 || getIcaoCode(f.fromAirport);
+    if (code) set.add(code);
+  });
+  return Array.from(set).sort();
+})();
+const ALL_ARRIVAL_AIRPORTS = (() => {
+  const set = new Set<string>();
+  FLIGHTS.forEach((f) => {
+    const code = f.toAirportCode4 || getIcaoCode(f.toAirport);
+    if (code) set.add(code);
+  });
+  return Array.from(set).sort();
+})();
 const ALL_OPERATING_UNITS = getUniqueValues("operatingUnit");
 const ALL_AIRCRAFT_TYPES = getUniqueValues("aircraftType");
 
@@ -88,8 +106,42 @@ function govStatusClass(status: string): string {
 
 function scoreColorClass(score: number): string {
   if (score >= 70) return "fl-score-red";
-  if (score >= 40) return "fl-score-orange";
+  if (score >= 40) return "fl-score-yellow";
   return "fl-score-green";
+}
+
+// Mock PF/PM names for display
+const PF_NAMES = [
+  "张伟",
+  "李强",
+  "王军",
+  "刘洋",
+  "陈鹏",
+  "赵明",
+  "孙磊",
+  "周涛",
+  "吴刚",
+  "郑辉",
+];
+const PM_NAMES = [
+  "黄勇",
+  "林峰",
+  "何斌",
+  "马超",
+  "朱健",
+  "胡波",
+  "高远",
+  "罗翔",
+  "谢宏",
+  "唐杰",
+];
+function getMockPF(flight: Flight): string {
+  const hash = flight.id ? flight.id.charCodeAt(flight.id.length - 1) : 0;
+  return PF_NAMES[hash % PF_NAMES.length];
+}
+function getMockPM(flight: Flight): string {
+  const hash = flight.id ? flight.id.charCodeAt(0) : 0;
+  return PM_NAMES[hash % PM_NAMES.length];
 }
 
 // Add airline code prefix to flight number for display
@@ -165,7 +217,18 @@ function translateFlightStatus(
 export function FlightListPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const setPage = (pageOrFn: number | ((prev: number) => number)) => {
+    const newPage = typeof pageOrFn === "function" ? pageOrFn(page) : pageOrFn;
+    const sp = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      sp.delete("page");
+    } else {
+      sp.set("page", String(newPage));
+    }
+    setSearchParams(sp, { replace: true });
+  };
   // Filters
   const [flightNumberFilter, setFlightNumberFilter] = useState("");
   const [aircraftNumberFilter, setAircraftNumberFilter] = useState("");
@@ -177,7 +240,6 @@ export function FlightListPage() {
   const [riskLevelFilter, setRiskLevelFilter] = useState<string[]>([]);
   const [govStatusFilter, setGovStatusFilter] = useState<string[]>([]);
   const [riskTypeFilter, setRiskTypeFilter] = useState<string[]>([]);
-  const [page, setPage] = useState(1);
 
   // Read URL params to pre-fill filters
   useEffect(() => {
@@ -190,6 +252,11 @@ export function FlightListPage() {
   const [showGovStatusDD, setShowGovStatusDD] = useState(false);
   const [showRiskTypeDD, setShowRiskTypeDD] = useState(false);
   const [showStatusDD, setShowStatusDD] = useState(false);
+  const [airportPopover, setAirportPopover] = useState<{
+    code: string;
+    x: number;
+    y: number;
+  } | null>(null);
 
   // Filtered data
   const filteredFlights = useMemo(() => {
@@ -210,11 +277,19 @@ export function FlightListPage() {
       )
         return false;
 
-      // Departure airport filter
-      if (departureFilter && f.fromAirport !== departureFilter) return false;
+      // Departure airport filter (ICAO 4-letter code)
+      if (
+        departureFilter &&
+        (f.fromAirportCode4 || getIcaoCode(f.fromAirport)) !== departureFilter
+      )
+        return false;
 
-      // Arrival airport filter
-      if (arrivalFilter && f.toAirport !== arrivalFilter) return false;
+      // Arrival airport filter (ICAO 4-letter code)
+      if (
+        arrivalFilter &&
+        (f.toAirportCode4 || getIcaoCode(f.toAirport)) !== arrivalFilter
+      )
+        return false;
 
       // Operating unit filter
       if (operatingUnitFilter && f.operatingUnit !== operatingUnitFilter)
@@ -305,15 +380,23 @@ export function FlightListPage() {
     setShowGovStatusDD(false);
     setShowRiskTypeDD(false);
     setShowStatusDD(false);
+    setAirportPopover(null);
   };
 
   return (
     <div className="fl-root" onClick={closeAllDropdowns}>
       {/* Breadcrumb */}
       <div className="fl-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="fl-breadcrumb-sep">&gt;</span>
-        <span>{t("航班", "Flights")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/risk-monitoring/flights")}
+        >
+          {t("航班", "Flights")}
+        </span>
         <span className="fl-breadcrumb-sep">&gt;</span>
         <span className="fl-breadcrumb-active">
           {t("航班列表", "Flight List")}
@@ -493,18 +576,17 @@ export function FlightListPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {RISK_LEVELS.map((r) => (
-                    <label key={r} className="fl-dropdown-item">
-                      <input
-                        type="checkbox"
-                        checked={riskLevelFilter.includes(r)}
-                        onChange={() =>
-                          toggleMultiSelect(
-                            r,
-                            riskLevelFilter,
-                            setRiskLevelFilter,
-                          )
-                        }
-                      />
+                    <label
+                      key={r}
+                      className="fl-dropdown-item"
+                      onClick={() =>
+                        toggleMultiSelect(
+                          r,
+                          riskLevelFilter,
+                          setRiskLevelFilter,
+                        )
+                      }
+                    >
                       <span>{translateRiskLevel(r, t)}</span>
                     </label>
                   ))}
@@ -547,14 +629,13 @@ export function FlightListPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {FLIGHT_STATUSES.map((s) => (
-                    <label key={s} className="fl-dropdown-item">
-                      <input
-                        type="checkbox"
-                        checked={statusFilter.includes(s)}
-                        onChange={() =>
-                          toggleMultiSelect(s, statusFilter, setStatusFilter)
-                        }
-                      />
+                    <label
+                      key={s}
+                      className="fl-dropdown-item"
+                      onClick={() =>
+                        toggleMultiSelect(s, statusFilter, setStatusFilter)
+                      }
+                    >
                       <span>{translateFlightStatus(s, t)}</span>
                     </label>
                   ))}
@@ -595,18 +676,13 @@ export function FlightListPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {ALL_RISK_TYPES.map((r) => (
-                    <label key={r} className="fl-dropdown-item">
-                      <input
-                        type="checkbox"
-                        checked={riskTypeFilter.includes(r)}
-                        onChange={() =>
-                          toggleMultiSelect(
-                            r,
-                            riskTypeFilter,
-                            setRiskTypeFilter,
-                          )
-                        }
-                      />
+                    <label
+                      key={r}
+                      className="fl-dropdown-item"
+                      onClick={() =>
+                        toggleMultiSelect(r, riskTypeFilter, setRiskTypeFilter)
+                      }
+                    >
                       <span>{translateRiskTag(r, t)}</span>
                     </label>
                   ))}
@@ -649,18 +725,17 @@ export function FlightListPage() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   {GOVERNANCE_STATUSES.map((s) => (
-                    <label key={s} className="fl-dropdown-item">
-                      <input
-                        type="checkbox"
-                        checked={govStatusFilter.includes(s)}
-                        onChange={() =>
-                          toggleMultiSelect(
-                            s,
-                            govStatusFilter,
-                            setGovStatusFilter,
-                          )
-                        }
-                      />
+                    <label
+                      key={s}
+                      className="fl-dropdown-item"
+                      onClick={() =>
+                        toggleMultiSelect(
+                          s,
+                          govStatusFilter,
+                          setGovStatusFilter,
+                        )
+                      }
+                    >
                       <span>{translateGovStatus(s, t)}</span>
                     </label>
                   ))}
@@ -685,11 +760,10 @@ export function FlightListPage() {
         <table className="fl-table">
           <thead>
             <tr>
-              <th className="fl-th-check">
-                <input type="checkbox" />
-              </th>
               <th>{t("航班号", "Flight Number")}</th>
               <th>{t("机尾号 / 机型", "Aircraft Tail / Type")}</th>
+              <th>PF</th>
+              <th>PM</th>
               <th>{t("出发", "Departure")}</th>
               <th>{t("到达", "Arrival")}</th>
               <th>{t("起飞时间", "Departure Time")}</th>
@@ -717,9 +791,6 @@ export function FlightListPage() {
                     navigate(`/risk-monitoring/flight-detail?id=${flight.id}`)
                   }
                 >
-                  <td className="fl-td-check">
-                    <input type="checkbox" />
-                  </td>
                   <td className="fl-td-flight-no">
                     {getDisplayFlightNumber(flight)}
                   </td>
@@ -730,17 +801,66 @@ export function FlightListPage() {
                   <td>
                     <span
                       className="fl-airport-code"
-                      data-tip={flight.fromAirportZh || flight.fromAirport}
+                      style={{ cursor: "pointer", color: "#60a5fa" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/personnel-center/personnel-detail?id=p-0`);
+                      }}
                     >
-                      {flight.fromAirportCode4 || flight.fromAirport}
+                      {getMockPF(flight)}
                     </span>
                   </td>
                   <td>
                     <span
                       className="fl-airport-code"
-                      data-tip={flight.toAirportZh || flight.toAirport}
+                      style={{ cursor: "pointer", color: "#60a5fa" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/personnel-center/personnel-detail?id=p-1`);
+                      }}
                     >
-                      {flight.toAirportCode4 || flight.toAirport}
+                      {getMockPM(flight)}
+                    </span>
+                  </td>
+                  <td style={{ position: "relative" }}>
+                    <span
+                      className="fl-airport-code"
+                      style={{ cursor: "pointer", color: "#60a5fa" }}
+                      data-tip={flight.fromAirportZh || flight.fromAirport}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = (
+                          e.target as HTMLElement
+                        ).getBoundingClientRect();
+                        setAirportPopover({
+                          code: flight.fromAirport,
+                          x: rect.left,
+                          y: rect.bottom + 4,
+                        });
+                      }}
+                    >
+                      {flight.fromAirportCode4 ||
+                        getIcaoCode(flight.fromAirport)}
+                    </span>
+                  </td>
+                  <td style={{ position: "relative" }}>
+                    <span
+                      className="fl-airport-code"
+                      style={{ cursor: "pointer", color: "#60a5fa" }}
+                      data-tip={flight.toAirportZh || flight.toAirport}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const rect = (
+                          e.target as HTMLElement
+                        ).getBoundingClientRect();
+                        setAirportPopover({
+                          code: flight.toAirport,
+                          x: rect.left,
+                          y: rect.bottom + 4,
+                        });
+                      }}
+                    >
+                      {flight.toAirportCode4 || getIcaoCode(flight.toAirport)}
                     </span>
                   </td>
                   <td>
@@ -807,7 +927,7 @@ export function FlightListPage() {
                     >
                       <button
                         className="fl-icon-btn"
-                        data-tip={t("查看报告", "View Report")}
+                        data-tip={t("航班报告", "Flight Report")}
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(
@@ -832,77 +952,11 @@ export function FlightListPage() {
                         </svg>
                       </button>
                       <button
-                        className="fl-icon-btn"
-                        data-tip={t("查看相关人员", "View Personnel")}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/personnel-center/personnel-list`);
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                          <circle cx="12" cy="7" r="4" />
-                        </svg>
-                      </button>
-                      <button
-                        className="fl-icon-btn"
-                        data-tip={t("查看相关机场", "View Airport")}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(
-                            `/airport-center/airport-detail?code=${flight.fromAirport}`,
-                          );
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-                        </svg>
-                      </button>
-                      <button
-                        className="fl-icon-btn"
-                        data-tip={t("查看相关环境", "View Environment")}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/environment-topic/environment-detail`);
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <circle cx="12" cy="12" r="4" />
-                          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                        </svg>
-                      </button>
-                      <button
                         className="fl-icon-btn fl-icon-btn-warn"
                         data-tip={t("发起处置", "Initiate Action")}
                         onClick={(e) => {
                           e.stopPropagation();
+                          navigate("/governance/work-order-detail");
                         }}
                       >
                         <svg
@@ -970,6 +1024,38 @@ export function FlightListPage() {
           </button>
         </div>
       </div>
+
+      {/* Airport Popover */}
+      {airportPopover && (
+        <div
+          className="fl-airport-popover"
+          style={{ left: airportPopover.x, top: airportPopover.y }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="fl-airport-popover-item"
+            onClick={() => {
+              navigate(
+                `/environment-topic/environment-detail?code=${airportPopover.code}`,
+              );
+              setAirportPopover(null);
+            }}
+          >
+            {t("查看机场环境", "Airport Environment")}
+          </button>
+          <button
+            className="fl-airport-popover-item"
+            onClick={() => {
+              navigate(
+                `/airport-center/airport-detail?code=${airportPopover.code}`,
+              );
+              setAirportPopover(null);
+            }}
+          >
+            {t("查看机场详情", "Airport Detail")}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

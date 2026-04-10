@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -12,18 +12,18 @@
 .mr-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
 .mr-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .mr-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page Header */
@@ -35,7 +35,7 @@
 .mr-page-title {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 14px;
 }
 
@@ -44,9 +44,10 @@
   display: flex;
   align-items: center;
   gap: 0;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 14px 20px;
 }
 
@@ -59,17 +60,17 @@
 }
 
 .mr-info-field:not(:last-child) {
-  border-right: 1px solid rgba(148, 163, 184, 0.12);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .mr-info-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .mr-info-value {
   font-size: 13px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 500;
 }
 
@@ -161,9 +162,10 @@
 
 /* Card */
 .mr-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 20px;
 }
 
@@ -177,20 +179,20 @@
 .mr-card-title {
   font-size: 14px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .mr-card-menu {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   font-size: 16px;
   padding: 4px;
 }
 
 .mr-card-menu:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 /* Cause Chain */
@@ -223,20 +225,20 @@
 }
 
 .mr-flow-container .react-flow__edge-path {
-  stroke: #475569;
+  stroke: rgba(255, 255, 255, 0.4);
 }
 
 /* Category label node */
 .mr-flow-category {
   width: 100px;
   padding: 12px 8px;
-  background: rgba(51, 65, 85, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   text-align: center;
   font-size: 11px;
   font-weight: 700;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   text-transform: uppercase;
   line-height: 1.5;
 }
@@ -244,8 +246,8 @@
 /* Cause factor node */
 .mr-flow-cause-node {
   position: relative;
-  background: rgba(51, 65, 85, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 10px 14px;
   min-width: 130px;
@@ -259,12 +261,12 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid #0b1120;
+  border: 2px solid #000;
 }
 
 .mr-flow-cause-text {
   font-size: 12px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 500;
   line-height: 1.3;
 }
@@ -272,13 +274,13 @@
 .mr-flow-cause-stats {
   margin-top: 6px;
   font-size: 10px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Flight Phase Diagram */
 .mr-phase-card {
-  background: rgba(51, 65, 85, 0.3);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: #080810;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 16px;
 }
@@ -286,7 +288,7 @@
 .mr-phase-title {
   font-size: 13px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   text-transform: uppercase;
   letter-spacing: 0.3px;
   margin-bottom: 16px;
@@ -319,15 +321,15 @@
 
 .mr-phase-label {
   font-size: 10px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
 
 .mr-phase-label-active {
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 700;
-  background: rgba(51, 65, 85, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   padding: 2px 8px;
 }
@@ -349,17 +351,18 @@
 .mr-table th {
   text-align: left;
   padding: 10px 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 500;
   font-size: 11px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #080810;
   white-space: nowrap;
 }
 
 .mr-table td {
   padding: 10px 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
 }
 
@@ -396,13 +399,13 @@
 }
 
 .mr-row-menu {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   font-size: 14px;
 }
 
 .mr-row-menu:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 /* Scrollbar */
@@ -415,10 +418,10 @@
 }
 
 .mr-root::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .mr-root::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.2);
 }

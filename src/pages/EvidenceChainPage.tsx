@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -25,7 +26,7 @@ const assessment = {
 
 const riskDistribution = [
   { name: "Red", value: 60, color: "#dc2626" },
-  { name: "Orange", value: 40, color: "#f97316" },
+  { name: "Yellow", value: 40, color: "#eab308" },
   { name: "Yellow", value: 25, color: "#eab308" },
   { name: "Green", value: 72, color: "#22c55e" },
 ];
@@ -36,7 +37,7 @@ interface EvidenceItem {
   summary: string;
   time: string;
   relation: string;
-  badge?: { text: string; type: "red" | "orange" | "verified" };
+  badge?: { text: string; type: "red" | "yellow" | "verified" };
   hasDownload: boolean;
 }
 
@@ -65,7 +66,7 @@ const evidenceItems: EvidenceItem[] = [
     summary: "Maintenance Event E1004",
     time: "2023-10-15 09:30 UTC",
     relation: "Potentially Impacts Aircraft Availability",
-    badge: { text: "Orange", type: "orange" },
+    badge: { text: "Yellow", type: "yellow" },
     hasDownload: true,
   },
   {
@@ -119,7 +120,7 @@ const evidenceItems: EvidenceItem[] = [
     summary: "Maintenance Event E1004",
     time: "2023-10-15 09:30 UTC",
     relation: "Potentially Impacts Aircraft Availability",
-    badge: { text: "Orange", type: "orange" },
+    badge: { text: "Yellow", type: "yellow" },
     hasDownload: false,
   },
 ];
@@ -140,15 +141,23 @@ const GRID_STROKE = "rgba(148,163,184,0.1)";
 // ===== Component =====
 
 export function EvidenceChainPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
 
   return (
     <div className="ec-root">
       {/* Breadcrumb */}
       <div className="ec-breadcrumb">
-        MRIWP
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="ec-breadcrumb-sep">&gt;</span>
-        {t("风险监控", "Risk Monitoring")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/risk-monitoring/flights")}
+        >
+          {t("航班", "Flights")}
+        </span>
         <span className="ec-breadcrumb-sep">&gt;</span>
         <span className="ec-breadcrumb-active">
           {t("证据链", "Evidence Chain")}
@@ -157,7 +166,23 @@ export function EvidenceChainPage() {
 
       {/* Page Header */}
       <div className="ec-page-header">
-        <h1 className="ec-page-title">{t("证据链", "Evidence Chain")}</h1>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            style={{
+              background: "rgba(71,85,105,0.5)",
+              border: "1px solid rgba(148,163,184,0.2)",
+              color: "#e2e8f0",
+              borderRadius: 6,
+              padding: "4px 14px",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+            onClick={() => navigate(-1)}
+          >
+            {t("返回", "Back")}
+          </button>
+          <h1 className="ec-page-title">{t("证据链", "Evidence Chain")}</h1>
+        </div>
         <button className="ec-btn-primary">
           <span>&#8595;</span>{" "}
           {t("下载完整证据包", "Download Full Evidence Package")}

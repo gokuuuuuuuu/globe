@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -12,18 +12,18 @@
 .env-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
 .env-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .env-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Body */
@@ -45,9 +45,10 @@
 
 /* Card */
 .env-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 20px;
 }
 
@@ -61,7 +62,7 @@
 .env-card-title {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -87,13 +88,13 @@
 
 .env-card-menu {
   font-size: 16px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   letter-spacing: 2px;
 }
 
 .env-card-menu:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 /* Gauge area */
@@ -117,7 +118,7 @@
 .env-gauge-score {
   font-size: 32px;
   font-weight: 800;
-  fill: #f8fafc;
+  fill: rgba(255, 255, 255, 0.96);
   text-anchor: middle;
   letter-spacing: -1px;
 }
@@ -125,13 +126,13 @@
 .env-gauge-score-sub {
   font-size: 14px;
   font-weight: 500;
-  fill: #64748b;
+  fill: rgba(255, 255, 255, 0.4);
   text-anchor: start;
 }
 
 .env-gauge-label {
   font-size: 10px;
-  fill: #64748b;
+  fill: rgba(255, 255, 255, 0.4);
   text-anchor: middle;
   font-weight: 500;
 }
@@ -147,9 +148,9 @@
   margin-top: 8px;
 }
 
-.env-risk-badge-orange {
-  background: rgba(234, 136, 22, 0.18);
-  color: #f97316;
+.env-risk-badge-yellow {
+  background: rgba(234, 179, 8, 0.18);
+  color: #eab308;
 }
 
 .env-risk-badge-green {
@@ -160,11 +161,6 @@
 .env-risk-badge-red {
   background: rgba(239, 68, 68, 0.18);
   color: #ef4444;
-}
-
-.env-risk-badge-yellow {
-  background: rgba(234, 179, 8, 0.18);
-  color: #eab308;
 }
 
 /* Factor list beside gauge */
@@ -190,7 +186,7 @@
 }
 
 .env-factor-name {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .env-factor-value {
@@ -205,8 +201,8 @@
 }
 
 .env-kf-box {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -253,18 +249,18 @@
 
 .env-kf-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .env-kf-value {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .env-kf-sub {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 400;
 }
 
@@ -303,12 +299,12 @@
 .env-weather-title {
   font-size: 16px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .env-weather-info {
   font-size: 12px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 12px;
 }
 
@@ -324,21 +320,21 @@
   align-items: center;
   font-size: 12px;
   padding: 4px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .env-weather-stat-label {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .env-weather-stat-value {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 500;
 }
 
 .env-weather-chart-title {
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -355,7 +351,7 @@
   margin-top: 12px;
   overflow-x: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 }
 
 .env-hourly-strip::-webkit-scrollbar {
@@ -363,17 +359,17 @@
 }
 
 .env-hourly-strip::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.05);
+  background: transparent;
   border-radius: 3px;
 }
 
 .env-hourly-strip::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .env-hourly-strip::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .env-hourly-item {
@@ -383,7 +379,7 @@
   gap: 4px;
   min-width: 60px;
   padding: 8px 6px;
-  border-right: 1px solid rgba(148, 163, 184, 0.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   font-size: 11px;
 }
 
@@ -392,7 +388,7 @@
 }
 
 .env-hourly-time {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 10px;
 }
 
@@ -401,7 +397,7 @@
 }
 
 .env-hourly-temp {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 600;
   font-size: 12px;
 }
@@ -431,20 +427,21 @@
 
 .env-table th {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   text-align: left;
   padding: 8px 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   font-weight: 500;
+  background: #080810;
 }
 
 .env-table td {
   font-size: 12px;
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.62);
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .env-table tr:last-child td {
@@ -459,11 +456,6 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
-}
-
-.env-pill-orange {
-  background: rgba(234, 88, 12, 0.2);
-  color: #ea580c;
 }
 
 .env-pill-yellow {
@@ -493,7 +485,7 @@
   align-items: flex-start;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .env-anomaly-item:last-child {
@@ -502,7 +494,7 @@
 
 .env-anomaly-time {
   font-size: 12px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   min-width: 42px;
   flex-shrink: 0;
   padding-top: 2px;
@@ -526,7 +518,7 @@
 
 .env-anomaly-desc {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Time-window charts */
@@ -538,7 +530,7 @@
 
 .env-tw-chart-title {
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -557,7 +549,7 @@
 
 .env-tw-window {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .env-tw-normal {
@@ -600,12 +592,12 @@
 
 .env-btn-outline {
   background: transparent;
-  color: #e2e8f0;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .env-btn-outline:hover {
-  background: rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .env-btn-outline-red {
@@ -623,8 +615,8 @@
   padding: 16px 24px;
   text-align: center;
   font-size: 11px;
-  color: #475569;
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  color: rgba(255, 255, 255, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .env-footer a {
@@ -639,12 +631,12 @@
 
 /* Tooltip box */
 .env-tooltip-box {
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 11px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   pointer-events: none;
 }
 
@@ -658,12 +650,12 @@
 }
 
 .env-root::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .env-root::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Card-level scrollbar for any overflow inside cards */
@@ -673,17 +665,217 @@
 }
 
 .env-card ::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.05);
+  background: transparent;
   border-radius: 3px;
 }
 
 .env-card ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .env-card ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Airport List View ===== */
+.env-airport-list {
+  padding: 16px 24px;
+}
+
+.env-airport-list-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.env-airport-list-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.96);
+  margin: 0;
+}
+
+.env-airport-list-count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.env-airport-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.env-airport-search {
+  flex: 1;
+  min-width: 200px;
+  max-width: 360px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.env-airport-search:focus {
+  border-color: #3b82f6;
+}
+
+.env-airport-search::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.env-airport-risk-btns {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.env-airport-risk-btn {
+  padding: 5px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  transition: all 0.15s;
+}
+
+.env-airport-risk-btn:hover {
+  color: rgba(255, 255, 255, 0.96);
+}
+
+.env-airport-risk-btn.active {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.env-airport-risk-btn.active.red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.env-airport-risk-btn.active.yellow {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+}
+
+.env-airport-risk-btn.active.green {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.env-airport-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.env-airport-card {
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.env-airport-card:hover {
+  border-color: rgba(96, 165, 250, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.env-airport-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.env-airport-card-code {
+  font-size: 18px;
+  font-weight: 800;
+  color: #60a5fa;
+  letter-spacing: 1px;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.env-airport-card-name {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.env-airport-card-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 12px;
+}
+
+.env-airport-card-risk {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.env-airport-card-risk-bar {
+  flex: 1;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.env-airport-card-risk-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.env-airport-card-risk-score {
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+  min-width: 32px;
+  text-align: right;
+}
+
+/* Back button */
+.env-back-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.96);
+  border-radius: 6px;
+  padding: 5px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  margin-bottom: 16px;
+}
+
+.env-back-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Responsive */

@@ -35,7 +35,6 @@ const darkTooltipStyle = {
 
 const RISK_COLORS = {
   red: "#dc2626",
-  orange: "#ea580c",
   yellow: "#eab308",
   green: "#22c55e",
 };
@@ -44,7 +43,7 @@ const RISK_COLORS = {
 
 function getRiskBadgeCls(zone: string): string {
   if (zone === "red") return "ad-badge-red";
-  if (zone === "orange" || zone === "yellow") return "ad-badge-orange";
+  if (zone === "yellow") return "ad-badge-yellow";
   return "ad-badge-green";
 }
 
@@ -53,7 +52,7 @@ function getRiskLabel(
   t: (zh: string, en: string) => string,
 ): string {
   if (zone === "red") return t("高", "High");
-  if (zone === "orange" || zone === "yellow") return t("中", "Medium");
+  if (zone === "yellow") return t("中", "Medium");
   return t("低", "Low");
 }
 
@@ -143,7 +142,7 @@ export function AirportDetailPage() {
 
   // Count risk categories
   const riskCounts = useMemo(() => {
-    const counts = { red: 0, orange: 0, yellow: 0, green: 0 };
+    const counts = { red: 0, yellow: 0, green: 0 };
     relatedFlights.forEach((f) => {
       const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
       counts[riskZone]++;
@@ -153,8 +152,8 @@ export function AirportDetailPage() {
 
   // Inbound/Outbound risk data
   const inOutData = useMemo(() => {
-    const inbound = { red: 0, orange: 0, yellow: 0, green: 0 };
-    const outbound = { red: 0, orange: 0, yellow: 0, green: 0 };
+    const inbound = { red: 0, yellow: 0, green: 0 };
+    const outbound = { red: 0, yellow: 0, green: 0 };
     relatedFlights.forEach((f) => {
       const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
       if (f.toAirport === airport.code) {
@@ -167,14 +166,12 @@ export function AirportDetailPage() {
       {
         name: t("进港", "Inbound"),
         red: inbound.red,
-        orange: inbound.orange,
         yellow: inbound.yellow,
         green: inbound.green,
       },
       {
         name: t("出港", "Outbound"),
         red: outbound.red,
-        orange: outbound.orange,
         yellow: outbound.yellow,
         green: outbound.green,
       },
@@ -195,12 +192,11 @@ export function AirportDetailPage() {
     return periods.map((label, i) => {
       const seed = i + 1;
       const red = Math.round(riskCounts.red * (seed * 0.15 + 0.1));
-      const orange = Math.round(riskCounts.orange * (seed * 0.12 + 0.15));
       const yellow = Math.round((total * 0.1 * seed) / periods.length);
       const green = Math.round(
         (total * 0.2 * (periods.length - i)) / periods.length,
       );
-      return { name: label, red, orange, yellow, green };
+      return { name: label, red, yellow, green };
     });
   }, [relatedFlights.length, riskCounts, t]);
 
@@ -210,35 +206,30 @@ export function AirportDetailPage() {
       {
         name: t("天气", "Weather"),
         red: Math.round(riskCounts.red * 0.4),
-        orange: Math.round(riskCounts.orange * 0.3),
         yellow: Math.round(riskCounts.yellow * 0.2 + 2),
         green: Math.round(riskCounts.green * 0.1),
       },
       {
         name: t("交通", "Traffic"),
         red: Math.round(riskCounts.red * 0.25),
-        orange: Math.round(riskCounts.orange * 0.25),
         yellow: Math.round(riskCounts.yellow * 0.3 + 1),
         green: Math.round(riskCounts.green * 0.15),
       },
       {
         name: t("技术", "Technical"),
         red: Math.round(riskCounts.red * 0.15),
-        orange: Math.round(riskCounts.orange * 0.2),
         yellow: Math.round(riskCounts.yellow * 0.25),
         green: Math.round(riskCounts.green * 0.2),
       },
       {
         name: t("安全", "Security"),
         red: Math.round(riskCounts.red * 0.1),
-        orange: Math.round(riskCounts.orange * 0.15),
         yellow: Math.round(riskCounts.yellow * 0.15),
         green: Math.round(riskCounts.green * 0.25),
       },
       {
         name: t("其他", "Other"),
         red: Math.round(riskCounts.red * 0.1),
-        orange: Math.round(riskCounts.orange * 0.1),
         yellow: Math.round(riskCounts.yellow * 0.1),
         green: Math.round(riskCounts.green * 0.3),
       },
@@ -252,9 +243,16 @@ export function AirportDetailPage() {
     <div className="ad-root">
       {/* Breadcrumb */}
       <div className="ad-breadcrumb">
-        MRIWP
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="ad-breadcrumb-sep">&gt;</span>
-        {t("机场", "Airports")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/airport-center/airport-list")}
+        >
+          {t("机场", "Airports")}
+        </span>
         <span className="ad-breadcrumb-sep">&gt;</span>
         <span className="ad-breadcrumb-active">
           {t("机场详情", "Airport Detail")}
@@ -265,8 +263,8 @@ export function AirportDetailPage() {
       <div className="ad-header-card">
         <div className="ad-header-left">
           <h1 className="ad-header-title">
-            {t("机场详情", "Airport Detail")}: {airportFullName} ({airport.code}
-            )
+            {t("机场详情", "Airport Detail")}: {airportFullName} (
+            {airport.code4 || airport.code})
           </h1>
           <div className="ad-header-row">
             {/* Composite Risk Level */}
@@ -299,8 +297,21 @@ export function AirportDetailPage() {
                 {t("高风险航班", "High-Risk Flights")}
               </span>
               <span>
-                <span className="ad-stat-orange">{riskCounts.orange}</span>{" "}
+                <span className="ad-stat-yellow">{riskCounts.yellow}</span>{" "}
                 {t("中风险航班", "Medium-Risk Flights")}
+              </span>
+              <span className="ad-stat-ratio">
+                {t("高/中风险占比", "High/Med Risk Ratio")}:{" "}
+                <strong>
+                  {airport.flightCount > 0
+                    ? (
+                        ((riskCounts.red + riskCounts.yellow) /
+                          airport.flightCount) *
+                        100
+                      ).toFixed(1)
+                    : 0}
+                  %
+                </strong>
               </span>
             </div>
 
@@ -346,14 +357,8 @@ export function AirportDetailPage() {
 
         {/* Right action buttons */}
         <div className="ad-header-right">
-          <button className="ad-action-btn">
-            {t("查看单航班", "View Single Flight")}
-          </button>
-          <button className="ad-action-btn">
-            {t("查看消息", "View Messages")}
-          </button>
-          <button className="ad-action-btn">
-            {t("查看报文", "View Messages")}
+          <button className="ad-action-btn" onClick={() => navigate(-1)}>
+            {t("返回", "Back")}
           </button>
         </div>
       </div>
@@ -368,7 +373,7 @@ export function AirportDetailPage() {
           <div className="ad-chart-legend">
             {[
               { color: RISK_COLORS.red, label: t("高", "High") },
-              { color: RISK_COLORS.orange, label: t("中", "Medium") },
+              { color: RISK_COLORS.yellow, label: t("中", "Medium") },
               { color: RISK_COLORS.green, label: t("低", "Low") },
             ].map((item) => (
               <span key={item.color} className="ad-chart-legend-item">
@@ -387,7 +392,6 @@ export function AirportDetailPage() {
               <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} />
               <Tooltip {...darkTooltipStyle} />
               <Bar dataKey="red" fill={RISK_COLORS.red} />
-              <Bar dataKey="orange" fill={RISK_COLORS.orange} />
               <Bar dataKey="yellow" fill={RISK_COLORS.yellow} />
               <Bar dataKey="green" fill={RISK_COLORS.green} />
             </BarChart>
@@ -402,7 +406,7 @@ export function AirportDetailPage() {
           <div className="ad-chart-legend">
             {[
               { color: RISK_COLORS.red, label: t("高", "High") },
-              { color: RISK_COLORS.orange, label: t("中", "Medium") },
+              { color: RISK_COLORS.yellow, label: t("中", "Medium") },
               { color: RISK_COLORS.green, label: t("低", "Low") },
             ].map((item) => (
               <span key={item.color} className="ad-chart-legend-item">
@@ -421,7 +425,6 @@ export function AirportDetailPage() {
               <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} />
               <Tooltip {...darkTooltipStyle} />
               <Bar dataKey="red" fill={RISK_COLORS.red} />
-              <Bar dataKey="orange" fill={RISK_COLORS.orange} />
               <Bar dataKey="yellow" fill={RISK_COLORS.yellow} />
               <Bar dataKey="green" fill={RISK_COLORS.green} />
             </BarChart>
@@ -450,7 +453,6 @@ export function AirportDetailPage() {
                 wrapperStyle={{ fontSize: 10, color: "#94a3b8" }}
               />
               <Bar dataKey="red" stackId="a" fill={RISK_COLORS.red} />
-              <Bar dataKey="orange" stackId="a" fill={RISK_COLORS.orange} />
               <Bar dataKey="yellow" stackId="a" fill={RISK_COLORS.yellow} />
               <Bar dataKey="green" stackId="a" fill={RISK_COLORS.green} />
             </BarChart>
@@ -520,7 +522,6 @@ export function AirportDetailPage() {
           <thead>
             <tr>
               <th>{t("航班ID", "Flight ID")}</th>
-              <th>{t("航空公司", "Airline")}</th>
               <th>{t("出发地", "Origin")}</th>
               <th>{t("目的地", "Destination")}</th>
               <th>{t("起飞时间", "Departure Time")}</th>
@@ -539,23 +540,16 @@ export function AirportDetailPage() {
               const badgeCls = getRiskBadgeCls(riskZone);
               const badgeLabel = getRiskLabel(riskZone, t);
 
-              // Derive airline from flight number prefix
-              const airline = f.flightNumber
-                ? f.flightNumber.replace(/[0-9]/g, "")
-                : "—";
-
               // Mock risk reasons based on zone
               const reasons =
                 riskZone === "red"
                   ? t("雷暴, 低能见度", "Thunderstorms, Low Visibility")
-                  : riskZone === "orange"
+                  : riskZone === "yellow"
                     ? t(
                         "空域限制, 高密度交通",
                         "Airspace Restriction, High Traffic",
                       )
-                    : riskZone === "yellow"
-                      ? t("侧风, 技术检查", "Crosswinds, Technical Check")
-                      : t("正常", "Normal");
+                    : t("正常", "Normal");
 
               // Status translation
               const statusText =
@@ -576,7 +570,6 @@ export function AirportDetailPage() {
                   <td style={{ fontWeight: 600, color: "#f8fafc" }}>
                     {f.flightNumber}
                   </td>
-                  <td>{airline}</td>
                   <td>{f.fromAirport}</td>
                   <td>{f.toAirport}</td>
                   <td>{f.scheduledDeparture}</td>

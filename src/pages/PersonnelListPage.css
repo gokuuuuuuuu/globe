@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow: hidden;
 }
@@ -12,18 +12,18 @@
 .pl-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
 .pl-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pl-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page Header */
@@ -35,7 +35,7 @@
 .pl-page-title h1 {
   font-size: 22px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
 }
 
@@ -46,10 +46,10 @@
   gap: 8px;
   margin: 12px 24px 10px 23px;
   padding: 8px 14px;
-  background: rgba(30, 41, 59, 0.4);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -60,17 +60,18 @@
 
 .pl-filter-toggle:hover {
   color: #60a5fa;
-  background: rgba(30, 41, 59, 0.6);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Filter Card */
 .pl-filter-card {
   margin: 16px 24px;
   padding: 16px 20px;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   flex-shrink: 0;
+  backdrop-filter: blur(12px);
 }
 
 .pl-filter-top {
@@ -97,15 +98,15 @@
 
 .pl-filter-item label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pl-select {
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   outline: none;
   transition: border-color 0.15s;
@@ -130,9 +131,9 @@
 .pl-date-input {
   padding: 6px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   font-family: inherit;
   outline: none;
@@ -145,7 +146,7 @@
 }
 
 .pl-date-sep {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
 }
 
@@ -162,15 +163,15 @@
   align-items: center;
   padding: 8px 16px;
   border-radius: 6px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   min-width: 120px;
 }
 
 .pl-stat-value {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .pl-stat-value.pl-stat-warning {
@@ -182,7 +183,7 @@
 
 .pl-stat-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
 }
 
@@ -193,29 +194,29 @@
   gap: 8px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .pl-btn-reset {
   padding: 6px 20px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .pl-btn-reset:hover {
-  background: rgba(51, 65, 85, 0.7);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .pl-btn-apply {
   padding: 6px 20px;
   border-radius: 4px;
   border: none;
-  background: #1d4ed8;
+  background: #2d4fb3;
   color: #fff;
   font-size: 12px;
   cursor: pointer;
@@ -244,9 +245,9 @@
   width: 100%;
   padding: 7px 10px 7px 32px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   outline: none;
   transition: border-color 0.15s;
@@ -261,7 +262,7 @@
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pl-export-btns {
@@ -275,17 +276,17 @@
   gap: 6px;
   padding: 6px 14px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .pl-export-btn:hover {
-  background: rgba(51, 65, 85, 0.7);
-  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Table */
@@ -309,24 +310,24 @@
 
 .pl-table th {
   padding: 10px 12px;
-  background: #1e293b;
-  color: #94a3b8;
+  background: #080810;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   font-weight: 600;
   text-align: left;
   white-space: nowrap;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pl-table td {
   padding: 10px 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: middle;
   font-size: 12px;
 }
 
 .pl-table tbody tr:hover {
-  background: rgba(51, 65, 85, 0.3);
+  background: #080810;
 }
 
 .pl-table tbody tr.pl-row-high {
@@ -376,7 +377,7 @@
 
 /* Tags */
 .pl-tags {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
 }
 
@@ -392,7 +393,7 @@
   gap: 4px;
   padding: 4px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
   color: #60a5fa;
   font-size: 11px;
@@ -412,7 +413,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 24px;
-  border-top: 1px solid rgba(148, 163, 184, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
@@ -427,17 +428,17 @@
   height: 28px;
   padding: 0 6px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .pl-page-btns button:hover:not(:disabled) {
-  background: rgba(51, 65, 85, 0.7);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .pl-page-btns button:disabled {
@@ -446,7 +447,7 @@
 }
 
 .pl-page-active {
-  background: #1d4ed8 !important;
+  background: #2d4fb3 !important;
   border-color: #3b82f6 !important;
   color: #fff !important;
 }
@@ -456,15 +457,15 @@
   align-items: center;
   gap: 8px;
   font-size: 12px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pl-rows-per-page select {
   padding: 4px 8px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.8);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   outline: none;
 }
@@ -480,10 +481,10 @@
 }
 
 .pl-table-wrapper::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .pl-table-wrapper::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.14);
 }

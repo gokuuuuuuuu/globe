@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -19,7 +19,7 @@
 .wo-page-title {
   font-size: 22px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 20px;
 }
 
@@ -42,7 +42,7 @@
 .wo-filter-label {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -51,9 +51,9 @@
 .wo-select {
   padding: 7px 30px 7px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   cursor: pointer;
   appearance: none;
@@ -120,9 +120,9 @@
 .wo-search {
   padding: 7px 12px 7px 32px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   width: 200px;
   outline: none;
@@ -137,7 +137,7 @@
   left: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 14px;
   pointer-events: none;
 }
@@ -187,11 +187,11 @@
   padding: 12px 14px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
-  background: #0b1120;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #080810;
   white-space: nowrap;
 }
 
@@ -201,42 +201,42 @@
 }
 
 .wo-table th.sortable:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .wo-sort-icon {
   margin-left: 4px;
   font-size: 10px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .wo-table td {
   padding: 14px 14px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: top;
 }
 
 .wo-table tr:hover td {
-  background: rgba(148, 163, 184, 0.04);
+  background: #080810;
 }
 
 /* Work Order ID */
 .wo-id {
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   white-space: nowrap;
 }
 
 /* Object column */
 .wo-object {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 12px;
 }
 
 .wo-object-id {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
 }
 
@@ -250,7 +250,7 @@
 
 .wo-risk-title {
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
 }
 
@@ -290,7 +290,7 @@
 }
 
 .wo-risk-desc {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -329,13 +329,13 @@
 
 /* Department */
 .wo-dept {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
 }
 
 /* Updated time */
 .wo-time {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   white-space: nowrap;
   font-size: 12px;
 }
@@ -354,9 +354,9 @@
   gap: 4px;
   padding: 4px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   cursor: pointer;
   transition: background 0.15s;
@@ -364,8 +364,8 @@
 }
 
 .wo-action-btn:hover {
-  background: rgba(148, 163, 184, 0.08);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .wo-action-btn.view {
@@ -402,22 +402,22 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 14px 24px;
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
 .wo-page-info {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .wo-page-btn {
   width: 28px;
   height: 28px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -427,8 +427,8 @@
 }
 
 .wo-page-btn:hover:not(:disabled) {
-  background: rgba(148, 163, 184, 0.08);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .wo-page-btn:disabled {

@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -14,18 +14,18 @@
 .ntc-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
 .ntc-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .ntc-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page body */
@@ -53,7 +53,7 @@
 .ntc-page-title {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin-bottom: 8px;
   line-height: 1.3;
 }
@@ -63,17 +63,17 @@
   gap: 28px;
   flex-wrap: wrap;
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .ntc-meta-label {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
   margin-right: 6px;
 }
 
 .ntc-meta-value {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .ntc-update-btn {
@@ -98,9 +98,10 @@
 
 /* ── Card generic ── */
 .ntc-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 20px 24px;
 }
 
@@ -114,7 +115,7 @@
 .ntc-card-title {
   font-size: 15px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* ── Two-column row ── */
@@ -127,7 +128,7 @@
 /* ── Toggle buttons (Raw / Formatted) ── */
 .ntc-toggle-group {
   display: inline-flex;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -137,7 +138,7 @@
   font-size: 12px;
   border: none;
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   cursor: pointer;
   transition:
     background 0.15s,
@@ -150,19 +151,19 @@
 }
 
 .ntc-toggle-btn:not(.active):hover {
-  background: rgba(148, 163, 184, 0.08);
+  background: #080810;
 }
 
 /* ── METAR code block ── */
 .ntc-code-block {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(148, 163, 184, 0.1);
+  background: #080810;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   padding: 16px 18px;
   font-family: "Fira Code", "Cascadia Code", "Consolas", monospace;
   font-size: 12px;
   line-height: 1.7;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   white-space: pre-wrap;
   word-break: break-all;
   min-height: 100px;
@@ -172,19 +173,19 @@
 .ntc-source-section {
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ntc-source-label {
   font-size: 12px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin-bottom: 4px;
 }
 
 .ntc-source-value {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   margin-bottom: 2px;
 }
 
@@ -210,13 +211,13 @@
   min-width: 0;
   border-radius: 8px;
   overflow: hidden;
-  background: #1a2332;
+  background: #0a0a0a;
   min-height: 260px;
   position: relative;
 }
 
 .ntc-impact-map .leaflet-container {
-  background: #1a2332;
+  background: #0a0a0a;
   width: 100%;
   height: 100%;
 }
@@ -229,9 +230,9 @@
 
 /* Map tooltip styling */
 .ntc-map-tooltip {
-  background: rgba(15, 23, 42, 0.85) !important;
-  border: 1px solid rgba(148, 163, 184, 0.2) !important;
-  color: #f8fafc !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: rgba(255, 255, 255, 0.96) !important;
   font-weight: 600 !important;
   font-size: 12px !important;
   padding: 3px 8px !important;
@@ -240,7 +241,7 @@
 }
 
 .ntc-map-tooltip::before {
-  border-right-color: rgba(15, 23, 42, 0.85) !important;
+  border-right-color: rgba(0, 0, 0, 0.9) !important;
 }
 
 .ntc-map-marker {
@@ -262,24 +263,24 @@
 }
 
 .ntc-impact-label {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
   min-width: 140px;
   flex-shrink: 0;
 }
 
 .ntc-impact-value {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .ntc-impact-desc {
   margin-top: 8px;
   padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: #080810;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.6;
 }
 
@@ -290,16 +291,16 @@
   gap: 6px;
   padding: 5px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: transparent;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .ntc-filter-btn:hover {
-  background: rgba(148, 163, 184, 0.08);
+  background: #080810;
 }
 
 /* ── Stats row ── */
@@ -312,21 +313,21 @@
 
 .ntc-stat-item {
   padding: 12px 16px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: #080810;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
 }
 
 .ntc-stat-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 4px;
 }
 
 .ntc-stat-value {
   font-size: 22px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* ── Table ── */
@@ -340,21 +341,22 @@
   padding: 10px 14px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #080810;
 }
 
 .ntc-table td {
   padding: 10px 14px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .ntc-table tr:hover td {
-  background: rgba(148, 163, 184, 0.04);
+  background: #080810;
 }
 
 .ntc-status-delayed {
@@ -426,12 +428,12 @@
 
 .ntc-risk-badge-color {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .ntc-risk-desc {
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.6;
 }
 
@@ -439,7 +441,7 @@
 .ntc-factors-title {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin-bottom: 8px;
 }
 
@@ -454,9 +456,9 @@
   border-radius: 999px;
   font-size: 11px;
   font-weight: 500;
-  background: rgba(148, 163, 184, 0.1);
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  color: #cbd5e1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.62);
 }
 
 /* Evidence Analysis */
@@ -509,7 +511,7 @@
 .ntc-confidence-label {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   min-width: 120px;
   flex-shrink: 0;
 }
@@ -518,7 +520,7 @@
   flex: 1;
   height: 8px;
   border-radius: 4px;
-  background: rgba(148, 163, 184, 0.1);
+  background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
   position: relative;
 }
@@ -532,7 +534,7 @@
 .ntc-confidence-value {
   font-size: 12px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   flex-shrink: 0;
 }
 

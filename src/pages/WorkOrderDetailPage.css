@@ -4,8 +4,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -14,18 +14,18 @@
 .wod-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
 .wod-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .wod-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page body */
@@ -48,7 +48,7 @@
 .wod-page-title {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
   line-height: 1.3;
 }
@@ -67,9 +67,9 @@
   gap: 6px;
   padding: 7px 16px;
   border-radius: 6px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -78,7 +78,7 @@
 }
 
 .wod-btn:hover {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .wod-btn-primary {
@@ -103,16 +103,17 @@
 
 /* Card */
 .wod-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 20px 24px;
 }
 
 .wod-card-title {
   font-size: 15px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin-bottom: 16px;
 }
 
@@ -138,13 +139,13 @@
 
 .wod-obj-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
 }
 
 .wod-obj-value {
   font-size: 14px;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 600;
 }
 
@@ -181,12 +182,12 @@
 
 .wod-field-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .wod-field-value {
   font-size: 13px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 500;
 }
 
@@ -207,7 +208,7 @@
 .wod-matrix-title {
   font-size: 12px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin-bottom: 8px;
 }
 
@@ -239,10 +240,6 @@
   background: #eab308;
 }
 
-.wod-matrix-cell.orange {
-  background: #f97316;
-}
-
 .wod-matrix-cell.red {
   background: #dc2626;
 }
@@ -254,13 +251,13 @@
 
 .wod-matrix-label {
   font-size: 10px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   text-align: center;
 }
 
 .wod-matrix-ylabel {
   font-size: 10px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   writing-mode: vertical-lr;
   transform: rotate(180deg);
   text-align: center;
@@ -281,15 +278,15 @@
   padding: 8px 12px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .wod-risk-table td {
   padding: 8px 12px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ── Tab navigation ── */
@@ -303,9 +300,10 @@
   flex-direction: column;
   gap: 0;
   min-width: 140px;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   overflow: hidden;
   align-self: flex-start;
 }
@@ -313,7 +311,7 @@
 .wod-tab-btn {
   padding: 10px 16px;
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   border: none;
   background: transparent;
   text-align: left;
@@ -325,7 +323,7 @@
 }
 
 .wod-tab-btn:hover {
-  background: rgba(148, 163, 184, 0.05);
+  background: #080810;
 }
 
 .wod-tab-btn.active {
@@ -352,23 +350,23 @@
   padding: 10px 14px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .wod-actions-table td {
   padding: 10px 14px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .wod-person-select {
   padding: 5px 28px 5px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.6);
-  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
@@ -388,15 +386,15 @@
   padding: 10px 14px;
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .wod-status-table td {
   padding: 10px 14px;
   font-size: 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   vertical-align: top;
 }
 
@@ -419,7 +417,7 @@
 
 .wod-sub-text {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
 }
 
@@ -439,13 +437,13 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #475569;
+  background: rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   flex-shrink: 0;
 }
 
@@ -468,17 +466,17 @@
 .wod-feedback-name {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .wod-feedback-time {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .wod-feedback-text {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   line-height: 1.5;
 }
 
@@ -509,12 +507,12 @@
 .wod-review-subtitle {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .wod-review-desc {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
 }
 
@@ -522,9 +520,9 @@
   width: 100%;
   padding: 8px 12px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.6);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   outline: none;
 }
@@ -542,9 +540,9 @@
   flex: 1;
   padding: 6px 28px 6px 10px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.6);
-  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
@@ -568,12 +566,12 @@
 .wod-closure-subtitle {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .wod-closure-desc {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-top: 2px;
 }
 
@@ -588,7 +586,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   cursor: pointer;
 }
 
@@ -601,9 +599,9 @@
   min-height: 60px;
   padding: 8px 12px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.6);
-  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   resize: vertical;
   outline: none;
@@ -620,8 +618,26 @@
   justify-content: flex-end;
   gap: 8px;
   padding: 16px 24px;
-  border-top: 1px solid rgba(148, 163, 184, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
+}
+
+/* ── Scrollbar ── */
+.wod-root::-webkit-scrollbar {
+  width: 6px;
+}
+
+.wod-root::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.wod-root::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.wod-root::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* ── Responsive ── */

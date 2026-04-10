@@ -35,6 +35,7 @@ import {
   AIRPORTS,
   FLIGHTS,
   getAirportByCode,
+  getIcaoCode,
   getRiskColor,
   calculateRiskFromEnvironmentRisk,
 } from "../data/flightData";
@@ -930,94 +931,81 @@ export function MapView({ world, atlas }: MapViewProps) {
           }}
         >
           {hoveredAirport && (
-            <div className="tooltip-content">
-              <div className="tooltip-title">机场信息</div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">机场名：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.airportName}
+            <div className="tooltip-content tooltip-glass-card">
+              <div className="tooltip-glass-header">
+                <span className="tooltip-selected-tag">
+                  SELECTED · {hoveredAirport.airportCode}
                 </span>
               </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">执飞单位数量：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.operatorCount}
-                </span>
+              <div className="tooltip-glass-name">
+                {hoveredAirport.airportName}
               </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">航班数量：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.flightCount}
+              <div className="tooltip-glass-risk">
+                <span
+                  className="tooltip-glass-risk-val"
+                  style={{
+                    color:
+                      hoveredAirport.environmentRisk >= 7
+                        ? "#FF3957"
+                        : hoveredAirport.environmentRisk >= 5
+                          ? "#FFA033"
+                          : "#65EB7B",
+                  }}
+                >
+                  {hoveredAirport.environmentRisk.toFixed(1)}
                 </span>
+                <span className="tooltip-glass-risk-max">/ 10.0 RISK</span>
               </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">环境风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.environmentRisk}
-                </span>
-              </div>
-            </div>
-          )}
-          {hoveredFlightRoute && (
-            <div className="tooltip-content">
-              <div className="tooltip-title">航班信息</div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">航班号：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.flightNumber}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">起飞机场：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.fromAirport}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">降落机场：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.toAirport}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">状态：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.status}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">预飞时间：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.scheduledDeparture}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">预到时间：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.scheduledArrival}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">人风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.humanRisk}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">机风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.machineRisk}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">环风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.riskLevel ||
-                    hoveredFlightRoute.environmentRisk}
-                </span>
+              <div className="tooltip-glass-desc">
+                {hoveredAirport.environmentRisk >= 7 ? "出港延误" : "运行正常"}{" "}
+                · {hoveredAirport.flightCount} 航班受影响 ·{" "}
+                {hoveredAirport.operatorCount} 执飞单位
               </div>
             </div>
           )}
+          {hoveredFlightRoute &&
+            (() => {
+              const maxRisk = Math.max(
+                hoveredFlightRoute.humanRisk,
+                hoveredFlightRoute.machineRisk,
+                hoveredFlightRoute.environmentRisk,
+              );
+              return (
+                <div className="tooltip-content tooltip-glass-card">
+                  <div className="tooltip-glass-header">
+                    <span className="tooltip-selected-tag">
+                      FLIGHT · {hoveredFlightRoute.flightNumber}
+                    </span>
+                  </div>
+                  <div className="tooltip-glass-name">
+                    {getIcaoCode(hoveredFlightRoute.fromAirport)} →{" "}
+                    {getIcaoCode(hoveredFlightRoute.toAirport)}
+                  </div>
+                  <div className="tooltip-glass-risk">
+                    <span
+                      className="tooltip-glass-risk-val"
+                      style={{
+                        color:
+                          maxRisk >= 7
+                            ? "#FF3957"
+                            : maxRisk >= 5
+                              ? "#FFA033"
+                              : "#65EB7B",
+                      }}
+                    >
+                      {maxRisk.toFixed(1)}
+                    </span>
+                    <span className="tooltip-glass-risk-max">/ 10.0 RISK</span>
+                  </div>
+                  <div className="tooltip-glass-desc">
+                    {hoveredFlightRoute.status} · 人
+                    {hoveredFlightRoute.humanRisk} · 机
+                    {hoveredFlightRoute.machineRisk} · 环
+                    {hoveredFlightRoute.environmentRisk}
+                  </div>
+                </div>
+              );
+            })()}
         </div>
       )}
     </div>
@@ -1038,12 +1026,8 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     outer?: MeshBasicMaterial;
     inner?: MeshBasicMaterial;
   }>({});
-  const {
-    setHoveredAirport,
-    setTooltipPosition,
-    viewingAirportId,
-    airportCodeFormat,
-  } = useAppStore();
+  const { setHoveredAirport, setTooltipPosition, viewingAirportId } =
+    useAppStore();
   const isViewing = viewingAirportId === airport.id;
 
   const basePosition = useMemo(
@@ -1175,14 +1159,9 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
 
   // 根据用户设置获取机场显示编码
   const getAirportDisplayCode = useMemo(() => {
-    if (airportCodeFormat === "four") {
-      // 查找四字码，如果找不到则显示三字码
-      return airportCodeMap[airport.code] || airport.code;
-    } else {
-      // 显示三字码
-      return airport.code;
-    }
-  }, [airportCodeFormat, airport.code, airportCodeMap]);
+    // 始终显示ICAO四字码
+    return airport.code4 || airportCodeMap[airport.code] || airport.code;
+  }, [airport.code4, airport.code, airportCodeMap]);
 
   // 根据风险值计算闪烁参数
   const getPulseParams = useMemo(() => {
@@ -1230,6 +1209,7 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
       setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY });
       setHoveredAirport({
         airportId: airport.id,
+        airportCode: airport.code4 || airport.code,
         airportName: airport.name,
         operatorCount: airport.operatorCount,
         flightCount: airport.flightCount,

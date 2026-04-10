@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./SystemManagementPage.css";
 
@@ -149,6 +150,7 @@ const PERM_MATRIX = [
 // ===== Component =====
 
 export function SystemManagementPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [page] = useState(1);
@@ -179,7 +181,16 @@ export function SystemManagementPage() {
     <div className="smp-root">
       {/* Breadcrumb */}
       <div className="smp-breadcrumb">
-        {t("系统管理", "System Management")}
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
+        <span className="smp-breadcrumb-sep">&gt;</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/system-management")}
+        >
+          {t("系统管理", "System Mgmt")}
+        </span>
         <span className="smp-breadcrumb-sep">&gt;</span>
         <span className="smp-breadcrumb-active">
           {t("用户与角色", "Users and Roles")}
@@ -215,9 +226,7 @@ export function SystemManagementPage() {
               <table className="smp-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 36 }}>
-                      <input type="checkbox" className="smp-checkbox" />
-                    </th>
+                    <th style={{ width: 36 }} />
                     <th className="sortable">
                       {t("用户 ID", "User ID")}
                       <span className="smp-sort-icon">↑</span>
@@ -239,9 +248,7 @@ export function SystemManagementPage() {
                 <tbody>
                   {filtered.map((u) => (
                     <tr key={u.id}>
-                      <td>
-                        <input type="checkbox" className="smp-checkbox" />
-                      </td>
+                      <td />
                       <td>{u.id}</td>
                       <td>{u.name}</td>
                       <td>{u.email}</td>

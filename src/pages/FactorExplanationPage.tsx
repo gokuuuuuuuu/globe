@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -172,6 +173,7 @@ const darkTooltipStyle = {
 // ===== Component =====
 
 export function FactorExplanationPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState(0);
   const [trendRange, setTrendRange] = useState("30");
@@ -187,9 +189,16 @@ export function FactorExplanationPage() {
     <div className="fe-root">
       {/* Breadcrumb */}
       <div className="fe-breadcrumb">
-        MRIWP
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="fe-breadcrumb-sep">&gt;</span>
-        {t("风险监控", "Risk Monitoring")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/risk-monitoring/flights")}
+        >
+          {t("航班", "Flights")}
+        </span>
         <span className="fe-breadcrumb-sep">&gt;</span>
         <span className="fe-breadcrumb-active">
           {t("因子解释", "Factor Explanation")}
@@ -199,6 +208,22 @@ export function FactorExplanationPage() {
       {/* Page Header */}
       <div className="fe-page-header">
         <div className="fe-header-left">
+          <div style={{ marginBottom: 8 }}>
+            <button
+              style={{
+                background: "rgba(71,85,105,0.5)",
+                border: "1px solid rgba(148,163,184,0.2)",
+                color: "#e2e8f0",
+                borderRadius: 6,
+                padding: "4px 14px",
+                cursor: "pointer",
+                fontSize: 13,
+              }}
+              onClick={() => navigate(-1)}
+            >
+              {t("返回", "Back")}
+            </button>
+          </div>
           <h1 className="fe-page-title">
             {t("风险因子详细解释：", "Detailed Risk Factor Explanation: ")}
             {factorInfo.factor}

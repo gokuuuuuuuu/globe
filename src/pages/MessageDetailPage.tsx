@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -92,6 +93,7 @@ const riskChartData = [
 // ===== Component =====
 
 export function MessageDetailPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<"parsed" | "metadata">("parsed");
   const [detectionOpen, setDetectionOpen] = useState(false);
@@ -103,15 +105,36 @@ export function MessageDetailPage() {
     <div className="msg-root">
       {/* Breadcrumb */}
       <div className="msg-breadcrumb">
-        ARVIS
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="msg-breadcrumb-sep">&gt;</span>
-        {t("风险管理", "Risk Management")}
-        <span className="msg-breadcrumb-sep">&gt;</span>
-        {t("消息", "Messages")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/environment-topic/environment-detail")}
+        >
+          {t("环", "Environment")}
+        </span>
         <span className="msg-breadcrumb-sep">&gt;</span>
         <span className="msg-breadcrumb-active">
           {t("消息详情", "Message Detail")}
         </span>
+      </div>
+      <div style={{ margin: "8px 0 0 24px" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
       </div>
 
       <div className="msg-body">

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./WorkOrderListPage.css";
 
@@ -155,6 +155,9 @@ const PAGE_SIZE = 10;
 export function WorkOrderListPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const fromHome = (location.state as { from?: string })?.from === "home";
 
   // Filters
   const [statusFilter, setStatusFilter] = useState("all");
@@ -167,7 +170,17 @@ export function WorkOrderListPage() {
     negligible: true,
   });
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const setPage = (pageOrFn: number | ((prev: number) => number)) => {
+    const newPage = typeof pageOrFn === "function" ? pageOrFn(page) : pageOrFn;
+    const sp = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      sp.delete("page");
+    } else {
+      sp.set("page", String(newPage));
+    }
+    setSearchParams(sp, { replace: true });
+  };
   const [sortField, setSortField] = useState<"id" | "updatedTime">(
     "updatedTime",
   );
@@ -289,6 +302,23 @@ export function WorkOrderListPage() {
     <div className="wo-root">
       {/* Page header */}
       <div className="wo-page-header">
+        {fromHome && (
+          <button
+            style={{
+              background: "rgba(71,85,105,0.5)",
+              border: "1px solid rgba(148,163,184,0.2)",
+              color: "#e2e8f0",
+              borderRadius: 6,
+              padding: "4px 14px",
+              cursor: "pointer",
+              fontSize: 13,
+              marginRight: 12,
+            }}
+            onClick={() => navigate(-1)}
+          >
+            {t("返回", "Back")}
+          </button>
+        )}
         <h1 className="wo-page-title">{t("工单列表", "Work Order List")}</h1>
       </div>
 

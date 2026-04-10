@@ -17,7 +17,6 @@ import {
 } from "react";
 import { GlowingFlightPaths } from "../components/GlowingFlightPaths";
 import { Sidebar } from "../components/Sidebar";
-import { Timeline } from "../components/Timeline";
 import {
   WindLegend,
   TemperatureLegend,
@@ -58,6 +57,7 @@ import {
   FLIGHTS,
   PROVINCE_AIRPORTS,
   getAirportByCode,
+  getIcaoCode,
   getRiskColor,
   calculateRiskFromEnvironmentRisk,
 } from "../data/flightData";
@@ -764,6 +764,15 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     flightStatuses,
   ]);
 
+  // O(1) 机场查找 Map
+  const airportInstanceMap = useMemo(() => {
+    const map = new Map<string, (typeof airportInstances)[0]>();
+    for (const a of airportInstances) {
+      map.set(a.id, a);
+    }
+    return map;
+  }, [airportInstances]);
+
   // 计算航线：基于统一的航班数据生成航线
   const flightRoutes = useMemo(() => {
     const routes: Array<{
@@ -800,12 +809,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         const toAirport = getAirportByCode(flight.toAirport);
 
         if (fromAirport && toAirport) {
-          const fromAirportInstance = airportInstances.find(
-            (a) => a.id === fromAirport.id,
-          );
-          const toAirportInstance = airportInstances.find(
-            (a) => a.id === toAirport.id,
-          );
+          const fromAirportInstance = airportInstanceMap.get(fromAirport.id);
+          const toAirportInstance = airportInstanceMap.get(toAirport.id);
 
           if (fromAirportInstance && toAirportInstance) {
             // 标准化国家代码（用于判断是否选中）
@@ -895,12 +900,8 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
 
         if (!fromAirport || !toAirport) return;
 
-        const fromAirportInstance = airportInstances.find(
-          (a) => a.id === fromAirport.id,
-        );
-        const toAirportInstance = airportInstances.find(
-          (a) => a.id === toAirport.id,
-        );
+        const fromAirportInstance = airportInstanceMap.get(fromAirport.id);
+        const toAirportInstance = airportInstanceMap.get(toAirport.id);
 
         if (!fromAirportInstance || !toAirportInstance) return;
 
@@ -1097,7 +1098,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     return routes;
   }, [
     selectedCountry,
-    airportInstances,
+    airportInstanceMap,
     viewingAirportId,
     selectedFlightRouteId,
     selectedAirportForAirline,
@@ -1193,8 +1194,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           </div>
         </div>
       </div>
-      {/* 时间轴 */}
-      <Timeline />
+      {/* 时间轴已移至 HomePage 底部条 */}
       {/* 无航线提示 */}
       {flightRoutes &&
         ((viewingAirportId && flightRoutes.length === 0) ||
@@ -1223,94 +1223,81 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
           }}
         >
           {hoveredAirport && (
-            <div className="tooltip-content">
-              <div className="tooltip-title">机场信息</div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">机场名：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.airportName}
+            <div className="tooltip-content tooltip-glass-card">
+              <div className="tooltip-glass-header">
+                <span className="tooltip-selected-tag">
+                  SELECTED · {hoveredAirport.airportCode}
                 </span>
               </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">执飞单位数量：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.operatorCount}
-                </span>
+              <div className="tooltip-glass-name">
+                {hoveredAirport.airportName}
               </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">航班数量：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.flightCount}
+              <div className="tooltip-glass-risk">
+                <span
+                  className="tooltip-glass-risk-val"
+                  style={{
+                    color:
+                      hoveredAirport.environmentRisk >= 7
+                        ? "#FF3957"
+                        : hoveredAirport.environmentRisk >= 5
+                          ? "#FFA033"
+                          : "#65EB7B",
+                  }}
+                >
+                  {hoveredAirport.environmentRisk.toFixed(1)}
                 </span>
+                <span className="tooltip-glass-risk-max">/ 10.0 RISK</span>
               </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">环境风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredAirport.environmentRisk}
-                </span>
-              </div>
-            </div>
-          )}
-          {hoveredFlightRoute && (
-            <div className="tooltip-content">
-              <div className="tooltip-title">航班信息</div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">航班号：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.flightNumber}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">起飞机场：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.fromAirport}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">降落机场：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.toAirport}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">状态：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.status}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">预飞时间：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.scheduledDeparture}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">预到时间：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.scheduledArrival}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">人风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.humanRisk}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">机风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.machineRisk}
-                </span>
-              </div>
-              <div className="tooltip-row">
-                <span className="tooltip-label">环风险值：</span>
-                <span className="tooltip-value">
-                  {hoveredFlightRoute.riskLevel ||
-                    hoveredFlightRoute.environmentRisk}
-                </span>
+              <div className="tooltip-glass-desc">
+                {hoveredAirport.environmentRisk >= 7 ? "出港延误" : "运行正常"}{" "}
+                · {hoveredAirport.flightCount} 航班受影响 ·{" "}
+                {hoveredAirport.operatorCount} 执飞单位
               </div>
             </div>
           )}
+          {hoveredFlightRoute &&
+            (() => {
+              const maxRisk = Math.max(
+                hoveredFlightRoute.humanRisk,
+                hoveredFlightRoute.machineRisk,
+                hoveredFlightRoute.environmentRisk,
+              );
+              return (
+                <div className="tooltip-content tooltip-glass-card">
+                  <div className="tooltip-glass-header">
+                    <span className="tooltip-selected-tag">
+                      FLIGHT · {hoveredFlightRoute.flightNumber}
+                    </span>
+                  </div>
+                  <div className="tooltip-glass-name">
+                    {getIcaoCode(hoveredFlightRoute.fromAirport)} →{" "}
+                    {getIcaoCode(hoveredFlightRoute.toAirport)}
+                  </div>
+                  <div className="tooltip-glass-risk">
+                    <span
+                      className="tooltip-glass-risk-val"
+                      style={{
+                        color:
+                          maxRisk >= 7
+                            ? "#FF3957"
+                            : maxRisk >= 5
+                              ? "#FFA033"
+                              : "#65EB7B",
+                      }}
+                    >
+                      {maxRisk.toFixed(1)}
+                    </span>
+                    <span className="tooltip-glass-risk-max">/ 10.0 RISK</span>
+                  </div>
+                  <div className="tooltip-glass-desc">
+                    {hoveredFlightRoute.status} · 人
+                    {hoveredFlightRoute.humanRisk} · 机
+                    {hoveredFlightRoute.machineRisk} · 环
+                    {hoveredFlightRoute.environmentRisk}
+                  </div>
+                </div>
+              );
+            })()}
         </div>
       )}
       {/* 图例组件 */}
@@ -1687,11 +1674,10 @@ function ElevatedPolygon({
     if (!groupRef.current) return;
 
     frameCountRef.current++;
-    // 每3帧检查一次可见性，减少计算量
-    if (frameCountRef.current % 3 === 0) {
+    // 每6帧检查一次可见性
+    if (frameCountRef.current % 6 === 0) {
       const cameraDir = tempCameraDir.copy(camera.position).normalize();
       const centroidDir = tempCentroidDir.copy(centroid).normalize();
-      // 降低阈值，允许更多角度可见（从0.2改为-0.3，只有在背面很远时才隐藏）
       const visible = cameraDir.dot(centroidDir) > -0.3;
       if (isVisibleRef.current !== visible) {
         isVisibleRef.current = visible;
@@ -1803,11 +1789,10 @@ function ElevatedLine({
     if (!groupRef.current) return;
 
     frameCountRef.current++;
-    // 每3帧检查一次可见性，减少计算量
-    if (frameCountRef.current % 3 === 0) {
+    // 每6帧检查一次可见性
+    if (frameCountRef.current % 6 === 0) {
       const cameraDir = tempCameraDir.copy(camera.position).normalize();
       const centroidDir = tempCentroidDir.copy(centroid).normalize();
-      // 降低阈值，允许更多角度可见（从0.2改为-0.3，只有在背面很远时才隐藏）
       const visible = cameraDir.dot(centroidDir) > -0.3;
       if (isVisibleRef.current !== visible) {
         isVisibleRef.current = visible;
@@ -1895,18 +1880,25 @@ function CountryLabelText({
   const tempLabelDir = useMemo(() => new Vector3(), []);
   const [isVisible, setIsVisible] = useState(true);
 
+  const labelFrameSkip = useRef(0);
   useFrame(() => {
     if (!groupRef.current) return;
+    // 每5帧检查一次可见性
+    labelFrameSkip.current++;
+    if (labelFrameSkip.current % 5 !== 0) {
+      if (isVisible && groupRef.current.visible) {
+        groupRef.current.lookAt(camera.position);
+      }
+      return;
+    }
     const cameraDir = tempCameraDir.copy(camera.position).normalize();
     const labelDir = tempLabelDir.copy(position).normalize();
-    // 降低阈值，允许更多角度可见（从0.2改为-0.3，只有在背面很远时才隐藏）
     const visible = cameraDir.dot(labelDir) > -0.3;
-    setIsVisible(visible);
+    if (visible !== isVisible) setIsVisible(visible);
     groupRef.current.visible = visible;
 
     if (visible) {
       groupRef.current.lookAt(camera.position);
-      // 不再使用上升效果，保持原始位置
       groupRef.current.position.copy(position);
     }
   });
@@ -2379,20 +2371,14 @@ const AirportParticle = memo(function AirportParticle({
     setViewingAirportId,
     setSelectedAirportForAirline,
     setSidebarTab,
-    airportCodeFormat,
   } = useAppStore();
   const isViewing = viewingAirportId === airport.id;
 
   // 根据用户设置获取机场显示编码
   const getAirportDisplayCode = useMemo(() => {
-    if (airportCodeFormat === "four") {
-      // 查找四字码，如果找不到则显示三字码
-      return airportCodeMap[airport.code] || airport.code;
-    } else {
-      // 显示三字码
-      return airport.code;
-    }
-  }, [airportCodeFormat, airport.code, airportCodeMap]);
+    // 始终显示ICAO四字码
+    return airport.code4 || airportCodeMap[airport.code] || airport.code;
+  }, [airport.code4, airport.code, airportCodeMap]);
 
   // 保存原始位置，避免被修改
   const basePosition = useMemo(
@@ -2453,6 +2439,7 @@ const AirportParticle = memo(function AirportParticle({
       setTooltipPosition({ x: nativeEvent.clientX, y: nativeEvent.clientY });
       setHoveredAirport({
         airportId: airport.id,
+        airportCode: airport.code4 || airport.code,
         airportName: airport.name,
         operatorCount: airport.operatorCount,
         flightCount: airport.flightCount,
@@ -2504,140 +2491,174 @@ const AirportParticle = memo(function AirportParticle({
     ],
   );
 
+  const frameSkip = useRef(0);
   useFrame(() => {
     if (!groupRef.current) return;
-    // 不再使用上升效果，保持原始位置
     groupRef.current.position.copy(basePosition);
 
-    // 增强发光动画效果 - 提高基础亮度
+    // 非选中/查看的机场每3帧更新一次动画
+    if (!isSelected && !isViewing) {
+      frameSkip.current++;
+      if (frameSkip.current % 3 !== 0) return;
+    }
+
     const time = Date.now() * 0.001;
     let intensity = isSelected
       ? 1.4 + Math.sin(time * 3) * 0.3
       : 1.0 + Math.sin(time * 2) * 0.25;
 
-    // 如果是正在查看的机场，增强效果
     if (isViewing) {
-      intensity = 2.0 + Math.sin(time * 4) * 0.4; // 增强脉冲效果
+      intensity = 2.0 + Math.sin(time * 4) * 0.4;
     }
 
     glowIntensityRef.current = intensity;
 
-    // 闪烁颜色动画 - 根据风险值动态调整颜色
-    const pulse = Math.sin(time * getPulseParams.speed) * 0.5 + 0.5; // 0 到 1 之间
+    const pulse = Math.sin(time * getPulseParams.speed) * 0.5 + 0.5;
     tempColor.lerpColors(
       getPulseParams.baseColor,
       getPulseParams.brightColor,
       pulse * getPulseParams.intensity,
     );
-    const currentColor = tempColor;
 
-    // 增强材质颜色和透明度 - 提高发光亮度
     if (materialRefs.current.outer) {
-      materialRefs.current.outer.color.copy(currentColor);
-      // 大幅提高外层光晕的亮度和透明度
+      materialRefs.current.outer.color.copy(tempColor);
       materialRefs.current.outer.opacity =
         (isViewing ? 0.7 : isSelected ? 0.6 : 0.5) * intensity;
     }
     if (materialRefs.current.middle) {
-      materialRefs.current.middle.color.copy(currentColor);
-      // 提高中层光晕的亮度
+      materialRefs.current.middle.color.copy(tempColor);
       materialRefs.current.middle.opacity =
         (isViewing ? 1.0 : isSelected ? 0.95 : 0.9) * Math.min(intensity, 1.3);
     }
 
-    // 更新光环效果（如果正在查看）
-    // 确保圆环始终面向相机，保持规则的圆形
     if (isViewing && ringRef.current && materialRefs.current.ring) {
-      // 让圆环始终面向相机
       ringRef.current.lookAt(camera.position);
       const ringScale = 1.0 + Math.sin(time * 3) * 0.3;
       ringRef.current.scale.setScalar(ringScale);
-      materialRefs.current.ring.color.copy(currentColor);
+      materialRefs.current.ring.color.copy(tempColor);
       materialRefs.current.ring.opacity = 0.8 + Math.sin(time * 3) * 0.3;
     }
 
-    // 更新标签（如果正在查看）
-    // 注意：标签是group的子元素，所以位置应该是相对于group的局部坐标
-    // group本身位于basePosition，标签应该沿着从group中心向外的方向偏移
     if (isViewing && labelRef.current && groupRef.current) {
       labelRef.current.lookAt(camera.position);
-      // 计算从group中心向外的方向（即basePosition的归一化方向）
       tempNormal.copy(basePosition).normalize();
-      // 计算世界坐标系中的标签位置（basePosition + 偏移）
       tempWorldPos.copy(basePosition).add(tempNormal.multiplyScalar(0.05));
-      // 转换为group的局部坐标系
       tempLocalPos.copy(tempWorldPos);
       groupRef.current.worldToLocal(tempLocalPos);
       labelRef.current.position.copy(tempLocalPos);
     }
   });
 
+  // Hexagon shape: 6 vertices
+  const hexShape = useMemo(() => {
+    const size = isViewing ? 0.012 : isSelected ? 0.01 : 0.007;
+    const vertices = new Float32Array(6 * 3);
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 6; // rotate 30deg so flat top
+      vertices[i * 3] = Math.cos(angle) * size;
+      vertices[i * 3 + 1] = Math.sin(angle) * size;
+      vertices[i * 3 + 2] = 0;
+    }
+    const indices = [0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 5];
+    return { vertices, indices, size };
+  }, [isViewing, isSelected]);
+
+  const hexGlowShape = useMemo(() => {
+    const size = isViewing ? 0.02 : isSelected ? 0.017 : 0.013;
+    const vertices = new Float32Array(6 * 3);
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 6;
+      vertices[i * 3] = Math.cos(angle) * size;
+      vertices[i * 3 + 1] = Math.sin(angle) * size;
+      vertices[i * 3 + 2] = 0;
+    }
+    const indices = [0, 1, 2, 0, 2, 3, 0, 3, 4, 0, 4, 5];
+    return { vertices, indices };
+  }, [isViewing, isSelected]);
+
   return (
     <group ref={groupRef}>
-      {/* 最外层大光晕 - 增强发光效果 */}
-      <mesh
-        position={[0, 0, 0]}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-        onPointerMove={handlePointerMove}
-        onPointerDown={handlePointerDown}
-      >
-        <sphereGeometry
-          args={[isViewing ? 0.016 : isSelected ? 0.013 : 0.01, 8, 8]}
-        />
-        <meshBasicMaterial
-          ref={(ref) => {
-            if (ref) materialRefs.current.outer = ref;
-          }}
-          color={airport.color}
-          transparent
-          opacity={0.5}
-        />
-      </mesh>
-      {/* 中层光晕 - 增强亮度 */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry
-          args={[isViewing ? 0.01 : isSelected ? 0.008 : 0.006, 8, 8]}
-        />
-        <meshBasicMaterial
-          ref={(ref) => {
-            if (ref) materialRefs.current.middle = ref;
-          }}
-          color={airport.color}
-          transparent
-          opacity={0.9}
-        />
-      </mesh>
-      {/* 内层亮点 - 增强亮度 */}
-      <mesh position={[0, 0, 0]}>
-        <sphereGeometry
-          args={[isViewing ? 0.005 : isSelected ? 0.004 : 0.003, 6, 6]}
-        />
-        <meshBasicMaterial color="#ffffff" transparent opacity={1.0} />
-      </mesh>
-      {/* 正在查看时的光环效果 - 圆环始终面向相机以确保规则圆形 */}
-      {isViewing && (
-        <group ref={ringRef}>
-          <mesh position={[0, 0, 0]}>
-            <ringGeometry args={[0.01, 0.016, 16]} />
-            <meshBasicMaterial
-              ref={(ref) => {
-                if (ref) materialRefs.current.ring = ref;
-              }}
-              color={airport.color}
-              transparent
-              opacity={0.6}
-              side={DoubleSide}
+      {/* Outer hexagonal glow */}
+      <group ref={ringRef}>
+        <mesh
+          position={[0, 0, 0]}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+          onPointerMove={handlePointerMove}
+          onPointerDown={handlePointerDown}
+        >
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              args={[hexGlowShape.vertices, 3]}
             />
-          </mesh>
-        </group>
-      )}
-      {/* 正在查看时的机场名称标签 */}
-      {isViewing && (
+            <bufferAttribute
+              attach="index"
+              args={[new Uint16Array(hexGlowShape.indices), 1]}
+            />
+          </bufferGeometry>
+          <meshBasicMaterial
+            ref={(ref) => {
+              if (ref) materialRefs.current.outer = ref;
+            }}
+            color={airport.color}
+            transparent
+            opacity={0.35}
+            side={DoubleSide}
+          />
+        </mesh>
+        {/* Inner solid hexagon */}
+        <mesh position={[0, 0, 0]}>
+          <bufferGeometry>
+            <bufferAttribute
+              attach="attributes-position"
+              args={[hexShape.vertices, 3]}
+            />
+            <bufferAttribute
+              attach="index"
+              args={[new Uint16Array(hexShape.indices), 1]}
+            />
+          </bufferGeometry>
+          <meshBasicMaterial
+            ref={(ref) => {
+              if (ref) materialRefs.current.middle = ref;
+            }}
+            color={airport.color}
+            transparent
+            opacity={0.85}
+            side={DoubleSide}
+          />
+        </mesh>
+        {/* Hexagon border ring */}
+        <mesh position={[0, 0, 0]}>
+          <ringGeometry args={[hexShape.size * 0.5, hexShape.size * 0.55, 6]} />
+          <meshBasicMaterial
+            ref={(ref) => {
+              if (ref) materialRefs.current.ring = ref;
+            }}
+            color={airport.color}
+            transparent
+            opacity={0.9}
+            side={DoubleSide}
+          />
+        </mesh>
+        {/* Center dot */}
+        <mesh position={[0, 0, 0]}>
+          <circleGeometry args={[hexShape.size * 0.2, 6]} />
+          <meshBasicMaterial
+            color="#ffffff"
+            transparent
+            opacity={0.9}
+            side={DoubleSide}
+          />
+        </mesh>
+      </group>
+      {/* Airport code label when selected/viewing */}
+      {(isViewing || isSelected) && (
         <group ref={labelRef}>
           <Text
             color="#ffffff"
-            fontSize={0.025}
+            fontSize={0.018}
             anchorX="center"
             anchorY="middle"
             outlineWidth={0.003}
@@ -2645,7 +2666,7 @@ const AirportParticle = memo(function AirportParticle({
             maxWidth={0.2}
             renderOrder={100}
           >
-            {getAirportDisplayCode}
+            {`${getAirportDisplayCode} · ${airport.environmentRisk.toFixed(1)}`}
           </Text>
         </group>
       )}

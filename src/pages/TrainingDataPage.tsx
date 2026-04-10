@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ComposedChart,
   Scatter,
@@ -376,6 +377,7 @@ const CustomScatterDot = (props: {
 };
 
 export function TrainingDataPage() {
+  const navigate = useNavigate();
   const { t, lang } = useLanguage();
   const trainingTrendData =
     lang === "zh" ? trainingTrendDataZh : trainingTrendDataEn;
@@ -415,11 +417,36 @@ export function TrainingDataPage() {
     <div className="trn-root">
       {/* Breadcrumb */}
       <div className="trn-breadcrumb">
-        {t("人员中心", "Personnel Center")}
-        <span className="trn-breadcrumb-sep">/</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
+        <span className="trn-breadcrumb-sep">&gt;</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/personnel-center/personnel-list")}
+        >
+          {t("人", "Personnel")}
+        </span>
+        <span className="trn-breadcrumb-sep">&gt;</span>
         <span className="trn-breadcrumb-active">
           {t("训练数据", "Training Data")}
         </span>
+      </div>
+      <div style={{ margin: "8px 0 0 0" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -822,7 +849,7 @@ export function TrainingDataPage() {
                   className="trn-legend-dot"
                   style={{ background: "#ef4444" }}
                 />{" "}
-                {t("风险等级 红/橙", "Red/Orange")}
+                {t("风险等级 红/黄", "Red/Yellow")}
               </span>
             </div>
           </div>
@@ -953,9 +980,7 @@ export function TrainingDataPage() {
               <table className="trn-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 36, textAlign: "center" }}>
-                      <input type="checkbox" className="trn-checkbox" />
-                    </th>
+                    <th style={{ width: 36, textAlign: "center" }} />
                     <th>{t("日期", "Date")}</th>
                     <th>{t("航班号", "Flight ID")}</th>
                     <th>{t("飞行员", "Pilot")}</th>
@@ -970,9 +995,7 @@ export function TrainingDataPage() {
                 <tbody>
                   {lineRecords.map((r, i) => (
                     <tr key={i}>
-                      <td style={{ textAlign: "center" }}>
-                        <input type="checkbox" className="trn-checkbox" />
-                      </td>
+                      <td style={{ textAlign: "center" }} />
                       <td>{r.date}</td>
                       <td style={{ color: "#60a5fa", fontWeight: 600 }}>
                         {r.flightId}

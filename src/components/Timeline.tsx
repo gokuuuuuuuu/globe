@@ -1,9 +1,10 @@
-// @ts-nocheck
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useAppStore } from "../store/useAppStore";
+import { useLanguage } from "../i18n/useLanguage";
 import "./Timeline.css";
 
 export function Timeline() {
+  const { t } = useLanguage();
   const {
     timelineTimeRange,
     setTimelineTimeRange,
@@ -216,14 +217,14 @@ export function Timeline() {
   };
 
   // 格式化日期和时间显示
-  const formatDateTime = (date: Date): string => {
-    const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
-    const month = date.getMonth() + 1;
-    const day = date.getDate();
-    const weekday = weekdays[date.getDay()];
-    const time = formatTime(date);
-    return `${month}月${day}日${weekday}: ${time} GMT+8`;
-  };
+  // const formatDateTime = (date: Date): string => {
+  //   const weekdays = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+  //   const month = date.getMonth() + 1;
+  //   const day = date.getDate();
+  //   const weekday = weekdays[date.getDay()];
+  //   const time = formatTime(date);
+  //   return `${month}月${day}日${weekday}: ${time} GMT+8`;
+  // };
 
   // 计算时间在时间轴上的位置（0-1）
   const getTimePosition = (time: Date): number => {
@@ -278,126 +279,136 @@ export function Timeline() {
 
   const currentPosition = getTimePosition(timelineCurrentTime);
 
+  // 格式化简短日期时间 (07-25 / 14:17 GMT+8)
+  const formatShortDateTime = (date: Date): string => {
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${month}-${day} / ${hours}:${minutes} GMT+8`;
+  };
+
   return (
-    <div className="timeline-container">
-      {/* 时间轴 */}
-      <div className="timeline-wrapper">
-        {/* 时间范围 + 播放按钮 - 同行紧凑排列 */}
-        <div className="timeline-range-card">
-          {[4, 10, 18, 24].map((h) => (
+    <div className="tl-container">
+      {/* Row 1: label + range buttons */}
+      <div className="tl-row1">
+        <span className="tl-label">
+          {t("回放 · 时间窗口", "REPLAY · TIME WINDOW")}
+        </span>
+        <div className="tl-range-group">
+          {([4, 10, 18, 24] as const).map((h) => (
             <button
               key={h}
-              className={`timeline-range-chip ${timelineTimeRange === h ? "active" : ""}`}
+              className={`tl-range-chip ${timelineTimeRange === h ? "active" : ""}`}
               onClick={() => setTimelineTimeRange(h)}
             >
-              {h}h
+              {h}H
             </button>
           ))}
-          <span className="timeline-range-divider" />
-          <button
-            className={`timeline-play-button ${timelineIsPlaying ? "playing" : ""}`}
-            onClick={togglePlay}
-            title={timelineIsPlaying ? "暂停" : "播放"}
-          >
-            {timelineIsPlaying ? (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <rect x="6" y="4" width="4" height="16" />
-                <rect x="14" y="4" width="4" height="16" />
-              </svg>
-            ) : (
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            )}
-          </button>
         </div>
+      </div>
 
-        {/* 时间轴主体 */}
-        <div
-          ref={timelineRef}
-          className="timeline-track"
-          onClick={handleTimelineClick}
-          onMouseMove={handleTimelineMouseMove}
-          onMouseLeave={handleTimelineMouseLeave}
+      {/* Row 2+3: play + time + (track + tick labels) + window */}
+      <div className="tl-row2">
+        <button
+          className={`tl-play-btn ${timelineIsPlaying ? "playing" : ""}`}
+          onClick={togglePlay}
+          title={timelineIsPlaying ? "暂停" : "播放"}
         >
-          {/* 时间轴背景线（未走过的部分 - 暗色） */}
-          <div className="timeline-line" />
-          {/* 时间轴已走过的部分（高亮） */}
-          <div
-            className="timeline-line-progress"
-            style={{ width: `${currentPosition * 100}%` }}
-          />
+          {timelineIsPlaying ? (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" />
+              <rect x="14" y="4" width="4" height="16" />
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          )}
+        </button>
+        <span className="tl-current-time">
+          {formatShortDateTime(timelineCurrentTime)}
+        </span>
 
-          {/* 刻度标记 */}
-          {ticks.map((tick, index) => {
-            const position = getTimePosition(tick);
-            const isFirst = index === 0;
-            const isLast = index === ticks.length - 1;
-            const isPassed = position <= currentPosition;
-            return (
-              <div
-                key={index}
-                className={`timeline-tick ${isFirst ? "timeline-tick-first" : ""} ${isLast ? "timeline-tick-last" : ""}`}
-                style={{
-                  left: isFirst ? "0" : isLast ? "auto" : `${position * 100}%`,
-                  right: isLast ? "0" : undefined,
-                }}
-              >
+        {/* Track + tick labels wrapper — so labels align with track */}
+        <div className="tl-track-col">
+          <div
+            ref={timelineRef}
+            className="tl-track-area"
+            onClick={handleTimelineClick}
+            onMouseMove={handleTimelineMouseMove}
+            onMouseLeave={handleTimelineMouseLeave}
+          >
+            <div className="tl-track-bg" />
+            <div
+              className="tl-track-progress"
+              style={{ width: `${currentPosition * 100}%` }}
+            />
+            {ticks.map((tick, index) => {
+              const position = getTimePosition(tick);
+              const isFirst = index === 0;
+              const isLast = index === ticks.length - 1;
+              return (
                 <div
-                  className="timeline-tick-mark"
+                  key={index}
+                  className={`tl-tick-mark ${isFirst ? "first" : ""} ${isLast ? "last" : ""}`}
                   style={{
-                    background: isPassed
-                      ? "#D5E1FF"
-                      : "rgba(213, 225, 255, 0.3)",
-                    opacity: isPassed ? 1 : 0.5,
+                    left: isFirst
+                      ? "0"
+                      : isLast
+                        ? "auto"
+                        : `${position * 100}%`,
+                    right: isLast ? "0" : undefined,
                   }}
                 />
-                <div
-                  className="timeline-tick-label"
+              );
+            })}
+            <div
+              className="tl-thumb"
+              style={{ left: `${currentPosition * 100}%` }}
+            />
+            {hoveredTime && (
+              <div
+                className="tl-hover-tip"
+                style={{ left: `${getTimePosition(hoveredTime) * 100}%` }}
+              >
+                {formatTime(hoveredTime)}
+              </div>
+            )}
+          </div>
+          {/* Tick labels — same width as track, skip every other for density */}
+          <div className="tl-tick-labels">
+            {ticks.map((tick, index) => {
+              const position = getTimePosition(tick);
+              const isFirst = index === 0;
+              const isLast = index === ticks.length - 1;
+              // Show every tick for ≤6 ticks, otherwise show every other + first/last
+              const showLabel =
+                ticks.length <= 7 || isFirst || isLast || index % 2 === 0;
+              if (!showLabel) return null;
+              return (
+                <span
+                  key={index}
+                  className={`tl-tick-label ${isFirst ? "first" : ""} ${isLast ? "last" : ""}`}
                   style={{
-                    color: isPassed ? "#D5E1FF" : "rgba(213, 225, 255, 0.5)",
+                    left: isFirst
+                      ? "0"
+                      : isLast
+                        ? "auto"
+                        : `${position * 100}%`,
+                    right: isLast ? "0" : undefined,
                   }}
                 >
                   {formatTime(tick, startTime)}
-                </div>
-              </div>
-            );
-          })}
-
-          {/* 当前时间指示器 */}
-          <div
-            className="timeline-indicator"
-            style={{ left: `${currentPosition * 100}%` }}
-          >
-            <div className="timeline-indicator-dot" />
-            {/* 日期和时间标签 - 显示在圆点上方，固定显示当前时间 */}
-            <div className="timeline-date-label">
-              {formatDateTime(timelineCurrentTime)}
-            </div>
+                </span>
+              );
+            })}
           </div>
-
-          {/* 悬停时间指示器 */}
-          {hoveredTime && (
-            <div
-              className="timeline-hover-indicator"
-              style={{ left: `${getTimePosition(hoveredTime) * 100}%` }}
-            >
-              <div className="timeline-hover-tooltip">
-                {formatTime(hoveredTime)}
-              </div>
-            </div>
-          )}
         </div>
+
+        <span className="tl-window-label">
+          {timelineTimeRange}H {t("窗口", "WINDOW")}
+        </span>
       </div>
     </div>
   );

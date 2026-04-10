@@ -563,3 +563,72 @@ header h1 {
   text-align: right;
   flex: 1;
 }
+
+/* ===== Glass-style airport tooltip (v18 design) ===== */
+.tooltip-glass-card {
+  background: rgba(255, 255, 255, 0.17) !important;
+  backdrop-filter: blur(26px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  min-width: 220px !important;
+  max-width: 280px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.18),
+    0 12px 32px rgba(0, 0, 0, 0.4),
+    0 28px 64px rgba(0, 0, 0, 0.25) !important;
+}
+
+.tooltip-glass-header {
+  margin-bottom: 6px;
+}
+
+.tooltip-selected-tag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ff3957;
+  text-shadow: 0 0 8px rgba(255, 57, 87, 0.4);
+}
+
+.tooltip-glass-name {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: 10px;
+}
+
+.tooltip-glass-risk {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.tooltip-glass-risk-val {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-variation-settings: "wdth" 80;
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(255, 57, 87, 0.5);
+}
+
+.tooltip-glass-risk-max {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tooltip-glass-desc {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
+  color: rgba(255, 255, 255, 0.62);
+  line-height: 1.5;
+}

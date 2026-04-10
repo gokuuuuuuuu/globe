@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { useNavigate } from "react-router-dom";
 import {
   RadarChart,
   Radar,
@@ -169,15 +170,23 @@ function BarLabel({ x, y, width, value, index, isPersonal }: any) {
 // ---------- Component ----------
 
 export function PersonnelVsFleetPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
 
   return (
     <div className="pv-root">
       {/* Breadcrumb */}
       <div className="pv-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="pv-breadcrumb-sep">&gt;</span>
-        <span>{t("人员中心", "Personnel Center")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/personnel-center/personnel-list")}
+        >
+          {t("人", "Personnel")}
+        </span>
         <span className="pv-breadcrumb-sep">&gt;</span>
         <span className="pv-breadcrumb-active">
           {t("个人 VS 机队", "Personal vs Fleet")}
@@ -185,9 +194,32 @@ export function PersonnelVsFleetPage() {
       </div>
 
       {/* Page Title */}
-      <h1 className="pv-page-title">
-        {t("个人 VS 机队", "Personal vs Fleet")}
-      </h1>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          margin: "12px 0",
+        }}
+      >
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
+        <h1 className="pv-page-title" style={{ margin: 0 }}>
+          {t("个人 VS 机队", "Personal vs Fleet")}
+        </h1>
+      </div>
 
       {/* Filter Row */}
       <div className="pv-filter-row">

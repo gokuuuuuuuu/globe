@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -12,18 +12,18 @@
 .fe-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
 .fe-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .fe-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page Header */
@@ -42,13 +42,13 @@
 .fe-page-title {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 4px;
 }
 
 .fe-page-subtitle {
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   margin: 0;
 }
 
@@ -65,13 +65,13 @@
 
 .fe-meta-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 2px;
 }
 
 .fe-meta-value {
   font-size: 13px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-weight: 500;
 }
 
@@ -105,16 +105,17 @@
 
 /* Top Factor Card */
 .fe-factor-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px 20px;
 }
 
 .fe-factor-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 12px;
 }
 
@@ -130,32 +131,32 @@
 }
 
 .fe-factor-field:not(:last-child) {
-  border-right: 1px solid rgba(148, 163, 184, 0.15);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
   margin-right: 20px;
 }
 
 .fe-factor-field-label {
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-bottom: 4px;
 }
 
 .fe-factor-field-value {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-factor-field-value-sm {
   font-size: 13px;
   font-weight: 500;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-contribution-value {
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-contribution-badge {
@@ -193,9 +194,9 @@
   gap: 6px;
   padding: 6px 14px;
   border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(30, 41, 59, 0.6);
-  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.62);
   font-size: 12px;
   cursor: pointer;
   transition: all 0.15s;
@@ -203,14 +204,14 @@
 }
 
 .fe-btn:hover {
-  background: rgba(51, 65, 85, 0.6);
-  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-factor-description {
   margin-top: 10px;
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.5;
 }
 
@@ -223,16 +224,17 @@
 
 /* Card */
 .fe-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px 20px;
 }
 
 .fe-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 14px;
 }
 
@@ -240,7 +242,7 @@
 .fe-logic-section-title {
   font-size: 12px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 10px;
 }
 
@@ -259,24 +261,24 @@
 }
 
 .fe-logic-keyword {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
   flex-shrink: 0;
   min-width: 16px;
 }
 
 .fe-logic-condition {
-  background: rgba(51, 65, 85, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   padding: 4px 10px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 12px;
   font-family: "SF Mono", "Fira Code", monospace;
 }
 
 .fe-logic-then {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 600;
   flex-shrink: 0;
 }
@@ -308,17 +310,18 @@
 .fe-table th {
   text-align: left;
   padding: 8px 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
   font-weight: 500;
   font-size: 11px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #080810;
   white-space: nowrap;
 }
 
 .fe-table td {
   padding: 8px 12px;
-  color: #e2e8f0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  color: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .fe-table tr:last-child td {
@@ -326,11 +329,11 @@
 }
 
 .fe-table-desc {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .fe-table-threshold {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
 }
 
 /* Trends card */
@@ -344,15 +347,15 @@
 .fe-trend-title {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-trend-select {
-  background: rgba(51, 65, 85, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 4px;
   padding: 4px 8px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 11px;
   cursor: pointer;
   outline: none;
@@ -377,12 +380,12 @@
 .fe-peer-title {
   font-size: 13px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-peer-percentile {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   font-weight: 500;
 }
 
@@ -395,14 +398,14 @@
 .fe-tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 16px;
 }
 
 .fe-tab {
   padding: 8px 16px;
   font-size: 13px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.62);
   cursor: pointer;
   border: none;
   background: none;
@@ -411,7 +414,7 @@
 }
 
 .fe-tab:hover {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-tab-active {
@@ -421,9 +424,10 @@
 
 /* Related Context */
 .fe-related-section {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px 20px;
 }
 
@@ -443,7 +447,7 @@
 .fe-related-block-title {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 .fe-btn-sm {
@@ -478,11 +482,11 @@
 
 .fe-rule-item {
   padding: 8px 12px;
-  background: rgba(51, 65, 85, 0.3);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: #080810;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 4px;
   font-size: 12px;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Scrollbar */
@@ -495,35 +499,35 @@
 }
 
 .fe-root::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .fe-root::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Custom tooltip for recharts */
 .fe-tooltip {
-  background: rgba(15, 23, 42, 0.95) !important;
-  border: 1px solid rgba(148, 163, 184, 0.2) !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 6px !important;
   padding: 8px 12px !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 .fe-tooltip .recharts-tooltip-label {
-  color: #94a3b8 !important;
+  color: rgba(255, 255, 255, 0.62) !important;
   font-size: 11px !important;
 }
 
 .fe-tooltip .recharts-tooltip-item {
-  color: #e2e8f0 !important;
+  color: rgba(255, 255, 255, 0.96) !important;
   font-size: 12px !important;
 }
 
 /* Threshold annotation */
 .fe-threshold-line {
-  stroke: #94a3b8;
+  stroke: rgba(255, 255, 255, 0.4);
   stroke-dasharray: 4 4;
 }

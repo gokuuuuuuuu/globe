@@ -223,16 +223,40 @@ export function PersonnelDetailPage() {
     <div className="pd-root">
       {/* Breadcrumb */}
       <div className="pd-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="pd-breadcrumb-sep">&gt;</span>
-        <span>{t("人", "Personnel")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/personnel-center/personnel-list")}
+        >
+          {t("人", "Personnel")}
+        </span>
         <span className="pd-breadcrumb-sep">&gt;</span>
         <span className="pd-breadcrumb-active">
           {t("人员详情", "Personnel Detail")}
         </span>
       </div>
 
-      {/* Header Card */}
+      {/* Back + Header Card */}
+      <div style={{ marginBottom: 8 }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+            margin: "16px 0 0 24px",
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
+      </div>
       <div className="pd-header-card">
         <div className="pd-header-top">
           <h1 className="pd-header-title">P1300456 - John M. Stevenson</h1>
@@ -277,12 +301,14 @@ export function PersonnelDetailPage() {
             <div className="pd-info-value">P1300456</div>
           </div>
           <div className="pd-info-item">
+            <div className="pd-info-label">{t("机型", "Aircraft Type")}</div>
+            <div className="pd-info-value">B737-800</div>
+          </div>
+          <div className="pd-info-item">
             <div className="pd-info-label">
-              {t("角色 / 机队", "Role / Fleet")}
+              {t("技术等级", "Technical Level")}
             </div>
-            <div className="pd-info-value">
-              {t("资深飞行员 / 环球鹰机队", "Senior Pilot / Globalhawk Fleet")}
-            </div>
+            <div className="pd-info-value">{t("机长", "Captain")}</div>
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">
@@ -396,131 +422,6 @@ export function PersonnelDetailPage() {
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
-              </div>
-              <h3
-                className="pd-card-title"
-                style={{ marginTop: 24, marginBottom: 12 }}
-              >
-                {t("相关历史航班", "Related Historical Flights")}
-              </h3>
-              <div style={{ fontSize: 13, color: "#94a3b8" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr
-                      style={{
-                        borderBottom: "1px solid rgba(148,163,184,0.15)",
-                      }}
-                    >
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("航班号", "Flight No.")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("日期", "Date")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("航线", "Route")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("风险等级", "Risk Level")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[
-                      {
-                        fn: "MU5101",
-                        date: "2024-03-15",
-                        route: "ZSPD-ZBAA",
-                        risk: t("高", "High"),
-                        color: "#ef4444",
-                      },
-                      {
-                        fn: "MU5235",
-                        date: "2024-03-10",
-                        route: "ZBAA-ZSPD",
-                        risk: t("中", "Medium"),
-                        color: "#eab308",
-                      },
-                      {
-                        fn: "MU5302",
-                        date: "2024-02-28",
-                        route: "ZSPD-ZGGG",
-                        risk: t("高", "High"),
-                        color: "#ef4444",
-                      },
-                      {
-                        fn: "MU5418",
-                        date: "2024-02-20",
-                        route: "ZGGG-ZSPD",
-                        risk: t("低", "Low"),
-                        color: "#22c55e",
-                      },
-                      {
-                        fn: "MU5506",
-                        date: "2024-02-15",
-                        route: "ZSPD-ZSSS",
-                        risk: t("中", "Medium"),
-                        color: "#eab308",
-                      },
-                    ].map((f, i) => (
-                      <tr
-                        key={i}
-                        style={{
-                          borderBottom: "1px solid rgba(148,163,184,0.08)",
-                          cursor: "pointer",
-                        }}
-                        onClick={() =>
-                          navigate(`/risk-monitoring/flight-detail?fn=${f.fn}`)
-                        }
-                      >
-                        <td
-                          style={{
-                            padding: "8px 12px",
-                            color: "#e2e8f0",
-                            fontWeight: 600,
-                          }}
-                        >
-                          {f.fn}
-                        </td>
-                        <td style={{ padding: "8px 12px" }}>{f.date}</td>
-                        <td style={{ padding: "8px 12px" }}>{f.route}</td>
-                        <td style={{ padding: "8px 12px" }}>
-                          <span style={{ color: f.color, fontWeight: 600 }}>
-                            {f.risk}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
           )}
@@ -650,7 +551,7 @@ export function PersonnelDetailPage() {
                           fontSize: 12,
                         }}
                       >
-                        {t("航线", "Route")}
+                        {t("航班", "Flight")}
                       </th>
                       <th
                         style={{

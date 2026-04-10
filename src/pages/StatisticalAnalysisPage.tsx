@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -107,6 +108,7 @@ const OTP_KEYS = ["JKF", "LAX", "ACR", "NDY", "ABR", "ALL"];
 // ===== Component =====
 
 export function StatisticalAnalysisPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>("airport-statistics");
 
@@ -147,10 +149,17 @@ export function StatisticalAnalysisPage() {
     <div className="sta-root">
       {/* Breadcrumb */}
       <div className="sta-breadcrumb">
-        {t("首页", "Home")}
-        <span className="sta-breadcrumb-sep">/</span>
-        {t("统计分析", "Statistical Analysis")}
-        <span className="sta-breadcrumb-sep">/</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
+        <span className="sta-breadcrumb-sep">&gt;</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/statistical-analysis")}
+        >
+          {t("统计分析", "Statistics")}
+        </span>
+        <span className="sta-breadcrumb-sep">&gt;</span>
         <span className="sta-breadcrumb-active">
           {t("机场统计", "Airport Statistics")}
         </span>
@@ -172,13 +181,7 @@ export function StatisticalAnalysisPage() {
         </button>
         <div className="sta-header-actions">
           <button className="sta-export-btn">
-            &#128196;&nbsp;{t("导出 Excel", "Export Excel")}
-          </button>
-          <button className="sta-export-btn">
             &#128196;&nbsp;{t("导出 PDF", "Export PDF")}
-          </button>
-          <button className="sta-export-btn primary">
-            &#128231;&nbsp;{t("订阅日报", "Subscribe Daily Report")}
           </button>
         </div>
       </div>
@@ -575,7 +578,6 @@ export function StatisticalAnalysisPage() {
       </div>
 
       {/* Footer */}
-     
     </div>
   );
 }

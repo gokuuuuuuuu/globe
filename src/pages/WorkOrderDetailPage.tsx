@@ -123,15 +123,36 @@ export function WorkOrderDetailPage() {
     <div className="wod-root">
       {/* Breadcrumb */}
       <div className="wod-breadcrumb">
-        {t("首页", "Home")}
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="wod-breadcrumb-sep">&gt;</span>
-        {t("治理闭环", "Governance")}
-        <span className="wod-breadcrumb-sep">&gt;</span>
-        {t("工单", "Work Orders")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/governance/work-order-list")}
+        >
+          {t("治理闭环", "Governance")}
+        </span>
         <span className="wod-breadcrumb-sep">&gt;</span>
         <span className="wod-breadcrumb-active">WO-20230815</span>
       </div>
 
+      <div style={{ margin: "8px 0 0 24px" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
+      </div>
       <div className="wod-body">
         {/* Page header */}
         <div className="wod-page-header">
@@ -255,7 +276,7 @@ export function WorkOrderDetailPage() {
                   {/* Y-axis label */}
                   <div className="wod-matrix-ylabel">{t("影响", "Impact")}</div>
                   {/* Row 1 (High impact) */}
-                  <div className="wod-matrix-cell orange">&nbsp;</div>
+                  <div className="wod-matrix-cell yellow">&nbsp;</div>
                   <div className="wod-matrix-cell red">&nbsp;</div>
                   <div className="wod-matrix-cell red active">
                     {t("高", "High")}
@@ -263,13 +284,13 @@ export function WorkOrderDetailPage() {
                   {/* Row 2 (Medium impact) */}
                   <div style={{ gridColumn: 1 }} />
                   <div className="wod-matrix-cell yellow">&nbsp;</div>
-                  <div className="wod-matrix-cell orange">&nbsp;</div>
+                  <div className="wod-matrix-cell yellow">&nbsp;</div>
                   <div className="wod-matrix-cell red">&nbsp;</div>
                   {/* Row 3 (Low impact) */}
                   <div style={{ gridColumn: 1 }} />
                   <div className="wod-matrix-cell green">&nbsp;</div>
                   <div className="wod-matrix-cell yellow">&nbsp;</div>
-                  <div className="wod-matrix-cell orange">&nbsp;</div>
+                  <div className="wod-matrix-cell yellow">&nbsp;</div>
                   {/* X-axis labels */}
                   <div />
                   <div className="wod-matrix-label">{t("低", "Low")}</div>

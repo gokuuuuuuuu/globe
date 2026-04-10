@@ -237,9 +237,7 @@ export function RiskFactorLibraryPage() {
           <table className="rfl-table">
             <thead>
               <tr>
-                <th style={{ width: 40 }}>
-                  <input type="checkbox" className="rfl-checkbox" />
-                </th>
+                <th style={{ width: 40 }} />
                 <th className="sortable">
                   {t("因子编号", "Factor ID")}
                   <span className="rfl-sort-icon">⇅</span>
@@ -269,9 +267,7 @@ export function RiskFactorLibraryPage() {
             <tbody>
               {filtered.map((f) => (
                 <tr key={f.id}>
-                  <td>
-                    <input type="checkbox" className="rfl-checkbox" />
-                  </td>
+                  <td />
                   <td>{f.id}</td>
                   <td>{tFactorName(f.name)}</td>
                   <td>{t("类别", f.category)}</td>

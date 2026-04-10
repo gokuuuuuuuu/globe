@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./FeedbackReviewPage.css";
 
@@ -23,13 +24,28 @@ const attachments = [
 
 export function FeedbackReviewPage() {
   const { t } = useLanguage();
-  const [falseAlarm, setFalseAlarm] = useState(false);
+  const navigate = useNavigate();
   const [continuousObs, setContinuousObs] = useState("no");
 
   return (
     <div className="fbr-root">
       {/* Page header */}
       <div className="fbr-page-header">
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+            marginRight: 12,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
         <h1 className="fbr-page-title">
           {t(
             "反馈 / 复核 - 工单 #WO-20231027-004",
@@ -37,9 +53,16 @@ export function FeedbackReviewPage() {
           )}
         </h1>
         <div className="fbr-breadcrumb">
-          {t("工单", "Work Orders")}
+          <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+            {t("工作台", "Dashboard")}
+          </span>
           <span className="fbr-breadcrumb-sep">&gt;</span>
-          WO-20231027-004
+          <span
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/governance/work-order-list")}
+          >
+            {t("治理闭环", "Governance")}
+          </span>
           <span className="fbr-breadcrumb-sep">&gt;</span>
           <span className="fbr-breadcrumb-active">{t("反馈", "Feedback")}</span>
         </div>
@@ -136,14 +159,9 @@ export function FeedbackReviewPage() {
                   <span className="fbr-option-title">
                     {t("误报", "False Alarm")}
                   </span>
-                  <label className="fbr-checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={falseAlarm}
-                      onChange={(e) => setFalseAlarm(e.target.checked)}
-                    />
+                  <span className="fbr-checkbox-label">
                     {t("标记为误报", "Mark as False Alarm")}
-                  </label>
+                  </span>
                 </div>
                 <div className="fbr-option-group">
                   <span className="fbr-option-title">

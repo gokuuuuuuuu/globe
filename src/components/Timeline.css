@@ -1,331 +1,222 @@
-.timeline-container {
-  position: absolute;
-  left: 350px;
-  right: 400px;
-  bottom: 24px;
+/* ===== Timeline — 3-row layout for bottom strip ===== */
+
+.tl-container {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  z-index: 20;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  padding: 16px;
-  border-radius: 8px;
-  overflow: visible;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 6px;
+  justify-content: center;
 }
 
-/* Old panel/title hidden */
-.timeline-range-title {
-  display: none;
-}
-.timeline-range-panel {
-  display: none;
-}
-.timeline-range-section {
-  display: none;
-}
-
-/* Range card: chips + play button inline */
-.timeline-range-card {
+/* Row 1: REPLAY label + range buttons */
+.tl-row1 {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+}
+
+.tl-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tl-range-group {
+  display: flex;
   gap: 2px;
-  padding: 3px;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  backdrop-filter: blur(12px);
-  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 5px;
+  padding: 2px;
 }
 
-.timeline-range-chip {
-  padding: 4px 9px;
-  border-radius: 14px;
+.tl-range-chip {
+  padding: 2px 8px;
+  border-radius: 4px;
   border: none;
   background: transparent;
-  color: rgba(148, 163, 184, 0.6);
-  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-  line-height: 1;
-  letter-spacing: 0.3px;
+  transition: all 0.15s;
+  line-height: 1.4;
 }
 
-.timeline-range-chip:hover {
-  color: #e2e8f0;
-  background: rgba(148, 163, 184, 0.08);
+.tl-range-chip:hover {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-.timeline-range-chip.active {
-  background: rgba(213, 225, 255, 0.14);
-  color: #d5e1ff;
+.tl-range-chip.active {
+  background: rgba(45, 79, 179, 0.5);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(45, 79, 179, 0.4);
 }
 
-.timeline-range-divider {
-  width: 1px;
-  height: 16px;
-  background: rgba(148, 163, 184, 0.15);
-  margin: 0 2px;
-  flex-shrink: 0;
-}
-
-.timeline-wrapper {
-  flex: 1;
+/* Row 2: play + time + track + window */
+.tl-row2 {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  position: relative;
-  overflow: visible;
+  gap: 10px;
 }
 
-.timeline-play-button {
-  width: 26px;
-  height: 26px;
-  border-radius: 999px;
-  border: none;
-  display: inline-flex;
+.tl-play-btn {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(100, 212, 234, 0.9);
+  display: flex;
   align-items: center;
   justify-content: center;
-  background: #d5e1ff;
-  box-shadow: 0 0 10px rgba(213, 225, 255, 0.5);
-  color: #0b1120;
   cursor: pointer;
-  flex-shrink: 0;
-  transition:
-    transform 0.12s ease-out,
-    box-shadow 0.12s ease-out,
-    background 0.12s ease-out;
+  transition: all 0.15s;
 }
 
-.timeline-play-button.playing {
-  background: #d5e1ff;
-  box-shadow: 0 0 16px rgba(213, 225, 255, 0.8);
+.tl-play-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(100, 212, 234, 0.4);
 }
 
-.timeline-play-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(56, 189, 248, 0.9);
+.tl-play-btn.playing {
+  background: rgba(100, 212, 234, 0.15);
+  border-color: rgba(100, 212, 234, 0.4);
+  box-shadow: 0 0 10px rgba(100, 212, 234, 0.3);
 }
 
-.timeline-date-label {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.8);
-  background: radial-gradient(
-    circle at top,
-    rgba(15, 23, 42, 0.95),
-    rgba(15, 23, 42, 0.85)
-  );
-  font-size: 12px;
-  color: #e5e7eb;
+.tl-current-time {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: rgba(100, 212, 234, 0.9);
   white-space: nowrap;
-  pointer-events: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  flex-shrink: 0;
 }
 
-.timeline-date-label::before {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 7px solid rgba(148, 163, 184, 0.8);
-  z-index: -1;
-}
-
-.timeline-date-label::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: -1px;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid rgba(15, 23, 42, 0.95);
-}
-
-.timeline-track {
-  position: relative;
+/* Track column: track + tick labels stacked */
+.tl-track-col {
   flex: 1;
-  height: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* Track area */
+.tl-track-area {
+  position: relative;
+  height: 20px;
   cursor: pointer;
 }
 
-.timeline-line {
+.tl-track-bg {
   position: absolute;
   top: 50%;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   transform: translateY(-50%);
-  background: rgba(213, 225, 255, 0.2);
-  box-shadow: 0 0 5px rgba(213, 225, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 
-.timeline-line-progress {
+.tl-track-progress {
   position: absolute;
   top: 50%;
   left: 0;
-  height: 2px;
+  height: 3px;
   transform: translateY(-50%);
-  background: #d5e1ff;
-  box-shadow: 0 0 10px rgba(213, 225, 255, 0.8);
+  background: linear-gradient(90deg, #2d4fb3, #64d4ea);
+  border-radius: 2px;
+  box-shadow: 0 0 6px rgba(45, 79, 179, 0.5);
   transition: width 0.1s linear;
 }
 
-.timeline-tick {
+/* Tick marks on the track (small vertical lines) */
+.tl-tick-mark {
   position: absolute;
-  top: 0;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.timeline-tick-first {
-  transform: translateX(0);
-  align-items: flex-start;
-}
-
-.timeline-tick-last {
-  transform: translateX(0);
-  align-items: flex-end;
-}
-
-.timeline-tick-mark {
+  top: 50%;
+  transform: translate(-50%, -50%);
   width: 2px;
   height: 10px;
-  margin-top: 8px;
-  border-radius: 999px;
-  background: rgba(213, 225, 255, 0.5);
-  opacity: 0.7;
-}
-
-.timeline-tick-label {
-  margin-top: 12px;
-  font-size: 11px;
-  color: #e5e7eb;
-  text-shadow: 0 0 4px rgba(15, 23, 42, 0.9);
-  white-space: nowrap;
-  padding: 0 2px;
-}
-
-.timeline-track {
-  position: relative;
-  flex: 1;
-  height: 40px;
-  cursor: pointer;
-  padding-right: 20px;
-  overflow: visible;
-}
-
-.timeline-indicator {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 1px;
+  background: rgba(255, 165, 51, 0.6);
   pointer-events: none;
 }
 
-.timeline-indicator-dot {
+.tl-tick-mark.first,
+.tl-tick-mark.last {
+  transform: translate(0, -50%);
+}
+
+/* Thumb */
+.tl-thumb {
+  position: absolute;
+  top: 50%;
   width: 14px;
   height: 14px;
-  border-radius: 999px;
-  background: #d5e1ff;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid #2d4fb3;
+  transform: translate(-50%, -50%);
   box-shadow:
-    0 0 10px rgba(213, 225, 255, 0.9),
-    0 0 20px rgba(213, 225, 255, 0.7);
-  border: 2px solid rgba(15, 23, 42, 0.9);
-}
-
-.timeline-hover-indicator {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    0 0 8px rgba(45, 79, 179, 0.6),
+    0 0 16px rgba(45, 79, 179, 0.3);
   pointer-events: none;
+  z-index: 5;
 }
 
-.timeline-hover-tooltip {
+/* Hover tooltip */
+.tl-hover-tip {
   position: absolute;
-  bottom: 100%;
-  left: 50%;
+  bottom: calc(100% + 4px);
   transform: translateX(-50%);
-  padding: 4px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.8);
-  background: radial-gradient(
-    circle at top,
-    rgba(15, 23, 42, 0.95),
-    rgba(15, 23, 42, 0.85)
-  );
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #e5e7eb;
-  font-size: 12px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 10;
 }
 
-.timeline-hover-tooltip::before {
-  content: "";
+.tl-window-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.35);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Tick labels — sits directly below the track, same width */
+.tl-tick-labels {
+  position: relative;
+  height: 12px;
+}
+
+.tl-tick-label {
   position: absolute;
-  top: 100%;
-  left: 50%;
   transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 7px solid rgba(148, 163, 184, 0.8);
-  z-index: -1;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  line-height: 1;
 }
 
-.timeline-hover-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: -1px;
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 6px solid rgba(15, 23, 42, 0.95);
+.tl-tick-label.first {
+  transform: translateX(0);
 }
 
-@media (max-width: 1440px) {
-  .timeline-container {
-    left: 350px;
-    right: 400px;
-    overflow: visible; /* 确保在响应式布局中也可见 */
-  }
-
-  .timeline-range-panel {
-    display: none;
-  }
+.tl-tick-label.last {
+  transform: translateX(0);
 }

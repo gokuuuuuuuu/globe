@@ -1,15 +1,10 @@
 //@ts-nocheck
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./FlightReportPage.css";
 
 const NAV_SECTIONS = [
-  {
-    id: "flight-facts",
-    labelZh: "航班事实",
-    labelEn: "Flight Facts",
-    icon: "doc",
-  },
   {
     id: "composite-risk",
     labelZh: "综合风险结论",
@@ -41,24 +36,6 @@ const NAV_SECTIONS = [
     icon: "env",
   },
   {
-    id: "factor-explanation",
-    labelZh: "因子解释",
-    labelEn: "Factor Explanation",
-    icon: "doc",
-  },
-  {
-    id: "evidence-chain",
-    labelZh: "证据链",
-    labelEn: "Evidence Chain",
-    icon: "evidence",
-  },
-  {
-    id: "major-risk-detail",
-    labelZh: "重大风险详情",
-    labelEn: "Major Risk Detail",
-    icon: "alert",
-  },
-  {
     id: "major-risk",
     labelZh: "重大风险事件说明",
     labelEn: "Major Risk Event Explanation",
@@ -75,6 +52,30 @@ const NAV_SECTIONS = [
     labelZh: "治理记录",
     labelEn: "Governance Records",
     icon: "gov",
+  },
+  {
+    id: "flight-facts",
+    labelZh: "航班事实",
+    labelEn: "Flight Facts",
+    icon: "doc",
+  },
+  {
+    id: "factor-explanation",
+    labelZh: "因子解释",
+    labelEn: "Factor Explanation",
+    icon: "doc",
+  },
+  {
+    id: "evidence-chain",
+    labelZh: "证据链",
+    labelEn: "Evidence Chain",
+    icon: "evidence",
+  },
+  {
+    id: "major-risk-detail",
+    labelZh: "重大风险详情",
+    labelEn: "Major Risk Detail",
+    icon: "alert",
   },
 ];
 
@@ -173,6 +174,7 @@ function NavIcon({ type }: { type: string }) {
 export function FlightReportPage() {
   const [activeSection, setActiveSection] = useState("composite-risk");
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -184,24 +186,32 @@ export function FlightReportPage() {
     <div className="fr-root">
       {/* Breadcrumb */}
       <div className="fr-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="fr-breadcrumb-sep">&gt;</span>
-        <span>{t("航班", "Flights")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/risk-monitoring/flights")}
+        >
+          {t("航班", "Flights")}
+        </span>
         <span className="fr-breadcrumb-sep">&gt;</span>
         <span className="fr-breadcrumb-active">
-          {t("完整航班报告", "Full Flight Report")}
+          {t("航班报告", "Flight Report")}
         </span>
       </div>
 
       {/* Page Header */}
       <div className="fr-page-header">
-        <h1 className="fr-page-title">
-          {t("完整航班报告", "Full Flight Report")}
-        </h1>
+        <h1 className="fr-page-title">{t("航班报告", "Flight Report")}</h1>
         <div className="fr-header-actions">
           <button className="fr-btn">{t("导出", "Export")}</button>
-          <button className="fr-btn fr-btn-primary">
-            {t("返回航班详情", "Back to Flight Detail")}
+          <button
+            className="fr-btn fr-btn-primary"
+            onClick={() => navigate(-1)}
+          >
+            {t("返回", "Back")}
           </button>
         </div>
       </div>
@@ -504,7 +514,7 @@ export function FlightReportPage() {
                     {
                       labelZh: "机组疲劳",
                       labelEn: "Crew Fatigue",
-                      badge: "Moderate - Orange",
+                      badge: "Moderate - Yellow",
                       cls: "fr-badge-moderate",
                     },
                     {

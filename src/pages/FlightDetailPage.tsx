@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import "./FlightDetailPage.css";
 
@@ -70,28 +71,28 @@ const factorData = {
   human: [
     { name: "Crew Fatigue", score: 3.0, color: "red" },
     { name: "Communication Lag", score: 2.0, color: "red" },
-    { name: "Crew Fatigue", score: 2.0, color: "orange" },
+    { name: "Crew Fatigue", score: 2.0, color: "yellow" },
     { name: "Communication", score: 1.8, color: "yellow" },
     { name: "Communication Lag", score: 1.0, color: "green" },
   ],
   aircraft: [
     { name: "Engine Issue", score: 3.0, color: "red" },
     { name: "Communication Lag", score: 2.0, color: "red" },
-    { name: "Communication Lag", score: 2.0, color: "orange" },
+    { name: "Communication Lag", score: 2.0, color: "yellow" },
     { name: "Engine Issue", score: 1.9, color: "yellow" },
     { name: "Engine Issue", score: 1.0, color: "green" },
   ],
   environment: [
     { name: "Thunderstorms", score: 3.0, color: "red" },
     { name: "Thunderstorms", score: 2.5, color: "red" },
-    { name: "Engine Issue", score: 2.0, color: "orange" },
+    { name: "Engine Issue", score: 2.0, color: "yellow" },
     { name: "High Traffic", score: 1.9, color: "yellow" },
     { name: "Communication Lag", score: 1.0, color: "green" },
   ],
   composite: [
     { name: "High Traffic", score: 3.0, color: "red" },
     { name: "High Traffic", score: 2.5, color: "red" },
-    { name: "Thunderstorms", score: 2.0, color: "orange" },
+    { name: "Thunderstorms", score: 2.0, color: "yellow" },
     { name: "High Traffic", score: 1.9, color: "yellow" },
     { name: "Braking Action", score: 1.0, color: "green" },
   ],
@@ -130,13 +131,13 @@ const majorRiskEvents = [
 
 function getDotClass(color: string) {
   if (color === "red") return "fd-dot-red";
-  if (color === "orange") return "fd-dot-orange";
   if (color === "yellow") return "fd-dot-yellow";
   return "fd-dot-green";
 }
 
 export function FlightDetailPage() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
   // Tabs removed per requirements
 
   const tFactor = (name: string) => {
@@ -193,25 +194,43 @@ export function FlightDetailPage() {
     <div className="fd-root">
       {/* Breadcrumb */}
       <div className="fd-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="fd-breadcrumb-sep">&gt;</span>
-        <span>{t("航班", "Flights")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/risk-monitoring/flights")}
+        >
+          {t("航班", "Flights")}
+        </span>
         <span className="fd-breadcrumb-sep">&gt;</span>
         <span className="fd-breadcrumb-active">
-          {t("航班信息", "Flight Info")}
+          {t("航班详情", "Flight Detail")}
         </span>
       </div>
 
       {/* Page Header */}
       <div className="fd-page-header">
-        <h1 className="fd-page-title">
-          {t("航班信息", "Flight Info")} - {flightInfo.flightNumber}
-        </h1>
-        <div className="fd-header-actions">
-          <button className="fd-btn">
-            {t("查看完整报告", "View Full Report")}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button className="fd-btn" onClick={() => navigate(-1)}>
+            {t("返回", "Back")}
           </button>
-          <button className="fd-btn fd-btn-danger">
+          <h1 className="fd-page-title">
+            {t("航班信息", "Flight Info")} - {flightInfo.flightNumber}
+          </h1>
+        </div>
+        <div className="fd-header-actions">
+          <button
+            className="fd-btn"
+            onClick={() => navigate("/risk-monitoring/flight-report")}
+          >
+            {t("查看报告", "View Report")}
+          </button>
+          <button
+            className="fd-btn fd-btn-danger"
+            onClick={() => navigate("/governance/work-order-detail")}
+          >
             {t("发起处置", "Initiate Action")}
           </button>
         </div>

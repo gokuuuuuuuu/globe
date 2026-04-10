@@ -174,9 +174,16 @@ export function AircraftListPage() {
   return (
     <div className="acl-root">
       <div className="acl-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="acl-breadcrumb-sep">&gt;</span>
-        <span>{t("机", "Aircraft")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/aircraft-topic/aircraft-list")}
+        >
+          {t("机", "Aircraft")}
+        </span>
         <span className="acl-breadcrumb-sep">&gt;</span>
         <span className="acl-breadcrumb-active">
           {t("飞机列表", "Aircraft List")}

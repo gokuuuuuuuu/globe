@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   MapContainer,
   TileLayer,
@@ -84,6 +85,7 @@ const riskConclusion = {
 // ===== Component =====
 
 export function NoticeDetailPage() {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [viewMode, setViewMode] = useState<"raw" | "formatted">("raw");
 
@@ -91,17 +93,38 @@ export function NoticeDetailPage() {
     <div className="ntc-root">
       {/* Breadcrumb */}
       <div className="ntc-breadcrumb">
-        {t("首页", "Home")}
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="ntc-breadcrumb-sep">&gt;</span>
-        {t("环境专题", "Environment")}
-        <span className="ntc-breadcrumb-sep">&gt;</span>
-        {t("通告", "Notice")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/environment-topic/environment-detail")}
+        >
+          {t("环", "Environment")}
+        </span>
         <span className="ntc-breadcrumb-sep">&gt;</span>
         <span className="ntc-breadcrumb-active">
           {t("通告详情", "Notice Detail")}
         </span>
       </div>
 
+      <div style={{ margin: "8px 0 0 24px" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
+      </div>
       <div className="ntc-body">
         {/* ── Page Header ── */}
         <div className="ntc-page-header">

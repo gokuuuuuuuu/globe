@@ -2,8 +2,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b1120;
-  color: #e2e8f0;
+  background: #000;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
   overflow-y: auto;
 }
@@ -12,18 +12,18 @@
 .pt-breadcrumb {
   padding: 10px 24px;
   font-size: 12px;
-  color: #64748b;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
 }
 
 .pt-breadcrumb-sep {
   margin: 0 8px;
-  color: #475569;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pt-breadcrumb-active {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Page Header */
@@ -38,7 +38,7 @@
 .pt-page-title {
   font-size: 20px;
   font-weight: 700;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
   display: flex;
   align-items: center;
@@ -73,8 +73,8 @@
 .pt-search-input-wrapper {
   display: flex;
   align-items: center;
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   padding: 0 12px;
   height: 38px;
@@ -86,18 +86,18 @@
   background: none;
   border: none;
   outline: none;
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
   font-size: 13px;
 }
 
 .pt-search-input::placeholder {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pt-search-clear {
   background: none;
   border: none;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 2px;
   display: flex;
@@ -107,11 +107,11 @@
 }
 
 .pt-search-clear:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pt-search-chevron {
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   margin-left: 4px;
   display: flex;
   align-items: center;
@@ -144,10 +144,11 @@
 
 /* Card */
 .pt-card {
-  background: rgba(30, 41, 59, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   padding: 16px;
+  backdrop-filter: blur(12px);
 }
 
 .pt-card-header {
@@ -160,7 +161,7 @@
 .pt-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0;
 }
 
@@ -169,14 +170,14 @@
   display: flex;
   gap: 0;
   margin-bottom: 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pt-tab {
   padding: 8px 16px;
   font-size: 12px;
   font-weight: 500;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
@@ -185,7 +186,7 @@
 }
 
 .pt-tab:hover {
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pt-tab-active {
@@ -205,7 +206,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pt-legend-line {
@@ -231,21 +232,21 @@
   text-align: left;
   padding: 8px 10px;
   font-weight: 500;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   font-size: 11px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   white-space: nowrap;
 }
 
 .pt-table td {
   padding: 8px 10px;
-  color: #cbd5e1;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+  color: rgba(255, 255, 255, 0.62);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   white-space: nowrap;
 }
 
 .pt-table tbody tr:hover {
-  background: rgba(51, 65, 85, 0.2);
+  background: #080810;
 }
 
 /* Badges */
@@ -266,11 +267,6 @@
 .pt-badge-yellow {
   background: rgba(234, 179, 8, 0.15);
   color: #eab308;
-}
-
-.pt-badge-orange {
-  background: rgba(249, 115, 22, 0.15);
-  color: #f97316;
 }
 
 .pt-badge-red {
@@ -301,20 +297,20 @@
 
 .pt-btn-outline {
   background: transparent;
-  color: #94a3b8;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .pt-btn-outline:hover {
-  background: rgba(51, 65, 85, 0.4);
-  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Action icons */
 .pt-action-icon {
   background: none;
   border: none;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
   cursor: pointer;
   padding: 3px;
   display: inline-flex;
@@ -324,7 +320,7 @@
 }
 
 .pt-action-icon:hover {
-  color: #e2e8f0;
+  color: rgba(255, 255, 255, 0.96);
 }
 
 /* Right card: Metric Changes */
@@ -339,7 +335,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 0;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .pt-metric-row:last-child {
@@ -348,7 +344,7 @@
 
 .pt-metric-label {
   font-size: 12px;
-  color: #94a3b8;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .pt-metric-value {
@@ -371,13 +367,13 @@
 .pt-section-title {
   font-size: 13px;
   font-weight: 600;
-  color: #f8fafc;
+  color: rgba(255, 255, 255, 0.96);
   margin: 0 0 10px 0;
 }
 
 .pt-section-divider {
   height: 1px;
-  background: rgba(148, 163, 184, 0.1);
+  background: rgba(255, 255, 255, 0.1);
   margin: 14px 0;
 }
 
@@ -387,8 +383,8 @@
   align-items: flex-start;
   gap: 10px;
   padding: 10px 12px;
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   margin-bottom: 8px;
 }
@@ -426,7 +422,7 @@
 .pt-insight-text {
   flex: 1;
   font-size: 12px;
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.62);
   line-height: 1.5;
 }
 
@@ -442,12 +438,12 @@
   align-items: center;
   gap: 3px;
   font-size: 11px;
-  color: #64748b;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 /* Change text */
-.pt-change-orange {
-  color: #f97316;
+.pt-change-yellow {
+  color: #eab308;
   font-weight: 600;
   font-size: 11px;
 }
@@ -462,10 +458,10 @@
 }
 
 .pt-root::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
 }
 
 .pt-root::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.14);
 }

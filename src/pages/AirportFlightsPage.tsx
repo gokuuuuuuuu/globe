@@ -160,9 +160,16 @@ export function AirportFlightsPage() {
     <div className="af-root" onClick={() => setOpenActions(null)}>
       {/* Breadcrumb */}
       <div className="af-breadcrumb">
-        <span>MRIWP</span>
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="af-breadcrumb-sep">&gt;</span>
-        <span>{t("机场", "Airports")}</span>
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/airport-center/airport-list")}
+        >
+          {t("机场", "Airports")}
+        </span>
         <span className="af-breadcrumb-sep">&gt;</span>
         <span className="af-breadcrumb-active">
           {t("机场相关航班", "Airport Related Flights")}
@@ -172,9 +179,24 @@ export function AirportFlightsPage() {
       {/* Page Header */}
       <div className="af-page-header">
         <div className="af-page-title">
+          <button
+            style={{
+              background: "rgba(71,85,105,0.5)",
+              border: "1px solid rgba(148,163,184,0.2)",
+              color: "#e2e8f0",
+              borderRadius: 6,
+              padding: "4px 14px",
+              cursor: "pointer",
+              fontSize: 13,
+              marginRight: 8,
+            }}
+            onClick={() => navigate(-1)}
+          >
+            {t("返回", "Back")}
+          </button>
           <h1>
-            {SELECTED_AIRPORT.code} {airportDisplayName} -{" "}
-            {t("相关航班", "Related Flights")}
+            {SELECTED_AIRPORT.code4 || SELECTED_AIRPORT.code}{" "}
+            {airportDisplayName} - {t("相关航班", "Related Flights")}
           </h1>
         </div>
         <div className="af-page-actions">
@@ -216,7 +238,8 @@ export function AirportFlightsPage() {
         <div className="af-filter-tag">
           <span>
             <strong>{t("已选机场：", "Selected Airport: ")}</strong>
-            {airportDisplayName} ({SELECTED_AIRPORT.code})
+            {airportDisplayName} (
+            {SELECTED_AIRPORT.code4 || SELECTED_AIRPORT.code})
           </span>
           <button className="af-filter-tag-edit">
             <svg
@@ -311,9 +334,7 @@ export function AirportFlightsPage() {
         <table className="af-table">
           <thead>
             <tr>
-              <th className="af-th-check">
-                <input type="checkbox" />
-              </th>
+              <th className="af-th-check" />
               <th>{t("航班号", "Flight Number")}</th>
               <th>{t("机尾号", "Aircraft Tail Number")}</th>
               <th>{t("出发机场", "Departure Airport")}</th>
@@ -344,9 +365,7 @@ export function AirportFlightsPage() {
                     navigate(`/risk-monitoring/flight-detail?id=${flight.id}`)
                   }
                 >
-                  <td className="af-td-check">
-                    <input type="checkbox" />
-                  </td>
+                  <td className="af-td-check" />
                   <td className="af-td-flight-no">{flight.flightNumber}</td>
                   <td>{getTailNumber(flight)}</td>
                   <td>{flight.fromAirportCode4 || flight.fromAirport}</td>

@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import {
@@ -52,8 +52,19 @@ const PAGE_SIZE = 12;
 export function AirportListPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const setPage = (pageOrFn: number | ((prev: number) => number)) => {
+    const newPage = typeof pageOrFn === "function" ? pageOrFn(page) : pageOrFn;
+    const sp = new URLSearchParams(searchParams);
+    if (newPage <= 1) {
+      sp.delete("page");
+    } else {
+      sp.set("page", String(newPage));
+    }
+    setSearchParams(sp, { replace: true });
+  };
 
   // Build ranked airport list
   const rankedAirports = useMemo(() => {
@@ -61,7 +72,7 @@ export function AirportListPage() {
     const highRiskMap: Record<string, number> = {};
     FLIGHTS.forEach((f) => {
       const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
-      if (riskZone === "red" || riskZone === "orange") {
+      if (riskZone === "red" || riskZone === "yellow") {
         highRiskMap[f.fromAirport] = (highRiskMap[f.fromAirport] || 0) + 1;
         highRiskMap[f.toAirport] = (highRiskMap[f.toAirport] || 0) + 1;
       }
@@ -80,7 +91,9 @@ export function AirportListPage() {
         if (search) {
           const q = search.toLowerCase();
           return (
-            a.code.toLowerCase().includes(q) || a.name.toLowerCase().includes(q)
+            a.code.toLowerCase().includes(q) ||
+            (a.code4 || "").toLowerCase().includes(q) ||
+            a.name.toLowerCase().includes(q)
           );
         }
         return true;
@@ -149,9 +162,16 @@ export function AirportListPage() {
     <div className="ap-root">
       {/* Breadcrumb */}
       <div className="ap-breadcrumb">
-        MRIWP
+        <span style={{ cursor: "pointer" }} onClick={() => navigate("/")}>
+          {t("工作台", "Dashboard")}
+        </span>
         <span className="ap-breadcrumb-sep">&gt;</span>
-        {t("机场", "Airports")}
+        <span
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/airport-center/airport-list")}
+        >
+          {t("机场", "Airports")}
+        </span>
         <span className="ap-breadcrumb-sep">&gt;</span>
         <span className="ap-breadcrumb-active">
           {t("机场列表", "Airport List")}
@@ -248,8 +268,12 @@ export function AirportListPage() {
                         <span className="ap-rank">{rank}</span>
                       </td>
                       <td>
-                        <div className="ap-airport-code">{a.code}</div>
-                        <div className="ap-airport-name">{a.name}</div>
+                        <div className="ap-airport-code">
+                          {a.code4 || a.code}
+                        </div>
+                        <div className="ap-airport-name">
+                          {a.nameZh || a.name}
+                        </div>
                       </td>
                       <td>
                         <span className="ap-total-flights">
@@ -257,7 +281,7 @@ export function AirportListPage() {
                         </span>
                       </td>
                       <td className="ap-high-risk-flights">
-                        {a.highRiskFlights} {t("航班数", "Flights")}
+                        {a.highRiskFlights}
                         <br />
                         <span className="ap-risk-percent">
                           ({a.highRiskPct}%)
@@ -351,7 +375,7 @@ export function AirportListPage() {
                 // attribution='&copy; <a href="https://www.amap.com/">高德地图</a>'
                 className="ap-dark-tiles"
               />
-              {AIRPORTS.map((a) => {
+              {AIRPORTS.filter((a) => a.environmentRisk >= 3).map((a) => {
                 const color = getMarkerColor(a.environmentRisk);
                 const radius = Math.max(4, Math.min(12, a.flightCount / 10));
                 return (
@@ -377,7 +401,7 @@ export function AirportListPage() {
                           fontSize: 11,
                         }}
                       >
-                        <strong>{a.code}</strong> - {a.name}
+                        <strong>{a.code4 || a.code}</strong> - {a.name}
                         <br />
                         {t("航班数：", "Flights: ")}
                         {a.flightCount} | {t("风险：", "Risk: ")}
@@ -396,7 +420,6 @@ export function AirportListPage() {
               {[
                 { color: "#dc2626", label: t("高", "High") },
                 { color: "#ea580c", label: t("中", "Medium") },
-                { color: "#22c55e", label: t("低", "Low") },
               ].map((item) => (
                 <div key={item.color} className="ap-map-legend-item">
                   <span
@@ -444,7 +467,9 @@ export function AirportListPage() {
                       >
                         {i + 1}
                       </span>
-                      <span className="ap-summary-code">{a.code}</span>
+                      <span className="ap-summary-code">
+                        {a.code4 || a.code}
+                      </span>
                     </div>
                     {/* Mini sparkline placeholder */}
                     <svg className="ap-summary-sparkline" viewBox="0 0 60 20">
