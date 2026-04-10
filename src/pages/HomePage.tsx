@@ -28,7 +28,7 @@ const LAYERS = [
   { key: "fog", labelZh: "雾", labelEn: "Fog" },
   { key: "moisture", labelZh: "湿度", labelEn: "Moisture" },
   { key: "lightning", labelZh: "闪电", labelEn: "Lightning" },
-  { key: "cat", labelZh: "晴空湍流", labelEn: "CAT" },
+  { key: "cat", labelZh: "颠簸区", labelEn: "CAT" },
   { key: "visibility", labelZh: "能见度", labelEn: "Visibility" },
 ] as const;
 
