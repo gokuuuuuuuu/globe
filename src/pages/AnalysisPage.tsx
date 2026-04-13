@@ -552,13 +552,7 @@ export function AnalysisPage() {
             color="#eab308"
             trend="down"
           />
-          <StatCard
-            label={t("黄色风险", "Yellow risk")}
-            value="130"
-            change="(1.6%)"
-            color="#eab308"
-            trend="down"
-          />
+
           <StatCard
             label={t("绿色风险", "Green risk")}
             value="148"

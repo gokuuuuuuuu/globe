@@ -85,7 +85,6 @@ export function AdminLayout() {
           <div className="al-brand-mark">M</div>
           <div className="al-brand-name">
             {t("重大风险智能预警平台", "MRIWP")}
-            <small className="al-brand-sub">RISK INTELLIGENCE / v2.6</small>
           </div>
         </div>
 
