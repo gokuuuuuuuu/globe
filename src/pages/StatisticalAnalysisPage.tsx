@@ -91,7 +91,6 @@ const TABS = [
   "personnel-statistics",
   "airport-statistics",
   "aircraft-statistics",
-  "model-performance",
 ] as const;
 type TabKey = (typeof TABS)[number];
 
@@ -117,7 +116,6 @@ export function StatisticalAnalysisPage() {
     "personnel-statistics": t("人员统计", "Personnel Statistics"),
     "airport-statistics": t("机场统计", "Airport Statistics"),
     "aircraft-statistics": t("飞机统计", "Aircraft Statistics"),
-    "model-performance": t("模型表现", "Model Performance"),
   };
 
   const tMonth = (m: string) => {

@@ -232,7 +232,7 @@ export function AirportListPage() {
         {/* Left: Ranking Table */}
         <div className="ap-panel" style={{ width: leftWidth, flexShrink: 0 }}>
           <div className="ap-panel-title">
-            {t("风险机场排名", "Risk Airport Ranking")}
+            {t("机场排名", "Airport Ranking")}
           </div>
           <div className="ap-panel-body" style={{ overflowX: "hidden" }}>
             <table className="ap-table">
@@ -242,7 +242,7 @@ export function AirportListPage() {
                   <th>{t("机场代码 / 名称", "Airport Code / Name")}</th>
                   <th>{t("总航班数", "Total Flights")}</th>
                   <th>{t("高风险航班占比", "High-Risk Flights %")}</th>
-                  <th>{t("主要风险类型", "Major Risk Types")}</th>
+                  <th>{t("首要风险", "Primary Risk")}</th>
                   <th>{t("综合风险等级", "Composite Risk Level")}</th>
                 </tr>
               </thead>
@@ -290,8 +290,8 @@ export function AirportListPage() {
                         </span>
                       </td>
                       <td>
-                        <span className={`ap-risk-badge ${risk.cls}`}>
-                          {risk.label}
+                        <span style={{ fontSize: 11, color: "#cbd5e1" }}>
+                          {getDrivers(i + rank, t)[0]}
                         </span>
                       </td>
                       <td>

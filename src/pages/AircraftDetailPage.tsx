@@ -272,7 +272,14 @@ export function AircraftDetailPage() {
           {t("飞机详情", "Aircraft Detail")}: {aircraftInfo.tailNumber}
         </span>
       </div>
-      <div style={{ margin: "8px 0 0 0" }}>
+      <div
+        style={{
+          margin: "8px 0 0 0",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+        }}
+      >
         <button
           style={{
             background: "rgba(71,85,105,0.5)",
@@ -286,6 +293,17 @@ export function AircraftDetailPage() {
           onClick={() => navigate(-1)}
         >
           {t("返回", "Back")}
+        </button>
+        <button
+          className="acd-action-btn"
+          onClick={() =>
+            navigate(
+              `/risk-monitoring/flights?aircraft=${aircraftInfo.tailNumber}`,
+            )
+          }
+        >
+          <AirplaneIcon />
+          {t("查看相关航班", "View Related Flights")}
         </button>
       </div>
 
@@ -322,21 +340,6 @@ export function AircraftDetailPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Action Button - only View Related Flights */}
-      <div className="acd-actions">
-        <button
-          className="acd-action-btn"
-          onClick={() =>
-            navigate(
-              `/risk-monitoring/flights?aircraft=${aircraftInfo.tailNumber}`,
-            )
-          }
-        >
-          <AirplaneIcon />
-          {t("查看相关航班", "View Related Flights")}
-        </button>
       </div>
 
       {/* Row 1 - 3 Cards */}

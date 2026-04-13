@@ -676,8 +676,15 @@ export function EnvironmentDetailPage() {
         </div>
       ) : (
         <>
-          {/* Back button */}
-          <div style={{ padding: "8px 24px 0" }}>
+          {/* Back button + Airport Statistics */}
+          <div
+            style={{
+              padding: "8px 24px 0",
+              display: "flex",
+              gap: 12,
+              alignItems: "center",
+            }}
+          >
             <button
               className="env-back-btn"
               onClick={() => {
@@ -689,6 +696,19 @@ export function EnvironmentDetailPage() {
               }}
             >
               {t("返回", "Back")}
+            </button>
+            <button
+              className="env-back-btn"
+              style={{
+                background: "rgba(59,130,246,0.3)",
+                borderColor: "rgba(59,130,246,0.4)",
+              }}
+              onClick={() => {
+                const code = selectedAirportCode || codeParam || "";
+                navigate(`/airport-center/airport-detail?code=${code}`);
+              }}
+            >
+              {t("机场统计", "Airport Statistics")}
             </button>
           </div>
           {/* Phase Environment Card */}

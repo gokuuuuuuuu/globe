@@ -101,29 +101,25 @@ const factorData = {
 const majorRiskEvents = [
   {
     risk: "Severe Turbulence",
-    priority: "Critical - Red",
-    priorityClass: "fd-priority-critical-red",
+    priorityColor: "#ef4444",
     cause: "Thunderstorms forecasted",
     action: "Alter altitude or route",
   },
   {
     risk: "Communication Loss",
-    priority: "High",
-    priorityClass: "fd-priority-high",
+    priorityColor: "#eab308",
     cause: "Radio interference",
     action: "Use backup channel",
   },
   {
     risk: "Engine Issue",
-    priority: "Critical - High",
-    priorityClass: "fd-priority-critical-high",
+    priorityColor: "#ef4444",
     cause: "Thunderstorms forecasted",
     action: "Alter altitude or route roter",
   },
   {
     risk: "Communication Loss",
-    priority: "Critical - Red",
-    priorityClass: "fd-priority-critical-red",
+    priorityColor: "#eab308",
     cause: "Radio commounding forecasted",
     action: "View altitudon mentions",
   },
@@ -514,7 +510,6 @@ export function FlightDetailPage() {
               <th>{t("优先级", "Priority")}</th>
               <th>{t("原因摘要", "Cause Summaries")}</th>
               <th>{t("建议措施", "Suggested Actions")}</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -522,17 +517,18 @@ export function FlightDetailPage() {
               <tr key={i}>
                 <td>{tRisk(evt.risk)}</td>
                 <td>
-                  <span className={`fd-priority ${evt.priorityClass}`}>
-                    {tPriority(evt.priority)}
-                  </span>
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      background: evt.priorityColor,
+                    }}
+                  />
                 </td>
                 <td>{tCause(evt.cause)}</td>
                 <td>{tAction(evt.action)}</td>
-                <td>
-                  <button className="fd-btn">
-                    {t("查看详情", "View Detail")}
-                  </button>
-                </td>
               </tr>
             ))}
           </tbody>

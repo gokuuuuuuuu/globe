@@ -6,16 +6,22 @@ import "./FlightReportPage.css";
 
 const NAV_SECTIONS = [
   {
+    id: "flight-facts",
+    labelZh: "航班事实",
+    labelEn: "Flight Facts",
+    icon: "doc",
+  },
+  {
     id: "composite-risk",
     labelZh: "综合风险结论",
     labelEn: "Composite Risk Conclusion",
     icon: "chart",
   },
   {
-    id: "flight-phase",
-    labelZh: "飞行阶段风险分析",
-    labelEn: "Flight Phase Risk Analysis",
-    icon: "phase",
+    id: "major-risk-detail",
+    labelZh: "重大风险详情",
+    labelEn: "Major Risk Detail",
+    icon: "alert",
   },
   {
     id: "human-factor",
@@ -36,30 +42,6 @@ const NAV_SECTIONS = [
     icon: "env",
   },
   {
-    id: "major-risk",
-    labelZh: "重大风险事件说明",
-    labelEn: "Major Risk Event Explanation",
-    icon: "alert",
-  },
-  {
-    id: "evidence",
-    labelZh: "证据附录",
-    labelEn: "Evidence Appendix",
-    icon: "evidence",
-  },
-  {
-    id: "governance",
-    labelZh: "治理记录",
-    labelEn: "Governance Records",
-    icon: "gov",
-  },
-  {
-    id: "flight-facts",
-    labelZh: "航班事实",
-    labelEn: "Flight Facts",
-    icon: "doc",
-  },
-  {
     id: "factor-explanation",
     labelZh: "因子解释",
     labelEn: "Factor Explanation",
@@ -72,10 +54,16 @@ const NAV_SECTIONS = [
     icon: "evidence",
   },
   {
-    id: "major-risk-detail",
-    labelZh: "重大风险详情",
-    labelEn: "Major Risk Detail",
-    icon: "alert",
+    id: "evidence",
+    labelZh: "证据附录",
+    labelEn: "Evidence Appendix",
+    icon: "evidence",
+  },
+  {
+    id: "governance",
+    labelZh: "治理记录",
+    labelEn: "Governance Records",
+    icon: "gov",
   },
 ];
 

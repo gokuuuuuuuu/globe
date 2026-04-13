@@ -56,7 +56,7 @@ export function AdminLayout() {
     },
     {
       path: "/knowledge-center",
-      label: t("规则与知识中心", "Rules & Knowledge"),
+      label: t("风险因子库", "Risk Factor Library"),
       icon: <span>❏</span>,
     },
     {

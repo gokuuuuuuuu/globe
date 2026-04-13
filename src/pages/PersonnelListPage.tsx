@@ -456,7 +456,7 @@ export function PersonnelListPage() {
           </svg>
           <input
             placeholder={t(
-              "搜索员工ID、姓名、单位...",
+              "搜索工号、姓名、单位...",
               "Search employee ID, name, unit...",
             )}
             value={searchText}
@@ -491,7 +491,7 @@ export function PersonnelListPage() {
           <thead>
             <tr>
               <th className="pl-th-check" />
-              <th>{t("员工ID", "Employee ID")}</th>
+              <th>{t("工号", "Employee No.")}</th>
               <th>{t("姓名", "Name")}</th>
               <th>{t("单位", "Unit")}</th>
               <th>{t("综合风险等级", "Composite Risk Level")}</th>

@@ -797,7 +797,18 @@ export function FlightListPage() {
                     {getDisplayFlightNumber(flight)}
                   </td>
                   <td>
-                    {flight.aircraftNumber || "—"} /{" "}
+                    <span
+                      style={{ cursor: "pointer", color: "#60a5fa" }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(
+                          `/aircraft-topic/aircraft-detail?tail=${flight.aircraftNumber || ""}`,
+                        );
+                      }}
+                    >
+                      {flight.aircraftNumber || "—"}
+                    </span>
+                    {" / "}
                     {flight.aircraftType || "—"}
                   </td>
                   <td>
@@ -831,14 +842,9 @@ export function FlightListPage() {
                       data-tip={flight.fromAirportZh || flight.fromAirport}
                       onClick={(e) => {
                         e.stopPropagation();
-                        const rect = (
-                          e.target as HTMLElement
-                        ).getBoundingClientRect();
-                        setAirportPopover({
-                          code: flight.fromAirport,
-                          x: rect.left,
-                          y: rect.bottom + 4,
-                        });
+                        navigate(
+                          `/environment-topic/environment-detail?airport=${flight.fromAirport}`,
+                        );
                       }}
                     >
                       {flight.fromAirportCode4 ||
@@ -852,14 +858,9 @@ export function FlightListPage() {
                       data-tip={flight.toAirportZh || flight.toAirport}
                       onClick={(e) => {
                         e.stopPropagation();
-                        const rect = (
-                          e.target as HTMLElement
-                        ).getBoundingClientRect();
-                        setAirportPopover({
-                          code: flight.toAirport,
-                          x: rect.left,
-                          y: rect.bottom + 4,
-                        });
+                        navigate(
+                          `/environment-topic/environment-detail?airport=${flight.toAirport}`,
+                        );
                       }}
                     >
                       {flight.toAirportCode4 || getIcaoCode(flight.toAirport)}

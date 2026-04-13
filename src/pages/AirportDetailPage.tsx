@@ -14,6 +14,7 @@ import {
   AIRPORTS,
   FLIGHTS,
   calculateRiskFromEnvironmentRisk,
+  getIcaoCode,
 } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
 import "./AirportDetailPage.css";
@@ -528,7 +529,7 @@ export function AirportDetailPage() {
         <table className="ad-table">
           <thead>
             <tr>
-              <th>{t("航班ID", "Flight ID")}</th>
+              <th>{t("航班号", "Flight No.")}</th>
               <th>{t("出发地", "Origin")}</th>
               <th>{t("目的地", "Destination")}</th>
               <th>{t("起飞时间", "Departure Time")}</th>
@@ -575,10 +576,20 @@ export function AirportDetailPage() {
                   }
                 >
                   <td style={{ fontWeight: 600, color: "#f8fafc" }}>
-                    {f.flightNumber}
+                    {/^[A-Z]{2}/.test(f.flightNumber)
+                      ? f.flightNumber
+                      : `MU${f.flightNumber}`}
                   </td>
-                  <td>{f.fromAirport}</td>
-                  <td>{f.toAirport}</td>
+                  <td>
+                    {f.fromAirportCode4 ||
+                      getIcaoCode(f.fromAirport) ||
+                      f.fromAirport}
+                  </td>
+                  <td>
+                    {f.toAirportCode4 ||
+                      getIcaoCode(f.toAirport) ||
+                      f.toAirport}
+                  </td>
                   <td>{f.scheduledDeparture}</td>
                   <td>
                     {f.estimatedDeparture !== f.scheduledDeparture ? (

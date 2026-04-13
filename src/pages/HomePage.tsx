@@ -415,133 +415,9 @@ export function HomePage() {
       <div className="grain" />
       <div className="vignette" />
 
-      {/* ===== Left Column ===== */}
-      {leftPanelCollapsed ? (
-        <div className="left-col-collapsed">
-          <div
-            className="left-tab"
-            onClick={() => setLeftPanelCollapsed(false)}
-          >
-            <span>{t("筛选", "Filter")}</span>
-            <span style={{ writingMode: "horizontal-tb", fontSize: 14 }}>
-              ›
-            </span>
-          </div>
-        </div>
-      ) : (
-        <div className="left-col">
-          <div className="left-panel glass">
-            {/* Panel header */}
-            <div className="lp-header">
-              <span className="lp-title">{t("运行态势", "OPS STATUS")}</span>
-              <span className="lp-live">
-                <span className="lp-pulse" />
-                LIVE
-              </span>
-            </div>
-
-            {/* Top 2 KPIs side by side */}
-            <div className="lp-kpi-row">
-              <div className="lp-kpi">
-                <div className="ls-label">{t("待处理工单", "PENDING")}</div>
-                <div className="lp-kpi-val">
-                  <span className="ls-num">42</span>
-                  <span className="ls-trend up">&#9650; +3</span>
-                </div>
-              </div>
-              <div className="lp-kpi-div" />
-              <div className="lp-kpi">
-                <div className="ls-label">{t("未分配工单", "UNASSIGNED")}</div>
-                <div className="lp-kpi-val">
-                  <span className="ls-num">17</span>
-                  <span className="ls-trend down">&#9660; -2</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Throughput chart */}
-            <div className="lp-section">
-              <div className="lp-section-head">
-                <span className="ls-label">
-                  {t("实时吞吐量", "THROUGHPUT")}
-                </span>
-                <span className="ls-trend up green">&#9650; 4.2%</span>
-              </div>
-              <div className="lp-big-row">
-                <span className="ls-num cyan">
-                  {flightStats.total.toLocaleString()}
-                </span>
-                <span className="ls-unit">{t("航班", "FLT")}</span>
-              </div>
-              <div className="ls-chart">
-                <svg viewBox="0 0 200 36" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient
-                      id="lsThroughputGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="rgba(100,212,234,0.3)" />
-                      <stop offset="100%" stopColor="rgba(100,212,234,0)" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,32 L15,27 L30,29 L45,22 L60,25 L75,18 L90,20 L105,13 L120,16 L135,9 L150,11 L165,7 L180,4 L200,2 L200,36 L0,36Z"
-                    fill="url(#lsThroughputGrad)"
-                  />
-                  <path
-                    d="M0,32 L15,27 L30,29 L45,22 L60,25 L75,18 L90,20 L105,13 L120,16 L135,9 L150,11 L165,7 L180,4 L200,2"
-                    fill="none"
-                    stroke="var(--cyan)"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </div>
-            </div>
-
-            {/* Efficiency chart */}
-            <div className="lp-section">
-              <div className="lp-section-head">
-                <span className="ls-label">
-                  {t("运行效率", "OPS EFFICIENCY")}
-                </span>
-                <span className="ls-tag">{t("目标", "TGT")}:80</span>
-              </div>
-              <div className="lp-big-row">
-                <span className="ls-num green">78.3</span>
-                <span className="ls-unit">%</span>
-              </div>
-              <div className="ls-chart">
-                <svg viewBox="0 0 200 36" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient
-                      id="lsEfficiencyGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="rgba(101,235,123,0.25)" />
-                      <stop offset="100%" stopColor="rgba(101,235,123,0)" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0,28 L20,26 L40,30 L60,23 L80,18 L100,20 L120,13 L140,16 L160,9 L180,7 L200,10 L200,36 L0,36Z"
-                    fill="url(#lsEfficiencyGrad)"
-                  />
-                  <path
-                    d="M0,28 L20,26 L40,30 L60,23 L80,18 L100,20 L120,13 L140,16 L160,9 L180,7 L200,10"
-                    fill="none"
-                    stroke="var(--green)"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Left Column removed per requirements */}
+      {
+        null
         // <div className="left-col-old">
         //   {/* Filter Panel */}
         //   <div className="filter-panel glass">
@@ -703,7 +579,7 @@ export function HomePage() {
         //     </div>
         //   </div>
         // </div>
-      )}
+      }
 
       {/* ===== Center Stage ===== */}
       <div className="center-stage">
@@ -869,6 +745,28 @@ export function HomePage() {
                 <div className="hero-code">{topCriticalItem.code}</div>
                 <div className="hero-name">{topCriticalItem.name}</div>
                 <div className="hero-loc">{topCriticalItem.region}</div>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 8,
+                    marginTop: 4,
+                    fontSize: 11,
+                    color: "#94a3b8",
+                  }}
+                >
+                  <span>
+                    {objectTab === "flights"
+                      ? t("机型", "TYPE")
+                      : t("航班", "FLIGHTS")}
+                    : {topCriticalItem.flights}
+                  </span>
+                  <span>
+                    {objectTab === "flights"
+                      ? t("状态", "STATUS")
+                      : t("人员", "STAFF")}
+                    : {topCriticalItem.staff}
+                  </span>
+                </div>
                 <div className="hero-tag">{t("紧急", "CRITICAL")}</div>
               </div>
               <div className="gauge">
@@ -906,22 +804,6 @@ export function HomePage() {
             </div>
 
             <div className="hero-meta">
-              <div className="cell">
-                <div className="l">
-                  {objectTab === "flights"
-                    ? t("机型", "TYPE")
-                    : t("航班", "FLIGHTS")}
-                </div>
-                <div className="v">{topCriticalItem.flights}</div>
-              </div>
-              <div className="cell">
-                <div className="l">
-                  {objectTab === "flights"
-                    ? t("状态", "STATUS")
-                    : t("人员", "STAFF")}
-                </div>
-                <div className="v">{topCriticalItem.staff}</div>
-              </div>
               <div className="cell">
                 <div className="l">{t("告警", "ALERTS")}</div>
                 <div className="v">{topCriticalItem.alerts}</div>
