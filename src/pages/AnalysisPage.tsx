@@ -610,7 +610,7 @@ export function AnalysisPage() {
                   borderRadius: 4,
                   padding: "4px 8px",
                   background: "rgba(255, 255, 255, 0.08)",
-                  color: "rgba(255, 255, 255, 0.4)",
+                  color: "rgba(255, 255, 255, 0.86)",
                   outline: "none",
                 }}
               >

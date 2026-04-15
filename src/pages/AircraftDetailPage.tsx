@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LineChart,
   Line,
@@ -238,6 +238,10 @@ const darkTooltipStyle = {
 export function AircraftDetailPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tailParam = searchParams.get("tail");
+  // Use URL param if available, otherwise fall back to mock data
+  const displayTailNumber = tailParam || aircraftInfo.tailNumber;
 
   const riskLevelText =
     factorScore.riskLevel === "High"
@@ -269,12 +273,12 @@ export function AircraftDetailPage() {
         </span>
         <span className="acd-breadcrumb-sep">&gt;</span>
         <span className="acd-breadcrumb-active">
-          {t("飞机详情", "Aircraft Detail")}: {aircraftInfo.tailNumber}
+          {t("飞机详情", "Aircraft Detail")}: {displayTailNumber}
         </span>
       </div>
       <div
         style={{
-          margin: "8px 0 0 0",
+          padding: "8px 24px 0",
           display: "flex",
           alignItems: "center",
           gap: 12,
@@ -297,9 +301,7 @@ export function AircraftDetailPage() {
         <button
           className="acd-action-btn"
           onClick={() =>
-            navigate(
-              `/risk-monitoring/flights?aircraft=${aircraftInfo.tailNumber}`,
-            )
+            navigate(`/risk-monitoring/flights?aircraft=${displayTailNumber}`)
           }
         >
           <AirplaneIcon />
@@ -317,7 +319,7 @@ export function AircraftDetailPage() {
             <div className="acd-info-label">
               {t("机尾号", "Aircraft Tail Number")}
             </div>
-            <div className="acd-info-value">{aircraftInfo.tailNumber}</div>
+            <div className="acd-info-value">{displayTailNumber}</div>
           </div>
         </div>
         <div className="acd-info-item">

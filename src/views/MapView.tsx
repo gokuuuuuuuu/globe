@@ -134,6 +134,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     setViewingAirportId,
     showLabels,
     riskZones,
+    homeObjectTab,
     flightStatuses,
   } = useAppStore();
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null);
@@ -342,16 +343,19 @@ export function MapView({ world, atlas }: MapViewProps) {
   // 机场实例（使用平面坐标）
   const airportInstances = useMemo(() => {
     return AIRPORTS.filter((airport) => {
-      // 根据风险区间过滤机场
-      const { riskZone } = calculateRiskFromEnvironmentRisk(
-        airport.environmentRisk,
-      );
-      return riskZones.includes(riskZone);
+      // 根据风险区间过滤机场（人员tab不受影响）
+      if (homeObjectTab !== "personnel") {
+        const { riskZone } = calculateRiskFromEnvironmentRisk(
+          airport.environmentRisk,
+        );
+        if (!riskZones.includes(riskZone)) return false;
+      }
+      return true;
     }).map((airport) => {
       const position = latLonToPlane(airport.lat, airport.lon, MAP_SCALE);
       return { ...airport, position };
     });
-  }, [riskZones]);
+  }, [riskZones, homeObjectTab]);
 
   // 计算航线
   const flightRoutes = useMemo(() => {
@@ -566,12 +570,18 @@ export function MapView({ world, atlas }: MapViewProps) {
       const toPos = toAirportInstance.position.clone();
       toPos.z = 0.05;
 
-      // 根据风险区间过滤航线
-      const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(
-        flight.environmentRisk,
-      );
-      if (!riskZones.includes(flightRiskZone)) {
+      // airports tab 不显示航线
+      if (homeObjectTab === "airports") {
         return;
+      }
+      // 根据风险区间过滤航线（人员tab不受影响）
+      if (homeObjectTab !== "personnel") {
+        const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(
+          flight.environmentRisk,
+        );
+        if (!riskZones.includes(flightRiskZone)) {
+          return;
+        }
       }
 
       // 根据环境风险值设置航线颜色
@@ -604,6 +614,7 @@ export function MapView({ world, atlas }: MapViewProps) {
     viewingAirportId,
     selectedFlightRouteId,
     riskZones,
+    homeObjectTab,
     flightStatuses,
   ]);
 

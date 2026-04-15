@@ -46,6 +46,8 @@ interface AppState {
   setSearchQuery: (query: string) => void;
   riskZones: RiskZone[];
   setRiskZones: (zones: RiskZone[]) => void;
+  homeObjectTab: "flights" | "airports" | "personnel";
+  setHomeObjectTab: (tab: "flights" | "airports" | "personnel") => void;
   // Zoom到机场
   targetAirportId: string | null;
   setTargetAirportId: (id: string | null) => void;
@@ -157,6 +159,8 @@ export const useAppStore = create<AppState>((set) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   riskZones: ["red", "yellow", "green"], // 默认选中所有风险区间
   setRiskZones: (zones) => set({ riskZones: zones }),
+  homeObjectTab: "flights",
+  setHomeObjectTab: (tab) => set({ homeObjectTab: tab }),
   // Zoom到机场
   targetAirportId: null,
   setTargetAirportId: (id) => set({ targetAirportId: id }),

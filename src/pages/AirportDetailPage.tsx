@@ -260,6 +260,24 @@ export function AirportDetailPage() {
         </span>
       </div>
 
+      {/* Back Button */}
+      <div style={{ padding: "8px 24px 0" }}>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
+      </div>
+
       {/* Header Card */}
       <div className="ad-header-card">
         <div className="ad-header-left">
@@ -361,13 +379,6 @@ export function AirportDetailPage() {
               )}
             </div>
           </div>
-        </div>
-
-        {/* Right action buttons */}
-        <div className="ad-header-right">
-          <button className="ad-action-btn" onClick={() => navigate(-1)}>
-            {t("返回", "Back")}
-          </button>
         </div>
       </div>
 

@@ -632,3 +632,42 @@ header h1 {
   color: rgba(255, 255, 255, 0.62);
   line-height: 1.5;
 }
+
+/* ===== Global Select/Option fix for Windows ===== */
+/* Windows does not inherit dark backgrounds on <option> elements,
+   causing white-on-white text. Force explicit colors on all options. */
+select option {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+select option:checked,
+select option:hover {
+  background: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* ===== Global Scrollbar – Dark Theme ===== */
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+/* Webkit (Chrome, Edge, Safari) */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}

@@ -237,24 +237,19 @@ export function FlightListPage() {
   const [arrivalFilter, setArrivalFilter] = useState("");
   const [operatingUnitFilter, setOperatingUnitFilter] = useState("");
   const [aircraftTypeFilter, setAircraftTypeFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string[]>([]);
-  const [riskLevelFilter, setRiskLevelFilter] = useState<string[]>([]);
-  const [govStatusFilter, setGovStatusFilter] = useState<string[]>([]);
-  const [riskTypeFilter, setRiskTypeFilter] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [riskLevelFilter, setRiskLevelFilter] = useState("");
+  const [govStatusFilter, setGovStatusFilter] = useState("");
+  const [riskTypeFilter, setRiskTypeFilter] = useState("");
 
   // Read URL params to pre-fill filters
   useEffect(() => {
     const risk = searchParams.get("risk");
-    if (risk === "high") setRiskLevelFilter(["High Risk"]);
+    if (risk === "high") setRiskLevelFilter("High Risk");
     const aircraft = searchParams.get("aircraft");
     if (aircraft) setAircraftNumberFilter(aircraft);
   }, [searchParams]);
 
-  // Dropdown toggles for filter multi-selects
-  const [showRiskLevelDD, setShowRiskLevelDD] = useState(false);
-  const [showGovStatusDD, setShowGovStatusDD] = useState(false);
-  const [showRiskTypeDD, setShowRiskTypeDD] = useState(false);
-  const [showStatusDD, setShowStatusDD] = useState(false);
   const [airportPopover, setAirportPopover] = useState<{
     code: string;
     x: number;
@@ -303,25 +298,19 @@ export function FlightListPage() {
         return false;
 
       // Flight status filter
-      if (statusFilter.length && !statusFilter.includes(f.status)) return false;
+      if (statusFilter && f.status !== statusFilter) return false;
 
       // Risk level filter
-      if (riskLevelFilter.length) {
-        const label = getCompositeRiskLabel(f);
-        if (!riskLevelFilter.includes(label)) return false;
-      }
+      if (riskLevelFilter && getCompositeRiskLabel(f) !== riskLevelFilter)
+        return false;
 
       // Governance status filter
-      if (govStatusFilter.length) {
-        const status = getGovernanceStatus(f);
-        if (!govStatusFilter.includes(status)) return false;
-      }
+      if (govStatusFilter && getGovernanceStatus(f) !== govStatusFilter)
+        return false;
 
       // Risk type filter
-      if (riskTypeFilter.length) {
-        const tags = getRiskTags(f);
-        if (!riskTypeFilter.some((t) => tags.includes(t))) return false;
-      }
+      if (riskTypeFilter && !getRiskTags(f).includes(riskTypeFilter))
+        return false;
 
       return true;
     }).sort(
@@ -365,24 +354,7 @@ export function FlightListPage() {
     setPage(1);
   };
 
-  const toggleMultiSelect = (
-    value: string,
-    current: string[],
-    setter: (v: string[]) => void,
-  ) => {
-    setter(
-      current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value],
-    );
-  };
-
-  // Close dropdowns when clicking outside
   const closeAllDropdowns = () => {
-    setShowRiskLevelDD(false);
-    setShowGovStatusDD(false);
-    setShowRiskTypeDD(false);
-    setShowStatusDD(false);
     setAirportPopover(null);
   };
 
@@ -588,206 +560,72 @@ export function FlightListPage() {
           </div>
         </div>
         <div className="fl-filter-row">
-          {/* Risk Level multi-select */}
-          <div className="fl-filter-item fl-filter-multi">
+          {/* Risk Level */}
+          <div className="fl-filter-item">
             <label>{t("风险等级", "Risk Level")}</label>
-            <div
-              className="fl-multi-select"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeAllDropdowns();
-                setShowRiskLevelDD(!showRiskLevelDD);
-              }}
+            <select
+              className="fl-select"
+              value={riskLevelFilter}
+              onChange={(e) => setRiskLevelFilter(e.target.value)}
             >
-              <span>
-                {riskLevelFilter.length
-                  ? riskLevelFilter
-                      .map((r) => translateRiskLevel(r, t))
-                      .join(", ")
-                  : t("全部", "All")}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-              {showRiskLevelDD && (
-                <div
-                  className="fl-dropdown"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {RISK_LEVELS.map((r) => (
-                    <label
-                      key={r}
-                      className="fl-dropdown-item"
-                      onClick={() =>
-                        toggleMultiSelect(
-                          r,
-                          riskLevelFilter,
-                          setRiskLevelFilter,
-                        )
-                      }
-                    >
-                      <span>{translateRiskLevel(r, t)}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+              <option value="">{t("全部", "All")}</option>
+              {RISK_LEVELS.map((r) => (
+                <option key={r} value={r}>
+                  {translateRiskLevel(r, t)}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Flight Status multi-select */}
-          <div className="fl-filter-item fl-filter-multi">
+          {/* Flight Status */}
+          <div className="fl-filter-item">
             <label>{t("航班状态", "Flight Status")}</label>
-            <div
-              className="fl-multi-select"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeAllDropdowns();
-                setShowStatusDD(!showStatusDD);
-              }}
+            <select
+              className="fl-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <span>
-                {statusFilter.length
-                  ? statusFilter
-                      .map((s) => translateFlightStatus(s, t))
-                      .join(", ")
-                  : t("全部", "All")}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-              {showStatusDD && (
-                <div
-                  className="fl-dropdown"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {FLIGHT_STATUSES.map((s) => (
-                    <label
-                      key={s}
-                      className="fl-dropdown-item"
-                      onClick={() =>
-                        toggleMultiSelect(s, statusFilter, setStatusFilter)
-                      }
-                    >
-                      <span>{translateFlightStatus(s, t)}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+              <option value="">{t("全部", "All")}</option>
+              {FLIGHT_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {translateFlightStatus(s, t)}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Major Risk Type multi-select */}
-          <div className="fl-filter-item fl-filter-multi">
+          {/* Major Risk Type */}
+          <div className="fl-filter-item">
             <label>{t("主要风险类型", "Major Risk Type")}</label>
-            <div
-              className="fl-multi-select"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeAllDropdowns();
-                setShowRiskTypeDD(!showRiskTypeDD);
-              }}
+            <select
+              className="fl-select"
+              value={riskTypeFilter}
+              onChange={(e) => setRiskTypeFilter(e.target.value)}
             >
-              <span>
-                {riskTypeFilter.length
-                  ? riskTypeFilter.map((r) => translateRiskTag(r, t)).join(", ")
-                  : t("全部", "All")}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-              {showRiskTypeDD && (
-                <div
-                  className="fl-dropdown"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {ALL_RISK_TYPES.map((r) => (
-                    <label
-                      key={r}
-                      className="fl-dropdown-item"
-                      onClick={() =>
-                        toggleMultiSelect(r, riskTypeFilter, setRiskTypeFilter)
-                      }
-                    >
-                      <span>{translateRiskTag(r, t)}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+              <option value="">{t("全部", "All")}</option>
+              {ALL_RISK_TYPES.map((r) => (
+                <option key={r} value={r}>
+                  {translateRiskTag(r, t)}
+                </option>
+              ))}
+            </select>
           </div>
 
-          {/* Governance Status multi-select */}
-          <div className="fl-filter-item fl-filter-multi">
+          {/* Governance Status */}
+          <div className="fl-filter-item">
             <label>{t("治理状态", "Governance Status")}</label>
-            <div
-              className="fl-multi-select"
-              onClick={(e) => {
-                e.stopPropagation();
-                closeAllDropdowns();
-                setShowGovStatusDD(!showGovStatusDD);
-              }}
+            <select
+              className="fl-select"
+              value={govStatusFilter}
+              onChange={(e) => setGovStatusFilter(e.target.value)}
             >
-              <span>
-                {govStatusFilter.length
-                  ? govStatusFilter
-                      .map((s) => translateGovStatus(s, t))
-                      .join(", ")
-                  : t("全部", "All")}
-              </span>
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-              {showGovStatusDD && (
-                <div
-                  className="fl-dropdown"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {GOVERNANCE_STATUSES.map((s) => (
-                    <label
-                      key={s}
-                      className="fl-dropdown-item"
-                      onClick={() =>
-                        toggleMultiSelect(
-                          s,
-                          govStatusFilter,
-                          setGovStatusFilter,
-                        )
-                      }
-                    >
-                      <span>{translateGovStatus(s, t)}</span>
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+              <option value="">{t("全部", "All")}</option>
+              {GOVERNANCE_STATUSES.map((s) => (
+                <option key={s} value={s}>
+                  {translateGovStatus(s, t)}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="fl-filter-actions">

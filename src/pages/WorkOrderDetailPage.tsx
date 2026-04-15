@@ -142,7 +142,7 @@ export function WorkOrderDetailPage() {
         <span className="wod-breadcrumb-active">WO-20230815</span>
       </div>
 
-      <div style={{ margin: "8px 0 0 24px" }}>
+      <div style={{ padding: "8px 24px 0" }}>
         <button
           style={{
             background: "rgba(71,85,105,0.5)",

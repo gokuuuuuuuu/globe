@@ -225,6 +225,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     airportCodeFormat,
     setAirportCodeFormat,
     riskZones,
+    homeObjectTab,
     timelineCurrentTime,
     flightStatuses,
   } = useAppStore();
@@ -743,11 +744,14 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
         );
       }
 
-      // 根据风险区间过滤机场
-      const { riskZone } = calculateRiskFromEnvironmentRisk(
-        airport.environmentRisk,
-      );
-      return riskZones.includes(riskZone);
+      // 根据风险区间过滤机场（人员tab不受影响）
+      if (homeObjectTab !== "personnel") {
+        const { riskZone } = calculateRiskFromEnvironmentRisk(
+          airport.environmentRisk,
+        );
+        if (!riskZones.includes(riskZone)) return false;
+      }
+      return true;
     }).map((airport) => {
       const position = latLonToCartesian(
         airport.lat,
@@ -758,6 +762,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     });
   }, [
     riskZones,
+    homeObjectTab,
     selectedAirportForAirline,
     selectedFlightRouteId,
     viewingAirportId,
@@ -1064,12 +1069,18 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
       const toPos = toAirportInstance.position.clone();
       const toElevated = toPos;
 
-      // 根据风险区间过滤航线
-      const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(
-        flight.environmentRisk,
-      );
-      if (!riskZones.includes(flightRiskZone)) {
+      // airports tab 不显示航线
+      if (homeObjectTab === "airports") {
         return;
+      }
+      // 根据风险区间过滤航线（人员tab不受影响）
+      if (homeObjectTab !== "personnel") {
+        const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(
+          flight.environmentRisk,
+        );
+        if (!riskZones.includes(flightRiskZone)) {
+          return;
+        }
       }
 
       // 根据环境风险值设置航线颜色
@@ -1103,6 +1114,7 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
     selectedFlightRouteId,
     selectedAirportForAirline,
     riskZones,
+    homeObjectTab,
     timelineCurrentTime,
     flightStatuses,
   ]);

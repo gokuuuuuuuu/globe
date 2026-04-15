@@ -222,7 +222,7 @@ export function PersonnelDetailPage() {
       </div>
 
       {/* Back + Header Card */}
-      <div style={{ marginBottom: 8 }}>
+      <div style={{ padding: "8px 24px 0" }}>
         <button
           style={{
             background: "rgba(71,85,105,0.5)",
@@ -232,7 +232,6 @@ export function PersonnelDetailPage() {
             padding: "4px 14px",
             cursor: "pointer",
             fontSize: 13,
-            margin: "16px 0 0 24px",
           }}
           onClick={() => navigate(-1)}
         >
@@ -279,7 +278,7 @@ export function PersonnelDetailPage() {
         </div>
         <div className="pd-header-info">
           <div className="pd-info-item">
-            <div className="pd-info-label">{t("员工ID", "Employee ID")}</div>
+            <div className="pd-info-label">{t("工号", "Employee No.")}</div>
             <div className="pd-info-value">P1300456</div>
           </div>
           <div className="pd-info-item">

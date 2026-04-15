@@ -110,6 +110,11 @@ export function HomePage() {
     const sp = new URLSearchParams(searchParams);
     sp.set("tab", tab);
     setSearchParams(sp, { replace: true });
+    // Sync riskZones and objectTab to the target tab's filter state
+    setRiskZones(
+      redYellowByTab[tab] ? ["red", "yellow"] : ["red", "yellow", "green"],
+    );
+    setHomeObjectTab(tab);
   };
   const riskFilter =
     (searchParams.get("risk") as "all" | "red" | "yellow") || "all";
@@ -129,16 +134,20 @@ export function HomePage() {
     setSearchParams(sp, { replace: true });
   };
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [leftPanelCollapsed, setLeftPanelCollapsed] = useState(false);
-  const { riskZones, setRiskZones } = useAppStore();
-  const redYellowOnly =
-    riskZones.length === 2 &&
-    riskZones.includes("red") &&
-    riskZones.includes("yellow");
+  const { setRiskZones, setHomeObjectTab } = useAppStore();
+  // Per-tab red/yellow filter state
+  const [redYellowByTab, setRedYellowByTab] = useState<
+    Record<ObjectTab, boolean>
+  >({
+    flights: false,
+    airports: false,
+    personnel: false,
+  });
+  const redYellowOnly = redYellowByTab[objectTab];
   const toggleRedYellowOnly = () => {
-    setRiskZones(
-      redYellowOnly ? ["red", "yellow", "green"] : ["red", "yellow"],
-    );
+    const next = !redYellowOnly;
+    setRedYellowByTab((prev) => ({ ...prev, [objectTab]: next }));
+    setRiskZones(next ? ["red", "yellow"] : ["red", "yellow", "green"]);
   };
 
   const canRender = !!atlas && !!world;
@@ -593,7 +602,13 @@ export function HomePage() {
               >
                 {t("综合分析", "Analysis")}
               </button>
-              <button onClick={() => navigate("/governance/work-order-list")}>
+              <button
+                onClick={() =>
+                  navigate("/governance/work-order-list", {
+                    state: { from: "home" },
+                  })
+                }
+              >
                 {t("治理工作流", "Governance")}
               </button>
             </div>
@@ -719,62 +734,56 @@ export function HomePage() {
               <div className="delta">&#9660; 1k / 1h</div>
             </div>
           </div>
-          <button
-            className={`dist-filter-btn ${redYellowOnly ? "active" : ""}`}
-            onClick={toggleRedYellowOnly}
-          >
-            {redYellowOnly
-              ? t("显示全部", "Show All")
-              : t("仅红黄", "Red/Ylw Only")}
-          </button>
+          {objectTab !== "personnel" && (
+            <button
+              className={`dist-filter-btn ${redYellowOnly ? "active" : ""}`}
+              onClick={toggleRedYellowOnly}
+            >
+              {redYellowOnly
+                ? t("显示全部", "Show All")
+                : t("仅红黄", "Red/Ylw Only")}
+            </button>
+          )}
         </div>
 
         {/* Critical Alert Hero Card */}
         {topCriticalItem && (
-          <div className="glass glass-tint-red hero-compact">
+          <div
+            className={`glass ${riskFilter === "yellow" ? "glass-tint-yellow" : "glass-tint-red"} hero-compact`}
+          >
+            {/* Row 1: status bar */}
             <div className="hero-status">
               <div className="lhs">
                 <div className="pulse" />
-                {t("紧急告警 // 活跃", "CRITICAL ALERT // ACTIVE")}
+                {t("紧急告警", "CRITICAL")}
               </div>
               <span className="id">#A-0001</span>
             </div>
 
+            {/* Row 2: code + gauge */}
             <div className="hero-body">
               <div className="hero-info">
                 <div className="hero-code">{topCriticalItem.code}</div>
-                <div className="hero-name">{topCriticalItem.name}</div>
-                <div className="hero-loc">{topCriticalItem.region}</div>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 8,
-                    marginTop: 4,
-                    fontSize: 11,
-                    color: "#94a3b8",
-                  }}
-                >
-                  <span>
-                    {objectTab === "flights"
-                      ? t("机型", "TYPE")
-                      : t("航班", "FLIGHTS")}
-                    : {topCriticalItem.flights}
-                  </span>
-                  <span>
-                    {objectTab === "flights"
-                      ? t("状态", "STATUS")
-                      : t("人员", "STAFF")}
-                    : {topCriticalItem.staff}
-                  </span>
+                <div className="hero-name">
+                  {topCriticalItem.name} · {topCriticalItem.region}
                 </div>
-                <div className="hero-tag">{t("紧急", "CRITICAL")}</div>
               </div>
               <div className="gauge">
                 <svg viewBox="0 0 120 120">
                   <defs>
                     <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#FF3957" />
-                      <stop offset="100%" stopColor="#ff7088" />
+                      <stop
+                        offset="0%"
+                        stopColor={
+                          riskFilter === "yellow" ? "#eab308" : "#FF3957"
+                        }
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor={
+                          riskFilter === "yellow" ? "#fbbf24" : "#ff7088"
+                        }
+                      />
                     </linearGradient>
                   </defs>
                   <circle
@@ -803,13 +812,26 @@ export function HomePage() {
               </div>
             </div>
 
-            <div className="hero-meta">
-              <div className="cell">
-                <div className="l">{t("告警", "ALERTS")}</div>
-                <div className="v">{topCriticalItem.alerts}</div>
-              </div>
+            {/* Row 3: inline meta chips */}
+            <div className="hero-chips">
+              <span className="hero-chip">
+                {objectTab === "flights" ? t("机型", "TYPE") : t("航班", "FLT")}
+                <strong>{topCriticalItem.flights}</strong>
+              </span>
+              <span className="hero-chip">
+                {objectTab === "flights" ? t("状态", "STS") : t("人员", "STF")}
+                <strong>{topCriticalItem.staff}</strong>
+              </span>
+              <span className="hero-chip">
+                {t("告警", "ALT")}
+                <strong>{topCriticalItem.alerts}</strong>
+              </span>
+              <span className="hero-chip hero-chip-red">
+                {t("紧急", "CRIT")}
+              </span>
             </div>
 
+            {/* Row 4: actions */}
             <div className="hero-actions">
               <button
                 className="btn-primary"
@@ -855,13 +877,13 @@ export function HomePage() {
                 className={`${riskFilter === "red" ? "active" : ""} ${riskFilter !== "red" ? "red-text" : ""}`}
                 onClick={() => setRiskFilter("red")}
               >
-                RED
+                {t("红色", "RED")}
               </button>
               <button
                 className={`${riskFilter === "yellow" ? "active" : ""} ${riskFilter !== "yellow" ? "yellow-text" : ""}`}
                 onClick={() => setRiskFilter("yellow")}
               >
-                YLW
+                {t("黄色", "YLW")}
               </button>
             </div>
           </div>
@@ -1236,7 +1258,6 @@ export function HomePage() {
       {showAnalysis && (
         <div className="analysis-overlay">
           <div className="analysis-header">
-            <h2>{t("综合分析", "Summary Analysis")}</h2>
             <button onClick={() => setShowAnalysis(false)}>
               {t("关闭", "Close")}
             </button>

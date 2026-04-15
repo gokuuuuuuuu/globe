@@ -313,9 +313,9 @@ export function WorkOrderListPage() {
 
   return (
     <div className="wo-root">
-      {/* Page header */}
-      <div className="wo-page-header">
-        {fromHome && (
+      {/* Back button */}
+      {fromHome && (
+        <div style={{ padding: "8px 24px 0" }}>
           <button
             style={{
               background: "rgba(71,85,105,0.5)",
@@ -325,13 +325,16 @@ export function WorkOrderListPage() {
               padding: "4px 14px",
               cursor: "pointer",
               fontSize: 13,
-              marginRight: 12,
             }}
             onClick={() => navigate(-1)}
           >
             {t("返回", "Back")}
           </button>
-        )}
+        </div>
+      )}
+
+      {/* Page header */}
+      <div className="wo-page-header">
         <h1 className="wo-page-title">{t("工单列表", "Work Order List")}</h1>
       </div>
 

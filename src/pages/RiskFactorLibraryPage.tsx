@@ -155,9 +155,9 @@ export function RiskFactorLibraryPage() {
         <h1 className="rfl-page-title">
           {t("风险因子库", "Risk Factor Library")}
         </h1>
-        <button className="rfl-help-btn">
+        {/* <button className="rfl-help-btn">
           &#9432;&nbsp;{t("帮助", "Help")}
-        </button>
+        </button> */}
       </div>
 
       <div className="rfl-body">

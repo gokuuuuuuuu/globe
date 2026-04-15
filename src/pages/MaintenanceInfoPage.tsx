@@ -328,7 +328,7 @@ export function MaintenanceInfoPage() {
           {t("维修信息", "Maintenance Info")}: P20 Asset
         </span>
       </div>
-      <div style={{ margin: "8px 0 0 0" }}>
+      <div style={{ padding: "8px 24px 0" }}>
         <button
           style={{
             background: "rgba(71,85,105,0.5)",
