@@ -8,6 +8,7 @@ import {
 } from "../data/flightData";
 import type { Flight } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
+import { downloadCSV } from "../utils/exportUtils";
 import "./AirportFlightsPage.css";
 
 const PAGE_SIZE = 20;
@@ -200,7 +201,41 @@ export function AirportFlightsPage() {
           </h1>
         </div>
         <div className="af-page-actions">
-          <button className="af-action-btn">
+          <button
+            className="af-action-btn"
+            onClick={() => {
+              const headers = [
+                t("航班号", "Flight Number"),
+                t("机尾号", "Tail Number"),
+                t("出发机场", "Departure Airport"),
+                t("到达机场", "Arrival Airport"),
+                t("综合风险等级", "Composite Risk Level"),
+                t("人为因素评分", "Human Factor Score"),
+                t("飞机因素评分", "Aircraft Factor Score"),
+                t("环境因素评分", "Environmental Factor Score"),
+                t("主要风险标签", "Major Risk Tags"),
+                t("治理状态", "Governance Status"),
+              ];
+              const rows = filteredFlights.map((f) => {
+                const risk = getCompositeRiskLevel(f);
+                const gov = getGovernanceStatus(f);
+                const tags = getRiskTags(f, t);
+                return [
+                  f.flightNumber,
+                  getTailNumber(f),
+                  f.fromAirportCode4 || f.fromAirport,
+                  f.toAirportCode4 || f.toAirport,
+                  t(risk.label, risk.labelEn),
+                  normalizeScore(f.humanRisk),
+                  normalizeScore(f.machineRisk),
+                  normalizeScore(f.environmentRisk),
+                  tags.join("; "),
+                  t(gov.label, gov.labelEn),
+                ];
+              });
+              downloadCSV(t("机场航班列表", "airport_flights"), headers, rows);
+            }}
+          >
             <svg
               width="14"
               height="14"

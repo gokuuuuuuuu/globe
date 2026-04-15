@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { downloadCSV } from "../utils/exportUtils";
 import "./FlightReportPage.css";
 
 const NAV_SECTIONS = [
@@ -194,7 +195,28 @@ export function FlightReportPage() {
       <div className="fr-page-header">
         <h1 className="fr-page-title">{t("航班报告", "Flight Report")}</h1>
         <div className="fr-header-actions">
-          <button className="fr-btn">{t("导出", "Export")}</button>
+          <button
+            className="fr-btn"
+            onClick={() => {
+              const headers = [t("字段", "Field"), t("值", "Value")];
+              const rows: (string | number)[][] = [
+                [t("航班ID", "Flight ID"), flightInfo.flightId],
+                [t("日期", "Date"), flightInfo.date],
+                [t("飞机", "Aircraft"), flightInfo.aircraft],
+                [t("机长", "Pilot"), flightInfo.pilot],
+                [t("航线", "Route"), flightInfo.route],
+                [t("状态", "Status"), flightInfo.status],
+                [t("摘要", "Summary"), flightInfo.summary],
+              ];
+              downloadCSV(
+                t("航班报告", "flight_report") + "_" + flightInfo.flightId,
+                headers,
+                rows,
+              );
+            }}
+          >
+            {t("导出", "Export")}
+          </button>
           <button
             className="fr-btn fr-btn-primary"
             onClick={() => navigate(-1)}

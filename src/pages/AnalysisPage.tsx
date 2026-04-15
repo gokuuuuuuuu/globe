@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { downloadCSV } from "../utils/exportUtils";
 
 // ===== Mock Data =====
 
@@ -436,7 +437,24 @@ export function AnalysisPage() {
       onClick: () => navigate("/personnel-center/personnel-list?risk=high"),
     },
     { label: t("更多分析", "More Analysis") },
-    { label: t("导出综合报告", "Export Summary Report") },
+    {
+      label: t("导出综合报告", "Export Summary Report"),
+      onClick: () => {
+        const headers = [
+          t("时间", "Time"),
+          t("红色风险", "Red"),
+          t("黄色风险", "Yellow"),
+          t("绿色风险", "Green"),
+        ];
+        const rows = riskForecastData.map((d) => [
+          d.time,
+          d.red,
+          d.yellow,
+          d.green,
+        ]);
+        downloadCSV(t("综合分析报告", "analysis_report"), headers, rows);
+      },
+    },
   ];
 
   return (

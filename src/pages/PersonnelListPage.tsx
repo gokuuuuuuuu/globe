@@ -2,6 +2,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { downloadCSV } from "../utils/exportUtils";
 import "./PersonnelListPage.css";
 
 // ---------- Mock Data ----------
@@ -467,7 +468,28 @@ export function PersonnelListPage() {
           />
         </div>
         <div className="pl-export-btns">
-          <button className="pl-export-btn">
+          <button
+            className="pl-export-btn"
+            onClick={() => {
+              const headers = [
+                t("工号", "Employee No."),
+                t("姓名", "Name"),
+                t("单位", "Unit"),
+                t("综合风险等级", "Composite Risk Level"),
+                t("主要人为因素标签", "Main Human Factor Tags"),
+                t("相关高风险航班", "Related High-Risk Flights"),
+              ];
+              const rows = filteredData.map((p) => [
+                p.employeeId,
+                p.name,
+                p.operatingUnit,
+                riskLabel(p.riskLevel),
+                translateTags(p.humanFactorTags),
+                p.relatedHighRiskFlights,
+              ]);
+              downloadCSV(t("人员列表", "personnel_list"), headers, rows);
+            }}
+          >
             <svg
               width="14"
               height="14"

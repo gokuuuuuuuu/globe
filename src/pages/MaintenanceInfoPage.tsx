@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { downloadCSV } from "../utils/exportUtils";
 import "./MaintenanceInfoPage.css";
 
 // ===== Mock Data =====
@@ -481,7 +482,34 @@ export function MaintenanceInfoPage() {
               ▾
             </span>
           </button>
-          <button className="mt-btn">
+          <button
+            className="mt-btn"
+            onClick={() => {
+              const headers = [
+                t("日期", "Date"),
+                t("记录ID", "Record ID"),
+                t("事件类型", "Event Type"),
+                t("描述", "Description"),
+                t("关键系统", "Critical Systems"),
+                t("状态", "Status"),
+                t("重复", "Repeated"),
+                t("严重性", "Criticality"),
+                t("飞行阶段", "Phases"),
+              ];
+              const rows = sortedData.map((r) => [
+                r.date,
+                r.recordId,
+                r.eventType,
+                r.description,
+                r.criticalSystems,
+                r.status,
+                r.repeated ? t("是", "Yes") : t("否", "No"),
+                r.criticality,
+                r.phases.join(", "),
+              ]);
+              downloadCSV(t("维护记录", "maintenance_records"), headers, rows);
+            }}
+          >
             <span className="mt-btn-icon">
               <DownloadIcon />
             </span>

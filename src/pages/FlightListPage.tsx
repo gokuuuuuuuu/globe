@@ -8,6 +8,7 @@ import {
 } from "../data/flightData";
 import type { Flight } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
+import { downloadCSV } from "../utils/exportUtils";
 import "./FlightListPage.css";
 
 const PAGE_SIZE = 15;
@@ -414,7 +415,50 @@ export function FlightListPage() {
           </span>
         </div>
         <div className="fl-page-actions">
-          <button className="fl-action-btn">
+          <button
+            className="fl-action-btn"
+            onClick={() => {
+              const headers = [
+                t("航班号", "Flight Number"),
+                t("机尾号", "Tail Number"),
+                t("机型", "Aircraft Type"),
+                "PF",
+                "PM",
+                t("出发", "Departure"),
+                t("到达", "Arrival"),
+                t("起飞时间", "Departure Time"),
+                t("降落时间", "Arrival Time"),
+                t("状态", "Status"),
+                t("综合风险等级", "Composite Risk Level"),
+                t("人为因素评分", "Human Factor Score"),
+                t("飞机因素评分", "Aircraft Factor Score"),
+                t("环境因素评分", "Environmental Factor Score"),
+                t("主要风险标签", "Major Risk Tags"),
+                t("治理状态", "Governance Status"),
+              ];
+              const rows = filteredFlights.map((f) => [
+                getDisplayFlightNumber(f),
+                f.aircraftNumber || "",
+                f.aircraftType || "",
+                getMockPF(f),
+                getMockPM(f),
+                f.fromAirportCode4 ||
+                  getIcaoCode(f.fromAirport) ||
+                  f.fromAirport,
+                f.toAirportCode4 || getIcaoCode(f.toAirport) || f.toAirport,
+                f.scheduledDeparture || f.actualDeparture || "",
+                f.scheduledArrival || f.actualArrival || "",
+                f.status,
+                getCompositeRiskLabel(f),
+                f.humanRisk,
+                f.machineRisk,
+                f.environmentRisk,
+                getRiskTags(f).join("; "),
+                getGovernanceStatus(f),
+              ]);
+              downloadCSV(t("航班列表", "flight_list"), headers, rows);
+            }}
+          >
             <svg
               width="14"
               height="14"
@@ -843,7 +887,7 @@ export function FlightListPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/environment-topic/environment-detail?airport=${flight.fromAirport}`,
+                          `/environment-topic/environment-detail?code=${flight.fromAirport}`,
                         );
                       }}
                     >
@@ -859,7 +903,7 @@ export function FlightListPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/environment-topic/environment-detail?airport=${flight.toAirport}`,
+                          `/environment-topic/environment-detail?code=${flight.toAirport}`,
                         );
                       }}
                     >
