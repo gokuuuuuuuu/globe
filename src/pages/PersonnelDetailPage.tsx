@@ -532,7 +532,17 @@ export function PersonnelDetailPage() {
                           fontSize: 12,
                         }}
                       >
-                        {t("航班", "Flight")}
+                        {t("出发机场", "Departure")}
+                      </th>
+                      <th
+                        style={{
+                          textAlign: "left",
+                          padding: "8px 12px",
+                          color: "#94a3b8",
+                          fontSize: 12,
+                        }}
+                      >
+                        {t("到达机场", "Arrival")}
                       </th>
                       <th
                         style={{
@@ -561,7 +571,8 @@ export function PersonnelDetailPage() {
                       {
                         fn: "MU5101",
                         date: "2024-03-15",
-                        route: "ZSPD-ZBAA",
+                        dep: "ZSPD",
+                        arr: "ZBAA",
                         type: "B737-800",
                         risk: t("高", "High"),
                         color: "#ef4444",
@@ -569,7 +580,8 @@ export function PersonnelDetailPage() {
                       {
                         fn: "MU5235",
                         date: "2024-03-10",
-                        route: "ZBAA-ZSPD",
+                        dep: "ZBAA",
+                        arr: "ZSPD",
                         type: "B737-800",
                         risk: t("中", "Medium"),
                         color: "#eab308",
@@ -577,7 +589,8 @@ export function PersonnelDetailPage() {
                       {
                         fn: "MU5302",
                         date: "2024-02-28",
-                        route: "ZSPD-ZGGG",
+                        dep: "ZSPD",
+                        arr: "ZGGG",
                         type: "A320",
                         risk: t("高", "High"),
                         color: "#ef4444",
@@ -585,7 +598,8 @@ export function PersonnelDetailPage() {
                       {
                         fn: "MU5418",
                         date: "2024-02-20",
-                        route: "ZGGG-ZSPD",
+                        dep: "ZGGG",
+                        arr: "ZSPD",
                         type: "A320",
                         risk: t("低", "Low"),
                         color: "#22c55e",
@@ -593,7 +607,8 @@ export function PersonnelDetailPage() {
                       {
                         fn: "MU5506",
                         date: "2024-02-15",
-                        route: "ZSPD-ZSSS",
+                        dep: "ZSPD",
+                        arr: "ZSSS",
                         type: "B737-800",
                         risk: t("中", "Medium"),
                         color: "#eab308",
@@ -601,7 +616,8 @@ export function PersonnelDetailPage() {
                       {
                         fn: "MU5612",
                         date: "2024-02-10",
-                        route: "ZSSS-ZSPD",
+                        dep: "ZSSS",
+                        arr: "ZSPD",
                         type: "B777",
                         risk: t("低", "Low"),
                         color: "#22c55e",
@@ -627,7 +643,8 @@ export function PersonnelDetailPage() {
                           {f.fn}
                         </td>
                         <td style={{ padding: "8px 12px" }}>{f.date}</td>
-                        <td style={{ padding: "8px 12px" }}>{f.route}</td>
+                        <td style={{ padding: "8px 12px" }}>{f.dep}</td>
+                        <td style={{ padding: "8px 12px" }}>{f.arr}</td>
                         <td style={{ padding: "8px 12px" }}>{f.type}</td>
                         <td style={{ padding: "8px 12px" }}>
                           <span style={{ color: f.color, fontWeight: 600 }}>

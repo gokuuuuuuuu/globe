@@ -4,101 +4,151 @@ import "./RiskFactorLibraryPage.css";
 
 // ===== Types =====
 
-type RiskLevel = "critical" | "high" | "medium" | "low";
+type Importance = "high" | "medium" | "low";
+type RuleSource = "model" | "manual";
+
+interface FactorRule {
+  condition: string;
+  result: string;
+}
 
 interface Factor {
   id: string;
   name: string;
-  category: string;
-  riskLevel: RiskLevel;
+  riskType: string;
+  importance: Importance;
   rulesCount: number;
-  traceableSource: string;
+  ruleSource: RuleSource;
   lastUpdate: string;
-  explainScore: number;
+  score: number;
+  rules: FactorRule[];
 }
+
+// ===== Risk Types =====
+
+const RISK_TYPES = [
+  { key: "cfit", zh: "可控飞行撞地(CFIT)", en: "CFIT" },
+  { key: "loc", zh: "飞行中失控(LOC-I)", en: "LOC-I" },
+  { key: "re", zh: "跑道偏/冲出(RE)", en: "Runway Excursion" },
+  { key: "mac", zh: "空中相撞(MAC)", en: "Mid-air Collision" },
+  { key: "gcol", zh: "地面碰撞(GCOL)", en: "Ground Collision" },
+  { key: "bird", zh: "鸟击", en: "Bird Strike" },
+  { key: "turbulence", zh: "颠簸", en: "Turbulence" },
+];
 
 // ===== Mock Data =====
 
 const FACTORS: Factor[] = [
   {
     id: "100001",
-    name: "Risk Factor",
-    category: "Category",
-    riskLevel: "critical",
-    rulesCount: 5,
-    traceableSource: "-",
-    lastUpdate: "2024-06-27 1:09:30",
-    explainScore: 50,
+    name: "进近稳定性",
+    riskType: "cfit",
+    importance: "high",
+    rulesCount: 3,
+    ruleSource: "model",
+    lastUpdate: "2024-06-27 01:09:30",
+    score: 85,
+    rules: [
+      { condition: "进近高度偏差 > 航路均值 + 3 SD", result: "触发" },
+      { condition: "下滑道偏差 > 1.5 dot", result: "触发" },
+      { condition: "进近速度偏差 > 15 kt", result: "触发" },
+    ],
   },
   {
     id: "100002",
-    name: "Reality Responsive",
-    category: "Category",
-    riskLevel: "high",
-    rulesCount: 7,
-    traceableSource: "Risk Factor",
-    lastUpdate: "2024-08-27 9:09:40",
-    explainScore: 40,
+    name: "姿态异常",
+    riskType: "loc",
+    importance: "high",
+    rulesCount: 2,
+    ruleSource: "model",
+    lastUpdate: "2024-08-27 09:09:40",
+    score: 78,
+    rules: [
+      { condition: "俯仰角 > 25° 或 < -10°", result: "触发" },
+      { condition: "坡度角 > 45°", result: "触发" },
+    ],
   },
   {
     id: "100003",
-    name: "Risk Factor",
-    category: "Category",
-    riskLevel: "medium",
-    rulesCount: 1,
-    traceableSource: "Risk Factor",
-    lastUpdate: "2024-08-27 3:00:30",
-    explainScore: 36,
+    name: "跑道对正偏差",
+    riskType: "re",
+    importance: "medium",
+    rulesCount: 2,
+    ruleSource: "model",
+    lastUpdate: "2024-08-27 03:00:30",
+    score: 62,
+    rules: [
+      { condition: "跑道对正偏差 > 航路均值 + 3 SD", result: "触发" },
+      { condition: "接地点偏差 > 跑道长度 30%", result: "触发" },
+    ],
   },
   {
     id: "100004",
-    name: "Redorm Context",
-    category: "Category",
-    riskLevel: "medium",
-    rulesCount: 4,
-    traceableSource: "Data Source",
-    lastUpdate: "2024-08-23 3:00:30",
-    explainScore: 30,
+    name: "间隔保持",
+    riskType: "mac",
+    importance: "medium",
+    rulesCount: 2,
+    ruleSource: "manual",
+    lastUpdate: "2024-08-23 03:00:30",
+    score: 55,
+    rules: [
+      { condition: "水平间隔 < 最低标准", result: "触发" },
+      { condition: "垂直间隔 < 300m", result: "触发" },
+    ],
   },
   {
     id: "100005",
-    name: "Ressable Source",
-    category: "Category",
-    riskLevel: "high",
-    rulesCount: 3,
-    traceableSource: "Risk Factor",
-    lastUpdate: "2024-08-23 0:09:30",
-    explainScore: 75,
+    name: "地面滑行速度",
+    riskType: "gcol",
+    importance: "low",
+    rulesCount: 1,
+    ruleSource: "model",
+    lastUpdate: "2024-08-23 00:09:30",
+    score: 45,
+    rules: [{ condition: "滑行速度 > 限制速度", result: "触发" }],
+  },
+  {
+    id: "100006",
+    name: "鸟群密度",
+    riskType: "bird",
+    importance: "medium",
+    rulesCount: 2,
+    ruleSource: "model",
+    lastUpdate: "2024-08-23 03:00:30",
+    score: 70,
+    rules: [
+      { condition: "鸟群密度 > 区域均值 + 2 SD", result: "触发" },
+      { condition: "鸟击高度 < 1000ft", result: "触发" },
+    ],
   },
   {
     id: "100007",
-    name: "Enernat Budget",
-    category: "Category",
-    riskLevel: "medium",
-    rulesCount: 1,
-    traceableSource: "Risk Factor",
-    lastUpdate: "2024-08-23 3:00:30",
-    explainScore: 75,
+    name: "颠簸强度",
+    riskType: "turbulence",
+    importance: "high",
+    rulesCount: 3,
+    ruleSource: "model",
+    lastUpdate: "2024-08-20 01:00:30",
+    score: 82,
+    rules: [
+      { condition: "实际持续时间 > 航路均值 + 3 SD", result: "触发" },
+      { condition: "垂直加速度 > 0.5g", result: "触发" },
+      { condition: "EDR > 0.4", result: "触发" },
+    ],
   },
   {
     id: "100008",
-    name: "Security Management",
-    category: "Category",
-    riskLevel: "low",
+    name: "低高度大坡度",
+    riskType: "cfit",
+    importance: "medium",
     rulesCount: 2,
-    traceableSource: "Risk Factor",
-    lastUpdate: "2024-08-20 1:00:30",
-    explainScore: 62,
-  },
-  {
-    id: "100009",
-    name: "Risk Factors",
-    category: "Category",
-    riskLevel: "low",
-    rulesCount: 2,
-    traceableSource: "Risk Factor",
-    lastUpdate: "2024-07-23 1:39:40",
-    explainScore: 68,
+    ruleSource: "manual",
+    lastUpdate: "2024-07-23 01:39:40",
+    score: 68,
+    rules: [
+      { condition: "高度 < 500ft 且 坡度 > 30°", result: "触发" },
+      { condition: "地形接近率 > 阈值", result: "触发" },
+    ],
   },
 ];
 
@@ -106,14 +156,18 @@ const FACTORS: Factor[] = [
 
 export function RiskFactorLibraryPage() {
   const { t } = useLanguage();
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [riskFilter, setRiskFilter] = useState("all");
+  const [riskTypeFilter, setRiskTypeFilter] = useState("all");
   const [page] = useState(1);
 
-  const tRiskLevel = (level: RiskLevel) => {
-    const map: Record<RiskLevel, [string, string]> = {
-      critical: ["严重", "Critical"],
+  // Edit modal state
+  const [editingFactor, setEditingFactor] = useState<Factor | null>(null);
+  const [editRules, setEditRules] = useState<FactorRule[]>([]);
+
+  // Delete confirm state
+  const [deletingFactor, setDeletingFactor] = useState<Factor | null>(null);
+
+  const tImportance = (level: Importance) => {
+    const map: Record<Importance, [string, string]> = {
       high: ["高", "High"],
       medium: ["中", "Medium"],
       low: ["低", "Low"],
@@ -121,32 +175,88 @@ export function RiskFactorLibraryPage() {
     return t(map[level][0], map[level][1]);
   };
 
-  const tFactorName = (name: string) => {
-    const map: Record<string, string> = {
-      "Risk Factor": "风险因子",
-      "Reality Responsive": "现实响应",
-      "Redorm Context": "重塑上下文",
-      "Ressable Source": "可靠来源",
-      "Enernat Budget": "能源预算",
-      "Security Management": "安全管理",
-      "Risk Factors": "风险因子集",
+  const importanceClass = (level: Importance) => {
+    const map: Record<Importance, string> = {
+      high: "high",
+      medium: "medium",
+      low: "low",
     };
-    return t(map[name] || name, name);
+    return map[level];
   };
 
-  const tSource = (src: string) => {
-    const map: Record<string, string> = {
-      "Risk Factor": "风险因子",
-      "Data Source": "数据源",
-    };
-    if (src === "-") return "-";
-    return t(map[src] || src, src);
+  const tRuleSource = (src: RuleSource) => {
+    if (src === "model") return t("模型输出", "Model Output");
+    return t("人工定义", "Manual");
+  };
+
+  const tRiskType = (key: string) => {
+    const found = RISK_TYPES.find((r) => r.key === key);
+    if (!found) return key;
+    return t(found.zh, found.en);
   };
 
   const filtered = FACTORS.filter((f) => {
-    if (riskFilter !== "all" && f.riskLevel !== riskFilter) return false;
+    if (riskTypeFilter !== "all" && f.riskType !== riskTypeFilter) return false;
     return true;
   });
+
+  const totalRisks = RISK_TYPES.length;
+  const totalFactors = FACTORS.length;
+
+  // Open edit modal
+  const handleEdit = (factor: Factor) => {
+    setEditingFactor(factor);
+    setEditRules(factor.rules.map((r) => ({ ...r })));
+  };
+
+  // Save edited rules
+  const handleSaveRules = () => {
+    if (editingFactor) {
+      // In real app, update backend. Here just update local reference.
+      editingFactor.rules = editRules;
+      editingFactor.ruleSource = "manual";
+      const now = new Date(Date.now() + 8 * 3600 * 1000);
+      editingFactor.lastUpdate = now
+        .toISOString()
+        .replace("T", " ")
+        .slice(0, 19);
+    }
+    setEditingFactor(null);
+  };
+
+  // Delete
+  const handleDelete = (factor: Factor) => {
+    setDeletingFactor(factor);
+  };
+
+  const confirmDelete = () => {
+    if (deletingFactor) {
+      const idx = FACTORS.indexOf(deletingFactor);
+      if (idx > -1) FACTORS.splice(idx, 1);
+    }
+    setDeletingFactor(null);
+  };
+
+  // Edit rule handlers
+  const updateRuleCondition = (index: number, value: string) => {
+    setEditRules((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, condition: value } : r)),
+    );
+  };
+
+  const updateRuleResult = (index: number, value: string) => {
+    setEditRules((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, result: value } : r)),
+    );
+  };
+
+  const addRule = () => {
+    setEditRules((prev) => [...prev, { condition: "", result: "触发" }]);
+  };
+
+  const removeRule = (index: number) => {
+    setEditRules((prev) => prev.filter((_, i) => i !== index));
+  };
 
   return (
     <div className="rfl-root">
@@ -155,81 +265,37 @@ export function RiskFactorLibraryPage() {
         <h1 className="rfl-page-title">
           {t("风险因子库", "Risk Factor Library")}
         </h1>
-        {/* <button className="rfl-help-btn">
-          &#9432;&nbsp;{t("帮助", "Help")}
-        </button> */}
       </div>
 
       <div className="rfl-body">
         {/* KPI row */}
         <div className="rfl-kpi-row">
           <div className="rfl-kpi-card">
+            <div className="rfl-kpi-label">{t("风险总数", "Total Risks")}</div>
+            <div className="rfl-kpi-value">{totalRisks}</div>
+          </div>
+          <div className="rfl-kpi-card">
             <div className="rfl-kpi-label">
               {t("因子总数", "Total Factors")}
             </div>
-            <div className="rfl-kpi-value">582</div>
-          </div>
-          <div className="rfl-kpi-card">
-            <div className="rfl-kpi-label">
-              {t("新增因子", "Newly Added Factors")}
-            </div>
-            <div className="rfl-kpi-value">43</div>
-          </div>
-          <div className="rfl-kpi-card">
-            <div className="rfl-kpi-label">
-              {t("已修改因子", "Modified Factors")}
-            </div>
-            <div className="rfl-kpi-value">27</div>
-          </div>
-          <div className="rfl-kpi-card">
-            <div className="rfl-kpi-label">
-              {t("高频使用因子", "Highly Used Factors")}
-            </div>
-            <div className="rfl-kpi-value">10</div>
+            <div className="rfl-kpi-value">{totalFactors}</div>
           </div>
         </div>
 
         {/* Filter bar */}
         <div className="rfl-filter-bar">
-          <span className="rfl-filter-label">
-            {t("因子类别", "Factor Category")}
-          </span>
           <select
             className="rfl-select"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            value={riskTypeFilter}
+            onChange={(e) => setRiskTypeFilter(e.target.value)}
           >
-            <option value="all">{t("因子类别", "Factor Category")}</option>
+            <option value="all">{t("全部风险类型", "All Risk Types")}</option>
+            {RISK_TYPES.map((rt) => (
+              <option key={rt.key} value={rt.key}>
+                {t(rt.zh, rt.en)}
+              </option>
+            ))}
           </select>
-          <select
-            className="rfl-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">{t("状态", "Status")}</option>
-          </select>
-          <select
-            className="rfl-select"
-            value={riskFilter}
-            onChange={(e) => setRiskFilter(e.target.value)}
-          >
-            <option value="all">{t("风险等级", "Risk Level")}</option>
-            <option value="critical">{t("严重", "Critical")}</option>
-            <option value="high">{t("高", "High")}</option>
-            <option value="medium">{t("中", "Medium")}</option>
-            <option value="low">{t("低", "Low")}</option>
-          </select>
-
-          <div className="rfl-date-range">
-            <span>{t("日期范围", "Date range")}</span>
-            <input
-              className="rfl-date-input"
-              type="text"
-              defaultValue="2024-01-31- 2024-11-20"
-              readOnly
-            />
-            <button className="rfl-clear-btn">&#10005;</button>
-          </div>
         </div>
 
         {/* Table */}
@@ -247,20 +313,20 @@ export function RiskFactorLibraryPage() {
                   <span className="rfl-sort-icon">⇅</span>
                 </th>
                 <th className="sortable">
-                  {t("类别", "Category")}
+                  {t("风险类型", "Risk Type")}
                   <span className="rfl-sort-icon">⇅</span>
                 </th>
                 <th className="sortable">
-                  {t("风险等级", "Risk Level")}
+                  {t("重要度", "Importance")}
                   <span className="rfl-sort-icon">⇅</span>
                 </th>
                 <th className="sortable">
                   {t("规则数", "Rules Count")}
                   <span className="rfl-sort-icon">⇅</span>
                 </th>
-                <th>{t("可追溯来源", "Traceable Source")}</th>
-                <th>{t("最后训练更新", "Last Trainable Update")}</th>
-                <th>{t("可解释性评分", "Explainability Score")}</th>
+                <th>{t("规则来源", "Rule Source")}</th>
+                <th>{t("最后更新", "Last Update")}</th>
+                <th>{t("得分", "Score")}</th>
                 <th>{t("操作", "Actions")}</th>
               </tr>
             </thead>
@@ -269,35 +335,33 @@ export function RiskFactorLibraryPage() {
                 <tr key={f.id}>
                   <td />
                   <td>{f.id}</td>
-                  <td>{tFactorName(f.name)}</td>
-                  <td>{t("类别", f.category)}</td>
+                  <td>{t(f.name, f.name)}</td>
+                  <td>{tRiskType(f.riskType)}</td>
                   <td>
-                    <span className={`rfl-risk-badge ${f.riskLevel}`}>
+                    <span
+                      className={`rfl-risk-badge ${importanceClass(f.importance)}`}
+                    >
                       <span className="rfl-risk-dot" />
-                      {tRiskLevel(f.riskLevel)}
+                      {tImportance(f.importance)}
                     </span>
                   </td>
                   <td>{f.rulesCount}</td>
-                  <td>{tSource(f.traceableSource)}</td>
+                  <td>{tRuleSource(f.ruleSource)}</td>
                   <td>{f.lastUpdate}</td>
-                  <td>{f.explainScore}</td>
+                  <td>{f.score}</td>
                   <td>
                     <div className="rfl-actions">
                       <button
                         className="rfl-action-icon"
-                        title={t("查看", "View")}
-                      >
-                        &#128065;
-                      </button>
-                      <button
-                        className="rfl-action-icon"
                         title={t("编辑", "Edit")}
+                        onClick={() => handleEdit(f)}
                       >
                         &#9998;
                       </button>
                       <button
                         className="rfl-action-icon"
                         title={t("删除", "Delete")}
+                        onClick={() => handleDelete(f)}
                       >
                         &#128465;
                       </button>
@@ -323,7 +387,120 @@ export function RiskFactorLibraryPage() {
         </div>
       </div>
 
-      {/* Footer */}
+      {/* Edit Rule Modal */}
+      {editingFactor && (
+        <div
+          className="rfl-modal-overlay"
+          onClick={() => setEditingFactor(null)}
+        >
+          <div className="rfl-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="rfl-modal-header">
+              <h3>
+                {t("因子规则编辑", "Factor Rule Editor")} —{" "}
+                {t(editingFactor.name, editingFactor.name)}
+              </h3>
+              <button
+                className="rfl-modal-close"
+                onClick={() => setEditingFactor(null)}
+              >
+                &#10005;
+              </button>
+            </div>
+            <div className="rfl-modal-body">
+              <div className="rfl-rule-label">
+                {t("应用逻辑", "Applied Logic")}
+              </div>
+              <div className="rfl-rules-list">
+                {editRules.map((rule, idx) => (
+                  <div key={idx} className="rfl-rule-row">
+                    <span className="rfl-rule-keyword">IF</span>
+                    <input
+                      className="rfl-rule-input rfl-rule-condition"
+                      value={rule.condition}
+                      onChange={(e) => updateRuleCondition(idx, e.target.value)}
+                    />
+                    <span className="rfl-rule-keyword">THEN</span>
+                    <input
+                      className="rfl-rule-input rfl-rule-result"
+                      value={rule.result}
+                      onChange={(e) => updateRuleResult(idx, e.target.value)}
+                    />
+                    <button
+                      className="rfl-rule-remove"
+                      onClick={() => removeRule(idx)}
+                      title={t("删除规则", "Remove rule")}
+                    >
+                      &#10005;
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button className="rfl-add-rule-btn" onClick={addRule}>
+                + {t("添加规则", "Add Rule")}
+              </button>
+            </div>
+            <div className="rfl-modal-footer">
+              <button
+                className="rfl-modal-btn rfl-modal-cancel"
+                onClick={() => setEditingFactor(null)}
+              >
+                {t("取消", "Cancel")}
+              </button>
+              <button
+                className="rfl-modal-btn rfl-modal-save"
+                onClick={handleSaveRules}
+              >
+                {t("保存", "Save")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirm Modal */}
+      {deletingFactor && (
+        <div
+          className="rfl-modal-overlay"
+          onClick={() => setDeletingFactor(null)}
+        >
+          <div
+            className="rfl-modal rfl-modal-sm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="rfl-modal-header">
+              <h3>{t("确认删除", "Confirm Delete")}</h3>
+              <button
+                className="rfl-modal-close"
+                onClick={() => setDeletingFactor(null)}
+              >
+                &#10005;
+              </button>
+            </div>
+            <div className="rfl-modal-body">
+              <p>
+                {t(
+                  `确定要删除因子「${deletingFactor.name}」吗？此操作不可撤销。`,
+                  `Are you sure you want to delete factor "${deletingFactor.name}"? This action cannot be undone.`,
+                )}
+              </p>
+            </div>
+            <div className="rfl-modal-footer">
+              <button
+                className="rfl-modal-btn rfl-modal-cancel"
+                onClick={() => setDeletingFactor(null)}
+              >
+                {t("取消", "Cancel")}
+              </button>
+              <button
+                className="rfl-modal-btn rfl-modal-delete"
+                onClick={confirmDelete}
+              >
+                {t("删除", "Delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

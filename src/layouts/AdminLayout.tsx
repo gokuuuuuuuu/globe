@@ -1,5 +1,17 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import {
+  LayoutDashboard,
+  Plane,
+  TowerControl,
+  Users,
+  PlaneTakeoff,
+  CloudSun,
+  RefreshCcw,
+  BarChart3,
+  ShieldAlert,
+  Settings,
+} from "lucide-react";
 import "./AdminLayout.css";
 
 interface MenuItem {
@@ -17,52 +29,52 @@ export function AdminLayout() {
     {
       path: "/",
       label: t("工作台", "Dashboard"),
-      icon: <span>▦</span>,
+      icon: <LayoutDashboard size={16} />,
     },
     {
       path: "/risk-monitoring/flights",
       label: t("航班", "Flights"),
-      icon: <span>△</span>,
+      icon: <Plane size={16} />,
     },
     {
       path: "/airport-center/airport-list",
       label: t("机场", "Airports"),
-      icon: <span>→</span>,
+      icon: <TowerControl size={16} />,
     },
     {
       path: "/personnel-center/personnel-list",
       label: t("人", "Personnel"),
-      icon: <span>◉</span>,
+      icon: <Users size={16} />,
     },
     {
       path: "/aircraft-topic/aircraft-list",
       label: t("机", "Aircraft"),
-      icon: <span>✦</span>,
+      icon: <PlaneTakeoff size={16} />,
     },
     {
       path: "/environment-topic/environment-detail",
       label: t("环", "Environment"),
-      icon: <span>✦</span>,
+      icon: <CloudSun size={16} />,
     },
     {
       path: "/governance/work-order-list",
       label: t("治理闭环", "Governance"),
-      icon: <span>☑</span>,
+      icon: <RefreshCcw size={16} />,
     },
     {
       path: "/statistical-analysis",
       label: t("统计分析", "Statistics"),
-      icon: <span>▤</span>,
+      icon: <BarChart3 size={16} />,
     },
     {
       path: "/knowledge-center",
       label: t("风险因子库", "Risk Factor Library"),
-      icon: <span>❏</span>,
+      icon: <ShieldAlert size={16} />,
     },
     {
       path: "/system-management",
       label: t("系统管理", "System Mgmt"),
-      icon: <span>⚙</span>,
+      icon: <Settings size={16} />,
     },
   ];
 
