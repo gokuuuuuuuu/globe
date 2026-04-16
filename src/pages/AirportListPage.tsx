@@ -249,7 +249,7 @@ export function AirportListPage() {
               <tbody>
                 {pagedAirports.map((a, i) => {
                   const rank = (page - 1) * PAGE_SIZE + i + 1;
-                  const risk = getRiskBadge(a.environmentRisk, t);
+                  // risk badge computed via composite below
                   const composite = getRiskBadge(
                     a.environmentRisk >= 5
                       ? a.environmentRisk

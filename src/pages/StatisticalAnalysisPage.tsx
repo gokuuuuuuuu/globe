@@ -373,12 +373,7 @@ export function StatisticalAnalysisPage() {
           <PersonnelStatisticsTab t={t} tMonth={tMonth} />
         )}
         {activeTab === "airport-statistics" && (
-          <AirportStatisticsTab
-            t={t}
-            tMonth={tMonth}
-            tService={tService}
-            navigate={navigate}
-          />
+          <AirportStatisticsTab t={t} tMonth={tMonth} tService={tService} />
         )}
         {activeTab === "aircraft-statistics" && (
           <AircraftStatisticsTab t={t} tMonth={tMonth} />
@@ -888,12 +883,10 @@ function AirportStatisticsTab({
   t,
   tMonth,
   tService,
-  navigate,
 }: {
   t: TFn;
   tMonth: (m: string) => string;
   tService: (n: string) => string;
-  navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
     <>

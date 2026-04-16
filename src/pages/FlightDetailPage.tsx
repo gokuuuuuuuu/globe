@@ -158,15 +158,6 @@ export function FlightDetailPage() {
     return map[name] ? t(map[name], name) : name;
   };
 
-  const tPriority = (name: string) => {
-    const map: Record<string, string> = {
-      "Critical - Red": "严重 - 红色",
-      High: "高",
-      "Critical - High": "严重 - 高",
-    };
-    return map[name] ? t(map[name], name) : name;
-  };
-
   const tCause = (name: string) => {
     const map: Record<string, string> = {
       "Thunderstorms forecasted": "预报有雷暴",
