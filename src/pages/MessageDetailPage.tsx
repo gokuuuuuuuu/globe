@@ -209,7 +209,7 @@ export function MessageDetailPage() {
                 </span>
               </div>
               <div className="msg-risk-bar-right">
-                <button className="msg-menu-dots">&#8943;</button>
+                {/* <button className="msg-menu-dots">&#8943;</button> */}
               </div>
             </div>
 
@@ -554,7 +554,7 @@ export function MessageDetailPage() {
                 <span className="msg-related-title">
                   {t("关联航班", "Related Flight")}
                 </span>
-                <button className="msg-menu-dots">&#8943;</button>
+                {/* <button className="msg-menu-dots">&#8943;</button> */}
               </div>
               <div className="msg-related-big">{t("航班", "Flight")} AR123</div>
               <button
@@ -606,7 +606,7 @@ export function MessageDetailPage() {
                   <span className="msg-related-title">
                     {t("关联机场", "Related Airport")}
                   </span>
-                  <button className="msg-menu-dots">&#8943;</button>
+                  {/* <button className="msg-menu-dots">&#8943;</button> */}
                 </div>
                 <div className="msg-related-big">KLAX</div>
                 <div className="msg-related-row">

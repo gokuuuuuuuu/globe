@@ -1155,7 +1155,7 @@ export function EnvironmentDetailPage() {
                   <div className="env-card-title">
                     {t("天气概况", "Weather Summary")}
                   </div>
-                  <span className="env-card-menu">...</span>
+                  {/* <span className="env-card-menu">...</span> */}
                 </div>
 
                 <div className="env-weather-layout">
@@ -1339,7 +1339,7 @@ export function EnvironmentDetailPage() {
                   <div className="env-card-title">
                     {t("重大环境异常", "Major Environmental Anomalies")}
                   </div>
-                  <span className="env-card-menu">...</span>
+                  {/* <span className="env-card-menu">...</span> */}
                 </div>
 
                 <div className="env-anomaly-list">
@@ -1399,7 +1399,7 @@ export function EnvironmentDetailPage() {
                   <div className="env-card-title">
                     {t("时间窗口变化", "Time-Window Changes")}
                   </div>
-                  <span className="env-card-menu">...</span>
+                  {/* <span className="env-card-menu">...</span> */}
                 </div>
 
                 <div className="env-tw-grid">

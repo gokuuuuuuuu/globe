@@ -409,7 +409,7 @@ function KpiCard({
           <span className={`sta-kpi-change ${dir}`}>{change}</span>
         </div>
       </div>
-      <button className="sta-kpi-menu">&#8943;</button>
+      {/* <button className="sta-kpi-menu">&#8943;</button> */}
     </div>
   );
 }
