@@ -211,14 +211,14 @@ export function SystemManagementPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="smp-toolbar-right">
+            {/* <div className="smp-toolbar-right">
               <button className="smp-filter-btn">
                 &#9776;&nbsp;{t("筛选", "Filters")}&nbsp;&#9662;
               </button>
               <button className="smp-add-btn">
                 {t("添加用户", "Add User")}
               </button>
-            </div>
+            </div> */}
           </div>
 
           <div className="smp-table-card">
@@ -268,9 +268,9 @@ export function SystemManagementPage() {
                         </span>
                       </td>
                       <td>{u.lastLogin || "—"}</td>
-                      <td>
+                      {/* <td>
                         <button className="smp-more-btn">&#8943;</button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

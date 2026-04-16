@@ -189,6 +189,7 @@ export function AirportListPage() {
           <input
             className="ap-filter-date"
             type="text"
+            disabled
             defaultValue={t(
               "近7天：2024-05-15 至 2024-05-21",
               "Last 7 Days: 2024-05-15 to 2024-05-21",
@@ -212,9 +213,9 @@ export function AirportListPage() {
           />
         </div>
         <div className="ap-filter-actions">
-          <button className="ap-btn ap-btn-primary">
+          {/* <button className="ap-btn ap-btn-primary">
             {t("应用", "Apply")}
-          </button>
+          </button> */}
           <button
             className="ap-btn ap-btn-secondary"
             onClick={() => {

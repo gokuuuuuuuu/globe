@@ -242,7 +242,7 @@ export function PersonnelDetailPage() {
         <div className="pd-header-top">
           <h1 className="pd-header-title">P1300456 - John M. Stevenson</h1>
           <div className="pd-header-icons">
-            <button className="pd-icon-btn" title={t("信息", "Info")}>
+            {/* <button className="pd-icon-btn" title={t("信息", "Info")}>
               <svg
                 width="18"
                 height="18"
@@ -273,7 +273,7 @@ export function PersonnelDetailPage() {
                 <circle cx="12" cy="12" r="1" />
                 <circle cx="12" cy="19" r="1" />
               </svg>
-            </button>
+            </button> */}
           </div>
         </div>
         <div className="pd-header-info">
@@ -905,7 +905,7 @@ function RiskProfileSection() {
                 {t("查看其他推荐训练", "View rest recommended training")}
               </span>
             </div>
-            <svg
+            {/* <svg
               className="pd-action-link-chevron"
               width="20"
               height="20"
@@ -917,7 +917,7 @@ function RiskProfileSection() {
               strokeLinejoin="round"
             >
               <polyline points="9 18 15 12 9 6" />
-            </svg>
+            </svg> */}
           </div>
           <div className="pd-action-link">
             <div className="pd-action-link-text">
@@ -928,7 +928,7 @@ function RiskProfileSection() {
                 )}
               </span>
             </div>
-            <svg
+            {/* <svg
               className="pd-action-link-chevron"
               width="20"
               height="20"
@@ -940,7 +940,7 @@ function RiskProfileSection() {
               strokeLinejoin="round"
             >
               <polyline points="9 18 15 12 9 6" />
-            </svg>
+            </svg> */}
           </div>
         </div>
       </div>

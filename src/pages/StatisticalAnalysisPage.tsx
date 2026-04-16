@@ -339,12 +339,12 @@ export function StatisticalAnalysisPage() {
       {/* Header bar */}
       <div className="sta-header-bar">
         <h1 className="sta-page-title">{tabLabels[activeTab]}</h1>
-        <button className="sta-filter-btn">
+        {/* <button className="sta-filter-btn">
           &#128197;&nbsp;{t("最近30天", "Last 30 Days")}&nbsp;&#9662;
         </button>
         <button className="sta-filter-btn">
           {t("更多筛选", "More Filters")}
-        </button>
+        </button> */}
         <div className="sta-header-actions">
           <button className="sta-export-btn" onClick={handleExport}>
             &#128196;&nbsp;{t("导出", "Export")}

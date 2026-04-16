@@ -141,12 +141,12 @@ export function AdminLayout() {
           >
             {lang === "zh" ? "中文" : "EN"}
           </button>
-          <button className="al-icon-btn" title="Search">
+          {/* <button className="al-icon-btn" title="Search">
             ⌕
           </button>
           <button className="al-icon-btn" title="Grid">
             ⊞
-          </button>
+          </button> */}
         </div>
       </nav>
 

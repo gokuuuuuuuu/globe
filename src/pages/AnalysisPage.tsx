@@ -436,7 +436,7 @@ export function AnalysisPage() {
       label: t("查看高风险人员", "View High-Risk Personnel"),
       onClick: () => navigate("/personnel-center/personnel-list?risk=high"),
     },
-    { label: t("更多分析", "More Analysis") },
+    // { label: t("更多分析", "More Analysis") },
     {
       label: t("导出综合报告", "Export Summary Report"),
       onClick: () => {

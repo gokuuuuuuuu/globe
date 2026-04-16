@@ -971,7 +971,7 @@ export function EnvironmentDetailPage() {
                   <div className="env-card-title">
                     {t("整体环境风险", "Overall Environmental Risk")}
                   </div>
-                  <div className="env-card-actions">
+                  {/* <div className="env-card-actions">
                     <span className="env-card-link">
                       <svg
                         width="12"
@@ -986,7 +986,7 @@ export function EnvironmentDetailPage() {
                       {t("趋势", "Trend")}
                     </span>
                     <span className="env-card-menu">...</span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="env-gauge-layout">
@@ -1045,7 +1045,7 @@ export function EnvironmentDetailPage() {
                   <div className="env-card-title">
                     {t("关键因素状态", "Key Factor Status")}
                   </div>
-                  <div className="env-card-actions">
+                  {/* <div className="env-card-actions">
                     <span className="env-card-link">
                       <svg
                         width="12"
@@ -1060,7 +1060,7 @@ export function EnvironmentDetailPage() {
                       {t("趋势", "Trend")}
                     </span>
                     <span className="env-card-menu">...</span>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="env-kf-grid">
@@ -1279,9 +1279,9 @@ export function EnvironmentDetailPage() {
                       "Runway and Airport Environment Alerts",
                     )}
                   </div>
-                  <button className="env-alerts-dropdown">
+                  {/* <button className="env-alerts-dropdown">
                     {t("最近警报", "Recent alerts")} ▾
-                  </button>
+                  </button> */}
                 </div>
 
                 <table className="env-table">
