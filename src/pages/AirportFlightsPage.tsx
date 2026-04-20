@@ -468,9 +468,7 @@ export function AirportFlightsPage() {
                           <button onClick={() => setOpenActions(null)}>
                             {t("查看报告", "View Report")}
                           </button>
-                          <button onClick={() => setOpenActions(null)}>
-                            {t("发起处置", "Initiate Action")}
-                          </button>
+                          {/* 处置按钮已移除 */}
                         </div>
                       )}
                     </div>

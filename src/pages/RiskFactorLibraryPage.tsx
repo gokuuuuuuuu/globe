@@ -157,6 +157,7 @@ const FACTORS: Factor[] = [
 export function RiskFactorLibraryPage() {
   const { t } = useLanguage();
   const [riskTypeFilter, setRiskTypeFilter] = useState("all");
+  const [nameFilter, setNameFilter] = useState("");
   const [page] = useState(1);
 
   // Edit modal state
@@ -197,11 +198,9 @@ export function RiskFactorLibraryPage() {
 
   const filtered = FACTORS.filter((f) => {
     if (riskTypeFilter !== "all" && f.riskType !== riskTypeFilter) return false;
+    if (nameFilter && !f.name.includes(nameFilter)) return false;
     return true;
   });
-
-  const totalRisks = RISK_TYPES.length;
-  const totalFactors = FACTORS.length;
 
   // Open edit modal
   const handleEdit = (factor: Factor) => {
@@ -268,20 +267,6 @@ export function RiskFactorLibraryPage() {
       </div>
 
       <div className="rfl-body">
-        {/* KPI row */}
-        <div className="rfl-kpi-row">
-          <div className="rfl-kpi-card">
-            <div className="rfl-kpi-label">{t("风险总数", "Total Risks")}</div>
-            <div className="rfl-kpi-value">{totalRisks}</div>
-          </div>
-          <div className="rfl-kpi-card">
-            <div className="rfl-kpi-label">
-              {t("因子总数", "Total Factors")}
-            </div>
-            <div className="rfl-kpi-value">{totalFactors}</div>
-          </div>
-        </div>
-
         {/* Filter bar */}
         <div className="rfl-filter-bar">
           <select
@@ -296,6 +281,16 @@ export function RiskFactorLibraryPage() {
               </option>
             ))}
           </select>
+          <input
+            className="rfl-input"
+            type="text"
+            placeholder={t("因子名称筛选", "Filter by factor name")}
+            value={nameFilter}
+            onChange={(e) => setNameFilter(e.target.value)}
+          />
+          <span className="rfl-record-count">
+            {t(`共 ${filtered.length} 条记录`, `${filtered.length} records`)}
+          </span>
         </div>
 
         {/* Table */}

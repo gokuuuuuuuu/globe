@@ -6,8 +6,10 @@ import {
   // calculateRiskFromEnvironmentRisk,
   getIcaoCode,
 } from "../data/flightData";
+import { AIRPORT_LIST } from "../data/airportList";
 import type { Flight } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
+import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
 import { downloadCSV } from "../utils/exportUtils";
 import "./FlightListPage.css";
 
@@ -41,6 +43,71 @@ const ALL_ARRIVAL_AIRPORTS = (() => {
 })();
 const ALL_OPERATING_UNITS = getUniqueValues("operatingUnit");
 const ALL_AIRCRAFT_TYPES = getUniqueValues("aircraftType");
+
+// 飞行单位列表
+const FLIGHT_UNITS = [
+  "中货航",
+  "云南",
+  "西北",
+  "中联航",
+  "山东",
+  "山西",
+  "武汉",
+  "北京",
+  "江苏",
+  "飞行总队",
+  "厦门",
+  "江西",
+  "浙江",
+  "四川",
+  "上航",
+  "甘肃",
+  "安徽",
+  "广东",
+];
+
+// 大机型筛选
+const MAJOR_AIRCRAFT_TYPES = [
+  "A320",
+  "A330",
+  "A350",
+  "B737",
+  "B777",
+  "B787",
+  "ARJ21",
+  "C919",
+];
+
+// 机型明细映射
+const AIRCRAFT_TYPE_DETAILS: Record<string, string[]> = {
+  A320: ["A319", "A320", "A320-NEO", "A321", "A321-NEO"],
+  A330: ["A330-200", "A330-300"],
+  A350: ["A350-900"],
+  B737: ["B737-700", "B737-800", "B737-MAX"],
+  B777: ["B777-300ER", "B777F"],
+  B787: ["B787-9"],
+  ARJ21: ["ARJ21-700ER"],
+  C919: ["C919"],
+};
+
+// 所有机型明细
+const ALL_AIRCRAFT_TYPE_DETAILS = Object.values(AIRCRAFT_TYPE_DETAILS).flat();
+
+// 主要风险类型
+const RISK_TYPE_OPTIONS = [
+  "冲/偏出跑道",
+  "可控飞行撞地",
+  "擦机尾/擦翼尖/擦发动机",
+  "空中失控",
+  "空中冲突",
+  "空中损伤",
+  "地面损伤",
+  "跑道入侵",
+  "鸟击",
+  "重着陆",
+  "不稳定进近",
+  "重要系统故障",
+];
 
 const RISK_LEVELS = ["High Risk", "Medium Risk", "Low Risk"];
 const FLIGHT_STATUSES = ["未起飞", "巡航中", "已落地"];
@@ -218,6 +285,8 @@ function translateFlightStatus(
 export function FlightListPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const authUser = useAuthStore((s) => s.user);
+  const fullAccess = isFullDataAccess(authUser);
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
   const setPage = (pageOrFn: number | ((prev: number) => number)) => {
@@ -237,9 +306,9 @@ export function FlightListPage() {
   const [arrivalFilter, setArrivalFilter] = useState("");
   const [operatingUnitFilter, setOperatingUnitFilter] = useState("");
   const [aircraftTypeFilter, setAircraftTypeFilter] = useState("");
+  const [majorAircraftTypeFilter, setMajorAircraftTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [riskLevelFilter, setRiskLevelFilter] = useState("");
-  const [govStatusFilter, setGovStatusFilter] = useState("");
   const [riskTypeFilter, setRiskTypeFilter] = useState("");
 
   // Read URL params to pre-fill filters
@@ -256,70 +325,97 @@ export function FlightListPage() {
     y: number;
   } | null>(null);
 
+  // 根据角色过滤基础数据集
+  const baseFlights = useMemo(() => {
+    if (fullAccess) return FLIGHTS;
+    const userUnit = authUser?.unit;
+    if (!userUnit) return FLIGHTS;
+    return FLIGHTS.filter((f) => {
+      const unit = f.operatingUnit === "上海" ? "飞行总队" : f.operatingUnit;
+      return unit === userUnit;
+    });
+  }, [fullAccess, authUser?.unit]);
+
   // Filtered data
   const filteredFlights = useMemo(() => {
-    return FLIGHTS.filter((f) => {
-      // Flight number filter
-      if (
-        flightNumberFilter &&
-        !f.flightNumber.toLowerCase().includes(flightNumberFilter.toLowerCase())
-      )
-        return false;
+    return baseFlights
+      .filter((f) => {
+        // Flight number filter
+        if (
+          flightNumberFilter &&
+          !f.flightNumber
+            .toLowerCase()
+            .includes(flightNumberFilter.toLowerCase())
+        )
+          return false;
 
-      // Aircraft number filter
-      if (
-        aircraftNumberFilter &&
-        !(f.aircraftNumber || "")
-          .toLowerCase()
-          .includes(aircraftNumberFilter.toLowerCase())
-      )
-        return false;
+        // Aircraft number filter
+        if (
+          aircraftNumberFilter &&
+          !(f.aircraftNumber || "")
+            .toLowerCase()
+            .includes(aircraftNumberFilter.toLowerCase())
+        )
+          return false;
 
-      // Departure airport filter (ICAO 4-letter code)
-      if (
-        departureFilter &&
-        (f.fromAirportCode4 || getIcaoCode(f.fromAirport)) !== departureFilter
-      )
-        return false;
+        // Departure airport filter (ICAO 4-letter code)
+        if (
+          departureFilter &&
+          (f.fromAirportCode4 || getIcaoCode(f.fromAirport)) !== departureFilter
+        )
+          return false;
 
-      // Arrival airport filter (ICAO 4-letter code)
-      if (
-        arrivalFilter &&
-        (f.toAirportCode4 || getIcaoCode(f.toAirport)) !== arrivalFilter
-      )
-        return false;
+        // Arrival airport filter (ICAO 4-letter code)
+        if (
+          arrivalFilter &&
+          (f.toAirportCode4 || getIcaoCode(f.toAirport)) !== arrivalFilter
+        )
+          return false;
 
-      // Operating unit filter
-      if (operatingUnitFilter && f.operatingUnit !== operatingUnitFilter)
-        return false;
+        // 飞行单位 filter（"上海"视为"飞行总队"）
+        if (operatingUnitFilter) {
+          const unit =
+            f.operatingUnit === "上海" ? "飞行总队" : f.operatingUnit;
+          if (unit !== operatingUnitFilter) return false;
+        }
 
-      // Aircraft type filter
-      if (aircraftTypeFilter && f.aircraftType !== aircraftTypeFilter)
-        return false;
+        // 大机型 filter
+        if (majorAircraftTypeFilter) {
+          const details = AIRCRAFT_TYPE_DETAILS[majorAircraftTypeFilter] || [];
+          if (
+            !details.some(
+              (d) =>
+                (f.aircraftType || "").includes(d) ||
+                d.includes(f.aircraftType || ""),
+            )
+          )
+            return false;
+        }
 
-      // Flight status filter
-      if (statusFilter && f.status !== statusFilter) return false;
+        // Aircraft type filter
+        if (aircraftTypeFilter && f.aircraftType !== aircraftTypeFilter)
+          return false;
 
-      // Risk level filter
-      if (riskLevelFilter && getCompositeRiskLabel(f) !== riskLevelFilter)
-        return false;
+        // Flight status filter
+        if (statusFilter && f.status !== statusFilter) return false;
 
-      // Governance status filter
-      if (govStatusFilter && getGovernanceStatus(f) !== govStatusFilter)
-        return false;
+        // Risk level filter
+        if (riskLevelFilter && getCompositeRiskLabel(f) !== riskLevelFilter)
+          return false;
 
-      // Risk type filter
-      if (riskTypeFilter && !getRiskTags(f).includes(riskTypeFilter))
-        return false;
+        // Risk type filter
+        if (riskTypeFilter && !getRiskTags(f).includes(riskTypeFilter))
+          return false;
 
-      return true;
-    }).sort(
-      (a, b) =>
-        b.humanRisk +
-        b.machineRisk +
-        b.environmentRisk -
-        (a.humanRisk + a.machineRisk + a.environmentRisk),
-    );
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          b.humanRisk +
+          b.machineRisk +
+          b.environmentRisk -
+          (a.humanRisk + a.machineRisk + a.environmentRisk),
+      );
   }, [
     flightNumberFilter,
     aircraftNumberFilter,
@@ -327,10 +423,11 @@ export function FlightListPage() {
     arrivalFilter,
     operatingUnitFilter,
     aircraftTypeFilter,
+    majorAircraftTypeFilter,
     statusFilter,
     riskLevelFilter,
-    govStatusFilter,
     riskTypeFilter,
+    baseFlights,
   ]);
 
   const totalPages = Math.ceil(filteredFlights.length / PAGE_SIZE);
@@ -347,9 +444,9 @@ export function FlightListPage() {
     setArrivalFilter("");
     setOperatingUnitFilter("");
     setAircraftTypeFilter("");
+    setMajorAircraftTypeFilter("");
     setStatusFilter([]);
     setRiskLevelFilter([]);
-    setGovStatusFilter([]);
     setRiskTypeFilter([]);
     setPage(1);
   };
@@ -406,7 +503,6 @@ export function FlightListPage() {
                 t("飞机因素评分", "Aircraft Factor Score"),
                 t("环境因素评分", "Environmental Factor Score"),
                 t("主要风险标签", "Major Risk Tags"),
-                t("治理状态", "Governance Status"),
               ];
               const rows = filteredFlights.map((f) => [
                 getDisplayFlightNumber(f),
@@ -426,7 +522,6 @@ export function FlightListPage() {
                 f.machineRisk,
                 f.environmentRisk,
                 getRiskTags(f).join("; "),
-                getGovernanceStatus(f),
               ]);
               downloadCSV(t("航班列表", "flight_list"), headers, rows);
             }}
@@ -506,9 +601,9 @@ export function FlightListPage() {
               onChange={(e) => setDepartureFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {ALL_DEPARTURE_AIRPORTS.map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              {AIRPORT_LIST.map((a) => (
+                <option key={a.icao} value={a.icao}>
+                  {a.icao} - {a.name}
                 </option>
               ))}
             </select>
@@ -521,9 +616,27 @@ export function FlightListPage() {
               onChange={(e) => setArrivalFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {ALL_ARRIVAL_AIRPORTS.map((a) => (
-                <option key={a} value={a}>
-                  {a}
+              {AIRPORT_LIST.map((a) => (
+                <option key={a.icao} value={a.icao}>
+                  {a.icao} - {a.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="fl-filter-item">
+            <label>{t("大机型", "Major Aircraft Type")}</label>
+            <select
+              className="fl-select"
+              value={majorAircraftTypeFilter}
+              onChange={(e) => {
+                setMajorAircraftTypeFilter(e.target.value);
+                setAircraftTypeFilter("");
+              }}
+            >
+              <option value="">{t("全部", "All")}</option>
+              {MAJOR_AIRCRAFT_TYPES.map((m) => (
+                <option key={m} value={m}>
+                  {m}
                 </option>
               ))}
             </select>
@@ -536,22 +649,25 @@ export function FlightListPage() {
               onChange={(e) => setAircraftTypeFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {ALL_AIRCRAFT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {t}
+              {(majorAircraftTypeFilter
+                ? AIRCRAFT_TYPE_DETAILS[majorAircraftTypeFilter] || []
+                : ALL_AIRCRAFT_TYPE_DETAILS
+              ).map((at) => (
+                <option key={at} value={at}>
+                  {at}
                 </option>
               ))}
             </select>
           </div>
           <div className="fl-filter-item">
-            <label>{t("运营单位", "Operating Unit")}</label>
+            <label>{t("飞行单位", "Flight Unit")}</label>
             <select
               className="fl-select"
               value={operatingUnitFilter}
               onChange={(e) => setOperatingUnitFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {ALL_OPERATING_UNITS.map((u) => (
+              {FLIGHT_UNITS.map((u) => (
                 <option key={u} value={u}>
                   {u}
                 </option>
@@ -603,26 +719,9 @@ export function FlightListPage() {
               onChange={(e) => setRiskTypeFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {ALL_RISK_TYPES.map((r) => (
+              {RISK_TYPE_OPTIONS.map((r) => (
                 <option key={r} value={r}>
-                  {translateRiskTag(r, t)}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Governance Status */}
-          <div className="fl-filter-item">
-            <label>{t("治理状态", "Governance Status")}</label>
-            <select
-              className="fl-select"
-              value={govStatusFilter}
-              onChange={(e) => setGovStatusFilter(e.target.value)}
-            >
-              <option value="">{t("全部", "All")}</option>
-              {GOVERNANCE_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {translateGovStatus(s, t)}
+                  {r}
                 </option>
               ))}
             </select>
@@ -658,7 +757,6 @@ export function FlightListPage() {
               <th>{t("飞机因素评分", "Aircraft Factor Score")}</th>
               <th>{t("环境因素评分", "Environmental Factor Score")}</th>
               <th>{t("主要风险标签", "Major Risk Tags")}</th>
-              <th>{t("治理状态", "Governance Status")}</th>
               <th style={{ minWidth: 100 }}>{t("操作", "Actions")}</th>
             </tr>
           </thead>
@@ -799,13 +897,6 @@ export function FlightListPage() {
                     </div>
                   </td>
                   <td>
-                    <span
-                      className={`fl-gov-badge ${govStatusClass(govStatus)}`}
-                    >
-                      {translateGovStatus(govStatus, t)}
-                    </span>
-                  </td>
-                  <td>
                     <div
                       className="fl-icon-actions"
                       onClick={(e) => e.stopPropagation()}
@@ -836,29 +927,7 @@ export function FlightListPage() {
                           <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
                       </button>
-                      <button
-                        className="fl-icon-btn fl-icon-btn-warn"
-                        data-tip={t("发起处置", "Initiate Action")}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate("/governance/work-order-detail");
-                        }}
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                          <line x1="12" y1="9" x2="12" y2="13" />
-                          <line x1="12" y1="17" x2="12.01" y2="17" />
-                        </svg>
-                      </button>
+                      {/* 处置按钮已移除 */}
                     </div>
                   </td>
                 </tr>

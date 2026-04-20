@@ -60,12 +60,7 @@ const NAV_SECTIONS = [
     labelEn: "Evidence Appendix",
     icon: "evidence",
   },
-  {
-    id: "governance",
-    labelZh: "治理记录",
-    labelEn: "Governance Records",
-    icon: "gov",
-  },
+  // 治理记录导航已移除
 ];
 
 const flightInfo = {
@@ -1084,79 +1079,7 @@ export function FlightReportPage() {
             </div>
           </div>
 
-          {/* 10. Governance Records */}
-          <div id="governance" className="fr-section">
-            <h2 className="fr-section-title">
-              {t("治理记录", "Governance Records")}
-            </h2>
-            <div className="fr-card">
-              <div className="fr-gov-row">
-                <div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("责任部门", "Responsible Department")}
-                  </div>
-                  <div
-                    style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}
-                  >
-                    {t("飞行运营", "Flight Operations")}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("责任人", "Responsible Person")}
-                  </div>
-                  <div
-                    style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}
-                  >
-                    Sarah Jenkins - Senior Dispatcher
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("状态", "Status")}
-                  </div>
-                  <span className="fr-status-badge fr-badge-complete">
-                    {t("进行中", "In Progress")}
-                  </span>
-                </div>
-              </div>
-              <div className="fr-gov-row">
-                <div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("最新行动", "Latest Action")}
-                  </div>
-                  <div
-                    style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}
-                  >
-                    {t("改航计划已审核", "Reroute planned and reviewed")}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("评审日期", "Review Date")}
-                  </div>
-                  <div
-                    style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}
-                  >
-                    Oct 27, 2024 16:30
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>
-                    {t("工单", "Work Order")}
-                  </div>
-                  <div
-                    style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}
-                  >
-                    #WO-456{" "}
-                    <span className="fr-status-badge fr-badge-guessed">
-                      {t("待审批", "Pending Approval")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          {/* 治理记录部分已移除 */}
         </div>
       </div>
     </div>

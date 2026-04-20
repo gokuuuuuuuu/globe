@@ -17,6 +17,7 @@ import {
 import { ALL_PERSONS } from "../data/personData";
 import { AnalysisPage } from "./AnalysisPage";
 import { useLanguage } from "../i18n/useLanguage";
+import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
 import { Timeline } from "../components/Timeline";
 
 type ObjectTab = "flights" | "airports" | "personnel";
@@ -103,6 +104,20 @@ export function HomePage() {
     setSelectedFlightRouteId,
     setSidebarTab,
   } = useAppStore();
+
+  const authUser = useAuthStore((s) => s.user);
+  const fullAccess = isFullDataAccess(authUser);
+
+  // 根据角色过滤航班数据
+  const scopedFlights = useMemo(() => {
+    if (fullAccess) return FLIGHTS;
+    const userUnit = authUser?.unit;
+    if (!userUnit) return FLIGHTS;
+    return FLIGHTS.filter((f) => {
+      const unit = f.operatingUnit === "上海" ? "飞行总队" : f.operatingUnit;
+      return unit === userUnit;
+    });
+  }, [fullAccess, authUser?.unit]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const objectTab = (searchParams.get("tab") as ObjectTab) || "flights";
@@ -250,19 +265,23 @@ export function HomePage() {
 
   // ===== Risk lists =====
   const highRiskFlights = useMemo(() => {
-    return FLIGHTS.filter((f) => {
-      const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
-      if (riskFilter === "red") return riskZone === "red";
-      if (riskFilter === "yellow") return riskZone === "yellow";
-      return riskZone === "red" || riskZone === "yellow";
-    }).sort(
-      (a, b) =>
-        b.humanRisk +
-        b.machineRisk +
-        b.environmentRisk -
-        (a.humanRisk + a.machineRisk + a.environmentRisk),
-    );
-  }, [riskFilter]);
+    return scopedFlights
+      .filter((f) => {
+        const { riskZone } = calculateRiskFromEnvironmentRisk(
+          f.environmentRisk,
+        );
+        if (riskFilter === "red") return riskZone === "red";
+        if (riskFilter === "yellow") return riskZone === "yellow";
+        return riskZone === "red" || riskZone === "yellow";
+      })
+      .sort(
+        (a, b) =>
+          b.humanRisk +
+          b.machineRisk +
+          b.environmentRisk -
+          (a.humanRisk + a.machineRisk + a.environmentRisk),
+      );
+  }, [riskFilter, scopedFlights]);
 
   const highRiskAirports = useMemo(() => {
     return AIRPORTS.filter((a) => {
@@ -602,15 +621,7 @@ export function HomePage() {
               >
                 {t("综合分析", "Analysis")}
               </button>
-              <button
-                onClick={() =>
-                  navigate("/governance/work-order-list", {
-                    state: { from: "home" },
-                  })
-                }
-              >
-                {t("治理工作流", "Governance")}
-              </button>
+              {/* 治理工作流按钮已移除 */}
             </div>
 
             <div className="toolbar-div" />
@@ -650,8 +661,8 @@ export function HomePage() {
         </div>
       </div>
 
-      {/* ===== Right Column ===== */}
-      <div className="right-col">
+      {/* ===== Left Column: Overview ===== */}
+      <div className="left-col">
         {/* Object Tabs: FLT / APT / PSN */}
         <div className="obj-row">
           <div
@@ -750,6 +761,19 @@ export function HomePage() {
         {topCriticalItem && (
           <div
             className={`glass ${riskFilter === "yellow" ? "glass-tint-yellow" : "glass-tint-red"} hero-compact`}
+            style={{ cursor: "pointer" }}
+            onClick={() => {
+              if (objectTab === "flights")
+                navigate("/risk-monitoring/flight-detail");
+              else if (objectTab === "airports")
+                navigate(
+                  `/airport-center/airport-detail?code=${topCriticalItem?.id}`,
+                );
+              else
+                navigate(
+                  `/personnel-center/personnel-detail?id=${topCriticalItem?.id}`,
+                );
+            }}
           >
             {/* Row 1: status bar */}
             <div className="hero-status">
@@ -831,35 +855,13 @@ export function HomePage() {
               </span>
             </div>
 
-            {/* Row 4: actions */}
-            <div className="hero-actions">
-              <button
-                className="btn-primary"
-                onClick={() => navigate("/governance/work-order-detail")}
-              >
-                {t("立即处置", "Handle Now")} &rarr;
-              </button>
-              <button
-                className="btn-secondary"
-                onClick={() => {
-                  if (objectTab === "flights")
-                    navigate("/risk-monitoring/flight-detail");
-                  else if (objectTab === "airports")
-                    navigate(
-                      `/airport-center/airport-detail?code=${topCriticalItem?.id}`,
-                    );
-                  else
-                    navigate(
-                      `/personnel-center/personnel-detail?id=${topCriticalItem?.id}`,
-                    );
-                }}
-              >
-                {t("详情", "Details")}
-              </button>
-            </div>
+            {/* 操作按钮已移除，改为点击卡片跳转 */}
           </div>
         )}
+      </div>
 
+      {/* ===== Right Column: Risk Queue ===== */}
+      <div className="right-col">
         {/* Ranked Risk Queue */}
         <div className="list-card glass">
           <div className="list-head">
@@ -1011,17 +1013,7 @@ export function HomePage() {
                           >
                             {t("查看航班", "View Flight")}
                           </button>
-                          <button
-                            className="primary"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate("/governance/work-order-list", {
-                                state: { from: "home" },
-                              });
-                            }}
-                          >
-                            {t("处理", "Handle")}
-                          </button>
+                          {/* 处理按钮已移除 */}
                         </div>
                       </div>
                     )}

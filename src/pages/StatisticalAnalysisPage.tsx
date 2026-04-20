@@ -221,7 +221,7 @@ export function StatisticalAnalysisPage() {
   const tabLabels: Record<TabKey, string> = {
     "flight-statistics": t("航班统计", "Flight Statistics"),
     "personnel-statistics": t("人员统计", "Personnel Statistics"),
-    "airport-statistics": t("机场统计", "Airport Statistics"),
+    "airport-statistics": t("机场统计", "Airport Information"),
     "aircraft-statistics": t("飞机统计", "Aircraft Statistics"),
   };
 
@@ -314,7 +314,7 @@ export function StatisticalAnalysisPage() {
         d.ABR,
         d.ALL,
       ]);
-      downloadCSV(t("机场统计", "airport_statistics"), headers, rows);
+      downloadCSV(t("机场统计", "airport_information"), headers, rows);
     }
   };
 

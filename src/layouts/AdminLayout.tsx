@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { useAuthStore, getRoleName } from "../store/useAuthStore";
 import {
   LayoutDashboard,
   Plane,
@@ -11,6 +12,7 @@ import {
   BarChart3,
   ShieldAlert,
   Settings,
+  LogOut,
 } from "lucide-react";
 import "./AdminLayout.css";
 
@@ -24,6 +26,8 @@ interface MenuItem {
 export function AdminLayout() {
   const location = useLocation();
   const { lang, setLang, t } = useLanguage();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   const menuItems: MenuItem[] = [
     {
@@ -56,11 +60,7 @@ export function AdminLayout() {
       label: t("环", "Environment"),
       icon: <CloudSun size={16} />,
     },
-    {
-      path: "/governance/work-order-list",
-      label: t("治理闭环", "Governance"),
-      icon: <RefreshCcw size={16} />,
-    },
+    // 治理闭环导航已移除
     {
       path: "/statistical-analysis",
       label: t("统计分析", "Statistics"),
@@ -141,12 +141,25 @@ export function AdminLayout() {
           >
             {lang === "zh" ? "中文" : "EN"}
           </button>
-          {/* <button className="al-icon-btn" title="Search">
-            ⌕
-          </button>
-          <button className="al-icon-btn" title="Grid">
-            ⊞
-          </button> */}
+          {user && (
+            <>
+              <div className="al-meta-div" />
+              <div className="al-meta-item al-user-info">
+                <span className="al-user-name">{user.name}</span>
+                <span className="al-user-role">
+                  {getRoleName(user.role, t)}
+                  {user.unit ? ` · ${user.unit}` : ""}
+                </span>
+              </div>
+              <button
+                className="al-logout-btn"
+                onClick={logout}
+                title={t("退出登录", "Logout")}
+              >
+                <LogOut size={14} />
+              </button>
+            </>
+          )}
         </div>
       </nav>
 

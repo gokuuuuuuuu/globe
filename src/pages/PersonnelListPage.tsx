@@ -19,11 +19,10 @@ interface Personnel {
   relatedHighRiskFlights: number;
 }
 
-const UNITS = ["东航总部", "上海分公司", "江苏分公司", "浙江分公司"];
+import { FLEET_HIERARCHY, FLEET_UNITS } from "../data/fleetList";
+
 const AIRCRAFT_TYPES = ["B737", "B777", "A320", "A350"];
-const BRIGADES = ["一大队", "二大队", "三大队", "四大队"];
-const SQUADRONS = ["一中队", "二中队", "三中队", "四中队"];
-const TECH_LEVELS = ["机长", "副驾驶", "教员", "检查员"];
+const TECH_LEVELS = ["教员", "机长", "巡航机长", "第一副驾驶", "第二副驾驶"];
 
 const NAMES = [
   "A. Brown",
@@ -124,11 +123,21 @@ export function PersonnelListPage() {
   const [filterCollapsed, setFilterCollapsed] = useState(true);
 
   // Filters
-  const [unit, setUnit] = useState("东航总部");
+  const [unit, setUnit] = useState(FLEET_UNITS[0] || "");
   const [aircraftType, setAircraftType] = useState("B737");
-  const [brigade, setBrigade] = useState("一大队");
-  const [squadron, setSquadron] = useState("一中队");
+  const [brigade, setBrigade] = useState("");
+  const [squadron, setSquadron] = useState("");
   const [techLevel, setTechLevel] = useState("机长");
+
+  // 根据选中的飞行单位获取大队列表
+  const brigadeOptions =
+    unit && FLEET_HIERARCHY[unit] ? Object.keys(FLEET_HIERARCHY[unit]) : [];
+
+  // 根据选中的大队获取中队列表
+  const squadronOptions =
+    unit && brigade && FLEET_HIERARCHY[unit]?.[brigade]
+      ? FLEET_HIERARCHY[unit][brigade]
+      : [];
   const [searchText, setSearchText] = useState("");
   const [dateFrom, setDateFrom] = useState("2024-02-15");
   const [dateTo, setDateTo] = useState("2024-05-15");
@@ -178,10 +187,10 @@ export function PersonnelListPage() {
   const avgRiskScore = 4.25;
 
   const handleReset = () => {
-    setUnit("东航总部");
+    setUnit(FLEET_UNITS[0] || "");
     setAircraftType("B737");
-    setBrigade("一大队");
-    setSquadron("一中队");
+    setBrigade("");
+    setSquadron("");
     setTechLevel("机长");
     setSearchText("");
     setPage(1);
@@ -308,9 +317,13 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
+                  onChange={(e) => {
+                    setUnit(e.target.value);
+                    setBrigade("");
+                    setSquadron("");
+                  }}
                 >
-                  {UNITS.map((u) => (
+                  {FLEET_UNITS.map((u) => (
                     <option key={u} value={u}>
                       {u}
                     </option>
@@ -336,9 +349,13 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={brigade}
-                  onChange={(e) => setBrigade(e.target.value)}
+                  onChange={(e) => {
+                    setBrigade(e.target.value);
+                    setSquadron("");
+                  }}
                 >
-                  {BRIGADES.map((b) => (
+                  <option value="">{t("全部", "All")}</option>
+                  {brigadeOptions.map((b) => (
                     <option key={b} value={b}>
                       {b}
                     </option>
@@ -352,7 +369,8 @@ export function PersonnelListPage() {
                   value={squadron}
                   onChange={(e) => setSquadron(e.target.value)}
                 >
-                  {SQUADRONS.map((s) => (
+                  <option value="">{t("全部", "All")}</option>
+                  {squadronOptions.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>

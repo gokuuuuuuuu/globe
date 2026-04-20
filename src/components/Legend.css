@@ -1,28 +1,18 @@
-.legend-container {
+/* ===== Unified Legend Panel ===== */
+
+.legend-panel {
   position: absolute;
-  bottom: 20px;
-  /* 预留右侧 sidebar 宽度（400px）+ 间距 */
-  right: 420px;
-  /* 半透明背景，让底图可见一点，看起来更轻盈 */
-  background: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(148, 163, 184, 0.3);
-  border-radius: 12px;
-  padding: 16px;
-  min-width: 220px;
-  max-width: 280px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  z-index: 1000;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
-    "Cantarell", sans-serif;
-  animation: fadeInUp 0.3s ease-out;
+  bottom: 120px;
+  left: 310px;
+  z-index: 100;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  animation: legendFadeIn 0.2s ease-out;
 }
 
-@keyframes fadeInUp {
+@keyframes legendFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
   to {
     opacity: 1;
@@ -30,160 +20,199 @@
   }
 }
 
-.legend-header {
+/* Toggle button */
+.legend-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-  cursor: move; /* 提示可以拖拽 */
-}
-
-.legend-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.legend-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #e2e8f0;
-  letter-spacing: 0.3px;
-}
-
-.legend-drag-hint {
-  margin-left: auto;
-  font-size: 10px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  opacity: 0.7;
-}
-
-.legend-drag-icon {
-  font-size: 12px;
-  line-height: 1;
-}
-
-.legend-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-/* 自定义滚动条 */
-.legend-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.legend-content::-webkit-scrollbar-track {
-  background: rgba(148, 163, 184, 0.1);
-  border-radius: 3px;
-}
-
-.legend-content::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
-  border-radius: 3px;
-}
-
-.legend-content::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 0;
-}
-
-.legend-color-bar {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.legend-label-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-}
-
-.legend-value {
-  font-size: 12px;
-  font-weight: 500;
-  color: #cbd5e1;
-  line-height: 1.4;
-}
-
-.legend-description {
-  font-size: 11px;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(12px);
   color: #94a3b8;
-  line-height: 1.3;
-}
-
-.legend-footer {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
-  text-align: center;
-}
-
-.legend-unit {
   font-size: 11px;
-  color: #64748b;
-  font-style: italic;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
 }
 
-.wind-legend {
-  bottom: 20px;
+.legend-toggle:hover {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
 }
 
-.temperature-legend {
-  /* 默认比风图例稍高，避免完全重叠；拖拽后用户可自由调整 */
-  bottom: 140px;
+.legend-toggle-icons {
+  display: flex;
+  gap: 2px;
 }
 
-.precipitation-legend {
-  /* 默认比温度图例稍高，避免完全重叠；拖拽后用户可自由调整 */
-  bottom: 260px;
+.legend-toggle-icon {
+  font-size: 12px;
+  line-height: 1;
 }
 
-.legend-condition {
+.legend-toggle-label {
   font-size: 10px;
-  color: #64748b;
-  line-height: 1.2;
-  margin-top: 2px;
+  font-weight: 500;
 }
 
-/* 响应式设计 */
+.legend-toggle-arrow {
+  font-size: 14px;
+  transition: transform 0.2s;
+  transform: rotate(0deg);
+}
+
+.legend-toggle-arrow.open {
+  transform: rotate(90deg);
+}
+
+/* Expanded groups container */
+.legend-groups {
+  margin-top: 6px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 10px;
+  padding: 4px;
+  min-width: 200px;
+  max-width: 260px;
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.legend-groups::-webkit-scrollbar {
+  width: 3px;
+}
+.legend-groups::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 2px;
+}
+
+/* Group */
+.legend-group {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
+}
+
+.legend-group:last-child {
+  border-bottom: none;
+}
+
+.legend-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  background: none;
+  color: #cbd5e1;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.1s;
+}
+
+.legend-group-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.legend-group-icon {
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.legend-group-title {
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.legend-group-unit {
+  font-size: 9px;
+  color: #64748b;
+}
+
+/* Inline preview dots */
+.legend-group-preview {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.legend-preview-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-group-arrow {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: 4px;
+  transition: transform 0.15s;
+  transform: rotate(0deg);
+  flex-shrink: 0;
+}
+
+.legend-group-arrow.open {
+  transform: rotate(90deg);
+}
+
+/* Expanded group body */
+.legend-group-body {
+  padding: 0 8px 8px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+}
+
+.legend-row-color {
+  width: 14px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-row-label {
+  color: #cbd5e1;
+  font-weight: 500;
+  min-width: 40px;
+}
+
+.legend-row-desc {
+  color: #64748b;
+  font-size: 9px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+  .legend-panel {
+    left: 18px;
+    bottom: 120px;
+  }
+}
+
 @media (max-width: 768px) {
-  .legend-container {
-    min-width: 180px;
-    max-width: 240px;
-    padding: 12px;
-    bottom: 10px;
-    right: 10px; /* 小屏直接贴右侧，避免超出屏幕 */
+  .legend-panel {
+    left: 10px;
+    bottom: 100px;
   }
 
-  .legend-title {
-    font-size: 13px;
-  }
-
-  .legend-value {
-    font-size: 11px;
-  }
-
-  .legend-description {
-    font-size: 10px;
+  .legend-groups {
+    min-width: 170px;
+    max-width: 220px;
   }
 }

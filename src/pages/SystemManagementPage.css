@@ -447,6 +447,154 @@
 }
 
 /* ── Responsive ── */
+/* Delete button */
+.smp-delete-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.smp-delete-btn:hover {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
+}
+
+/* Modal */
+.smp-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.smp-modal {
+  background: #1e293b;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.smp-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.smp-modal-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.smp-modal-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.smp-modal-close:hover {
+  color: #fff;
+}
+
+.smp-modal-body {
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.smp-modal-body p {
+  margin: 0;
+}
+
+.smp-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 20px 16px;
+}
+
+.smp-modal-btn {
+  padding: 7px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+}
+
+.smp-modal-cancel {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.smp-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.smp-modal-delete {
+  background: #dc2626;
+  color: #fff;
+}
+
+.smp-modal-delete:hover {
+  background: #b91c1c;
+}
+
+/* Status toggle */
+.smp-status-toggle {
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+
+.smp-status-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Modal input */
+.smp-modal-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(0, 0, 0, 0.3);
+  color: #e2e8f0;
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.smp-modal-input:focus {
+  border-color: #3b82f6;
+}
+
+.smp-modal-save {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.smp-modal-save:hover {
+  background: #2563eb;
+}
+
 @media (max-width: 1100px) {
   .smp-body {
     flex-direction: column;

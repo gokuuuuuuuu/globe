@@ -292,13 +292,23 @@
   position: absolute;
   left: 18px;
   top: 18px;
-  bottom: 70px;
+  bottom: 18px;
   width: 280px;
   z-index: 40;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  padding-bottom: 12px;
+}
+.left-col::-webkit-scrollbar {
+  width: 4px;
+}
+.left-col::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 .right-col {
   position: absolute;
@@ -325,8 +335,8 @@
 }
 .center-stage {
   position: absolute;
-  left: 398px;
-  right: 398px;
+  left: 310px;
+  right: 310px;
   top: 18px;
   bottom: 120px;
   z-index: 30;

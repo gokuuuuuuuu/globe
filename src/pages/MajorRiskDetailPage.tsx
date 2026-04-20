@@ -533,9 +533,7 @@ export function MajorRiskDetailPage() {
             <button className="mr-btn-action mr-btn-blue">
               {t("查看证据链", "View Evidence Chain")}
             </button>
-            <button className="mr-btn-action mr-btn-red">
-              {t("发起专项处置", "Initiate Special Action")}
-            </button>
+            {/* 处置按钮已移除 */}
           </div>
         </div>
       </div>

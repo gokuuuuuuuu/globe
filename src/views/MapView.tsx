@@ -17,6 +17,8 @@ import {
   useCallback,
   useEffect,
   useState,
+  createContext,
+  useContext,
 } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import {
@@ -43,6 +45,122 @@ import { MapFlightPaths } from "../components/MapFlightPaths";
 import type { OrthographicCamera as OrthographicCameraImpl } from "three";
 
 const MAP_SCALE = 6;
+
+// ===== 共享 CSV 机场编码映射上下文（避免每个机场组件重复加载） =====
+const AirportCodeMapContext = createContext<Record<string, string>>({});
+
+function AirportCodeMapProvider({ children }: { children: React.ReactNode }) {
+  const [codeMap, setCodeMap] = useState<Record<string, string>>({});
+
+  // 从航班数据构建基础映射
+  const baseMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    FLIGHTS.forEach((flight) => {
+      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
+        map[flight.fromAirportCode3] = flight.fromAirportCode4;
+      }
+      if (flight.toAirportCode3 && flight.toAirportCode4) {
+        map[flight.toAirportCode3] = flight.toAirportCode4;
+      }
+    });
+    return map;
+  }, []);
+
+  // 异步加载完整 CSV 映射（仅加载一次）
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const response = await fetch("/data.csv");
+        const text = await response.text();
+        const lines = text.split("\n");
+        if (lines.length < 2) return;
+
+        const headers = lines[0].split(",");
+        const fromCode3Idx = headers.findIndex((h) =>
+          h.includes("起飞机场三字码"),
+        );
+        const fromCode4Idx = headers.findIndex((h) =>
+          h.includes("起飞机场四字码"),
+        );
+        const toCode3Idx = headers.findIndex((h) =>
+          h.includes("降落机场三字码"),
+        );
+        const toCode4Idx = headers.findIndex((h) =>
+          h.includes("降落机场四字码"),
+        );
+
+        if (
+          fromCode3Idx === -1 ||
+          fromCode4Idx === -1 ||
+          toCode3Idx === -1 ||
+          toCode4Idx === -1
+        )
+          return;
+
+        const map: Record<string, string> = {};
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          const row: string[] = [];
+          let current = "";
+          let inQuotes = false;
+          for (let j = 0; j < line.length; j++) {
+            const char = line[j];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === "," && !inQuotes) {
+              row.push(current);
+              current = "";
+            } else {
+              current += char;
+            }
+          }
+          row.push(current);
+          if (
+            row.length <=
+            Math.max(fromCode3Idx, fromCode4Idx, toCode3Idx, toCode4Idx)
+          )
+            continue;
+
+          const fromCode3 = row[fromCode3Idx]?.trim();
+          const fromCode4 = row[fromCode4Idx]?.trim();
+          if (
+            fromCode3 &&
+            fromCode4 &&
+            fromCode3 !== "nan" &&
+            fromCode4 !== "nan"
+          ) {
+            if (!map[fromCode3]) map[fromCode3] = fromCode4;
+          }
+          const toCode3 = row[toCode3Idx]?.trim();
+          const toCode4 = row[toCode4Idx]?.trim();
+          if (toCode3 && toCode4 && toCode3 !== "nan" && toCode4 !== "nan") {
+            if (!map[toCode3]) map[toCode3] = toCode4;
+          }
+        }
+        if (!cancelled) setCodeMap(map);
+      } catch (error) {
+        console.error("加载完整机场编码映射失败:", error);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const merged = useMemo(
+    () => ({ ...baseMap, ...codeMap }),
+    [baseMap, codeMap],
+  );
+
+  return (
+    <AirportCodeMapContext.Provider value={merged}>
+      {children}
+    </AirportCodeMapContext.Provider>
+  );
+}
 
 interface MapViewProps {
   world: WorldData;
@@ -120,6 +238,103 @@ interface CountryLabel {
   position: Vector3;
 }
 
+// ===== 视觉配色方案 =====
+const COLORS = {
+  background: "#030a18", // 深海蓝背景
+  oceanPlane: "#061224", // 海洋底色
+  countryFill: new Color("#1a8a7d"), // 国家填充 - 青碧色
+  countryBorder: new Color("#2dd4bf"), // 国家边界
+  countryHover: new Color("#facc15"),
+  countryHighlight: new Color("#eab308"),
+  gridLine: "rgba(45,212,191,0.04)", // 经纬网
+};
+
+// 主要国家列表（提取为常量避免重复创建）
+const MAJOR_COUNTRIES = [
+  "CN",
+  "US",
+  "RU",
+  "CA",
+  "BR",
+  "AU",
+  "IN",
+  "AR",
+  "KZ",
+  "DZ",
+  "SA",
+  "MX",
+  "ID",
+  "MN",
+  "LY",
+  "IR",
+  "PE",
+  "NG",
+  "TZ",
+  "EG",
+  "MA",
+  "ZA",
+  "SD",
+  "YE",
+  "TH",
+  "ES",
+  "TR",
+  "BO",
+  "MM",
+  "AF",
+  "VE",
+  "MY",
+  "PH",
+  "IQ",
+  "SE",
+  "GB",
+  "FR",
+  "DE",
+  "JP",
+  "IT",
+  "KR",
+  "PL",
+  "VN",
+  "NO",
+  "NZ",
+  "BD",
+  "EC",
+  "RO",
+  "KE",
+  "SY",
+  "KH",
+  "UY",
+  "TN",
+  "BG",
+  "NP",
+  "GR",
+  "BA",
+  "LK",
+  "GT",
+  "JO",
+  "AE",
+  "CZ",
+  "PT",
+  "HU",
+  "RS",
+  "IE",
+  "GE",
+  "CR",
+  "SK",
+  "HR",
+  "LV",
+  "LT",
+  "SI",
+  "ME",
+  "EE",
+  "DK",
+  "NL",
+  "CH",
+  "AT",
+  "BE",
+  "SG",
+];
+const MAJOR_COUNTRIES_SET = new Set(MAJOR_COUNTRIES);
+
 export function MapView({ world, atlas }: MapViewProps) {
   const {
     selectedCountry,
@@ -139,7 +354,7 @@ export function MapView({ world, atlas }: MapViewProps) {
   } = useAppStore();
   const orbitControlsRef = useRef<OrbitControlsImpl | null>(null);
 
-  // 跟踪空白区域的点击状态（用于区分点击和拖动）
+  // 跟踪空白区域的点击状态
   const blankAreaPointerStateRef = useRef<{
     downTime: number;
     downX: number;
@@ -147,17 +362,14 @@ export function MapView({ world, atlas }: MapViewProps) {
     moved: boolean;
   } | null>(null);
 
-  // 设置鼠标按钮：左键用于拖动
+  // 设置鼠标按钮
   useEffect(() => {
     const controls = orbitControlsRef.current;
     if (!controls) return;
-
-    // 设置鼠标按钮：左键用于拖动（平移），禁用中键和右键
-    // 0 = 旋转, 1 = 平移, 2 = 缩放
     controls.mouseButtons = {
-      LEFT: 1, // 左键用于拖动（平移）
-      MIDDLE: undefined, // 禁用中键
-      RIGHT: undefined, // 禁用右键
+      LEFT: 1,
+      MIDDLE: undefined,
+      RIGHT: undefined,
     };
   }, []);
 
@@ -168,15 +380,6 @@ export function MapView({ world, atlas }: MapViewProps) {
   }>(() => {
     const lines: PolygonLine[] = [];
     const fills: PolygonFill[] = [];
-    const labelsMap = new Map<
-      string,
-      {
-        iso: string | null;
-        fallbackName: string | null;
-        position: Vector3;
-      }
-    >();
-    // 用于计算每个国家的加权中心
     const countryCenters = new Map<
       string,
       {
@@ -241,14 +444,12 @@ export function MapView({ world, atlas }: MapViewProps) {
           shape,
         });
 
-        // 计算这个多边形的中心点和权重
         const center = new Vector3();
         outerRing.forEach((point) => {
           center.add(point);
         });
         center.divideScalar(outerRing.length);
 
-        // 使用多边形面积作为权重（简化计算：使用边界框面积）
         const minX = Math.min(...outerRing.map((p) => p.x));
         const maxX = Math.max(...outerRing.map((p) => p.x));
         const minY = Math.min(...outerRing.map((p) => p.y));
@@ -278,9 +479,7 @@ export function MapView({ world, atlas }: MapViewProps) {
           iso ?? featureName ?? `${featureIndex}-${polygonIndex}`;
 
         if (iso === "CN" && featureName) {
-          // 1. 省份标签
           updateCenter(`CN-${featureName}`, iso, featureName);
-          // 2. 国家标签 (聚合)
           updateCenter("CN", iso, null);
         } else {
           updateCenter(labelKey, iso, featureName);
@@ -298,27 +497,18 @@ export function MapView({ world, atlas }: MapViewProps) {
       }
     });
 
-    // 计算每个国家的加权中心并转换为标签位置
+    const labelCandidates: LabelCandidate[] = [];
     countryCenters.forEach((data, labelKey) => {
       const finalCenter = data.weightedCenter
         .clone()
         .divideScalar(data.totalWeight);
-
-      labelsMap.set(labelKey, {
+      labelCandidates.push({
+        key: labelKey,
         iso: data.iso,
         fallbackName: data.fallbackName,
         position: finalCenter,
       });
     });
-
-    const labelCandidates: LabelCandidate[] = Array.from(
-      labelsMap.entries(),
-    ).map(([key, value]) => ({
-      key,
-      iso: value.iso,
-      fallbackName: value.fallbackName,
-      position: value.position,
-    }));
 
     return { linePolygons: lines, fillPolygons: fills, labelCandidates };
   }, [world]);
@@ -327,11 +517,9 @@ export function MapView({ world, atlas }: MapViewProps) {
     if (!atlas) return [];
     return labelCandidates
       .map(({ key, iso, fallbackName, position }) => {
-        // 如果是中国的省份（key 以 CN- 开头），直接使用 fallbackName
         if (key.startsWith("CN-") && fallbackName) {
           return { key, iso, position, name: fallbackName };
         }
-
         const country = iso ? atlas.countries[iso] : undefined;
         const name = country?.name ?? fallbackName;
         if (!name) return null;
@@ -340,10 +528,9 @@ export function MapView({ world, atlas }: MapViewProps) {
       .filter((value): value is CountryLabel => value !== null);
   }, [atlas, labelCandidates]);
 
-  // 机场实例（使用平面坐标）
+  // 机场实例
   const airportInstances = useMemo(() => {
     return AIRPORTS.filter((airport) => {
-      // 根据风险区间过滤机场（人员tab不受影响）
       if (homeObjectTab !== "personnel") {
         const { riskZone } = calculateRiskFromEnvironmentRisk(
           airport.environmentRisk,
@@ -378,14 +565,12 @@ export function MapView({ world, atlas }: MapViewProps) {
       riskLevel?: string;
     }> = [];
 
-    // 情况1: 如果选中了特定航线，只显示该航线
-    // 注意：当用户明确选中航线时，应该忽略风险区间过滤，确保显示该航线
+    // 情况1: 选中特定航线
     if (selectedFlightRouteId) {
       const flight = FLIGHTS.find((f) => f.id === selectedFlightRouteId);
       if (flight) {
         const fromAirport = getAirportByCode(flight.fromAirport);
         const toAirport = getAirportByCode(flight.toAirport);
-
         if (fromAirport && toAirport) {
           const fromAirportInstance = airportInstances.find(
             (a) => a.id === fromAirport.id,
@@ -393,28 +578,17 @@ export function MapView({ world, atlas }: MapViewProps) {
           const toAirportInstance = airportInstances.find(
             (a) => a.id === toAirport.id,
           );
-
           if (fromAirportInstance && toAirportInstance) {
-            // 确保航线起点和终点与机场圆点位置一致（z=0.05）
             const fromPos = fromAirportInstance.position.clone();
             fromPos.z = 0.05;
             const toPos = toAirportInstance.position.clone();
             toPos.z = 0.05;
-
-            // 不再根据风险区间过滤航线，因为用户已经明确选择了这条航线
-            // const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
-            // if (!riskZones.includes(flightRiskZone)) {
-            //   return
-            // }
-
-            // 根据环境风险值设置航线颜色
             const routeColor = getRiskColor(flight.environmentRisk);
-
             routes.push({
               id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
               from: fromPos,
               to: toPos,
-              color: routeColor, // 根据环境风险值设置颜色
+              color: routeColor,
               fromIsSelected: false,
               toIsSelected: false,
               flightNumber: flight.flightNumber,
@@ -434,8 +608,7 @@ export function MapView({ world, atlas }: MapViewProps) {
       return routes;
     }
 
-    // 情况2: 如果正在查看某个机场，显示该机场的所有航线
-    // 注意：当用户明确选择机场时，应该应用状态过滤，但可以忽略风险区间过滤
+    // 情况2: 查看某个机场
     if (viewingAirportId) {
       const viewingAirport = AIRPORTS.find((a) => a.id === viewingAirportId);
       if (!viewingAirport) return routes;
@@ -445,31 +618,24 @@ export function MapView({ world, atlas }: MapViewProps) {
           flight.fromAirport === viewingAirport.code ||
           flight.toAirport === viewingAirport.code;
         if (!related) return false;
-
-        // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
         if (
           flightStatuses.length > 0 &&
           !flightStatuses.includes(flight.status)
-        ) {
+        )
           return false;
-        }
-
         return true;
       });
 
       relevantFlights.forEach((flight) => {
         const fromAirport = getAirportByCode(flight.fromAirport);
         const toAirport = getAirportByCode(flight.toAirport);
-
         if (!fromAirport || !toAirport) return;
-
         const fromAirportInstance = airportInstances.find(
           (a) => a.id === fromAirport.id,
         );
         const toAirportInstance = airportInstances.find(
           (a) => a.id === toAirport.id,
         );
-
         if (!fromAirportInstance || !toAirportInstance) return;
 
         const normalizedSelectedCountry = selectedCountry
@@ -484,26 +650,17 @@ export function MapView({ world, atlas }: MapViewProps) {
           normalizeCountryCode(toAirport.countryCode) ===
             normalizedSelectedCountry;
 
-        // 确保航线起点和终点与机场圆点位置一致（z=0.05）
         const fromPos = fromAirportInstance.position.clone();
         fromPos.z = 0.05;
         const toPos = toAirportInstance.position.clone();
         toPos.z = 0.05;
-
-        // 不再根据风险区间过滤航线，因为用户已经明确选择了机场，应该显示所有匹配的航线
-        // const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(flight.environmentRisk)
-        // if (!riskZones.includes(flightRiskZone)) {
-        //   return
-        // }
-
-        // 根据环境风险值设置航线颜色
         const routeColor = getRiskColor(flight.environmentRisk);
 
         routes.push({
           id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
           from: fromPos,
           to: toPos,
-          color: routeColor, // 根据环境风险值设置颜色
+          color: routeColor,
           fromIsSelected: !!fromIsSelected,
           toIsSelected: !!toIsSelected,
           flightNumber: flight.flightNumber,
@@ -522,34 +679,22 @@ export function MapView({ world, atlas }: MapViewProps) {
       return routes;
     }
 
-    // 情况3: 默认情况，显示所有航线
-    // 从统一航班数据中获取所有航班
-    const allFlights = FLIGHTS;
-
-    allFlights.forEach((flight) => {
-      // 应用状态过滤：如果用户选择了状态，则只显示匹配状态的航班
-      if (
-        flightStatuses.length > 0 &&
-        !flightStatuses.includes(flight.status)
-      ) {
+    // 情况3: 默认显示所有航线
+    FLIGHTS.forEach((flight) => {
+      if (flightStatuses.length > 0 && !flightStatuses.includes(flight.status))
         return;
-      }
 
       const fromAirport = getAirportByCode(flight.fromAirport);
       const toAirport = getAirportByCode(flight.toAirport);
-
       if (!fromAirport || !toAirport) return;
-
       const fromAirportInstance = airportInstances.find(
         (a) => a.id === fromAirport.id,
       );
       const toAirportInstance = airportInstances.find(
         (a) => a.id === toAirport.id,
       );
-
       if (!fromAirportInstance || !toAirportInstance) return;
 
-      // 标准化国家代码（用于判断是否选中）
       const normalizedSelectedCountry = selectedCountry
         ? normalizeCountryCode(selectedCountry)
         : null;
@@ -564,34 +709,26 @@ export function MapView({ world, atlas }: MapViewProps) {
           normalizedSelectedCountry
       );
 
-      // 确保航线起点和终点与机场圆点位置一致（z=0.05）
       const fromPos = fromAirportInstance.position.clone();
       fromPos.z = 0.05;
       const toPos = toAirportInstance.position.clone();
       toPos.z = 0.05;
 
-      // airports tab 不显示航线
-      if (homeObjectTab === "airports") {
-        return;
-      }
-      // 根据风险区间过滤航线（人员tab不受影响）
+      if (homeObjectTab === "airports") return;
       if (homeObjectTab !== "personnel") {
         const { riskZone: flightRiskZone } = calculateRiskFromEnvironmentRisk(
           flight.environmentRisk,
         );
-        if (!riskZones.includes(flightRiskZone)) {
-          return;
-        }
+        if (!riskZones.includes(flightRiskZone)) return;
       }
 
-      // 根据环境风险值设置航线颜色
       const routeColor = getRiskColor(flight.environmentRisk);
 
       routes.push({
         id: `${fromAirport.id}-${toAirport.id}-${flight.id}`,
         from: fromPos,
         to: toPos,
-        color: routeColor, // 根据环境风险值设置颜色
+        color: routeColor,
         fromIsSelected,
         toIsSelected,
         flightNumber: flight.flightNumber,
@@ -618,21 +755,51 @@ export function MapView({ world, atlas }: MapViewProps) {
     flightStatuses,
   ]);
 
-  const baseColor = new Color("#2dd4bf");
-  const hoverColor = new Color("#facc15");
-  const highlightColor = new Color("#eab308");
+  // 过滤后的标签列表（提前计算，避免在 JSX 中重复过滤）
+  const filteredLabels = useMemo(() => {
+    if (!showLabels) return [];
+    return countryLabels.filter(({ key, iso }) => {
+      const isSelected = iso && selectedCountry === iso;
+      if (key.startsWith("CN-")) return false;
+      if (key === "CN") return selectedCountry !== "CN";
+      if (isSelected) return true;
+      return iso ? MAJOR_COUNTRIES_SET.has(iso) : false;
+    });
+  }, [showLabels, countryLabels, selectedCountry]);
+
+  // 经纬网格线数据（静态，只生成一次）
+  const graticulesLines = useMemo(() => {
+    const lines: Vector3[][] = [];
+    // 经线（每30度）
+    for (let lon = -180; lon <= 180; lon += 30) {
+      const pts: Vector3[] = [];
+      for (let lat = -85; lat <= 85; lat += 5) {
+        pts.push(latLonToPlane(lat, lon, MAP_SCALE));
+      }
+      lines.push(pts);
+    }
+    // 纬线（每30度）
+    for (let lat = -60; lat <= 80; lat += 30) {
+      const pts: Vector3[] = [];
+      for (let lon = -180; lon <= 180; lon += 5) {
+        pts.push(latLonToPlane(lat, lon, MAP_SCALE));
+      }
+      lines.push(pts);
+    }
+    return lines;
+  }, []);
 
   return (
     <div className="view-root">
       <Canvas orthographic camera={{ position: [0, 0, 10], zoom: 60 }}>
-        <color attach="background" args={["#050505"]} />
+        <color attach="background" args={[COLORS.background]} />
         <OrthographicCamera makeDefault position={[0, 0, 10]} zoom={60} />
         <ambientLight intensity={0.8} />
         <Suspense fallback={null}>
+          {/* 海洋底色 */}
           <mesh
             position={[0, 0, -1]}
             onPointerDown={(event) => {
-              // 记录按下状态，用于区分点击和拖动
               const nativeEvent =
                 event.nativeEvent || (event as unknown as PointerEvent);
               const clientX = nativeEvent.clientX ?? 0;
@@ -645,7 +812,6 @@ export function MapView({ world, atlas }: MapViewProps) {
               };
             }}
             onPointerMove={(event) => {
-              // 检测是否拖动
               if (!blankAreaPointerStateRef.current) return;
               const nativeEvent =
                 event.nativeEvent || (event as unknown as PointerEvent);
@@ -657,13 +823,11 @@ export function MapView({ world, atlas }: MapViewProps) {
               const deltaY = Math.abs(
                 clientY - blankAreaPointerStateRef.current.downY,
               );
-              // 如果移动距离超过 5 像素，认为是拖动
               if (deltaX > 5 || deltaY > 5) {
                 blankAreaPointerStateRef.current.moved = true;
               }
             }}
             onPointerUp={() => {
-              // 点击地图空白处（非拖动）取消选中航线/机场
               if (
                 blankAreaPointerStateRef.current &&
                 !blankAreaPointerStateRef.current.moved
@@ -676,36 +840,41 @@ export function MapView({ world, atlas }: MapViewProps) {
             }}
           >
             <planeGeometry args={[MAP_SCALE * 3.8, MAP_SCALE * 1.9]} />
-            <meshBasicMaterial color="#040b1a" />
+            <meshBasicMaterial color={COLORS.oceanPlane} />
           </mesh>
+
+          {/* 经纬网格 */}
+          {graticulesLines.map((pts, i) => (
+            <Line
+              key={`grid-${i}`}
+              points={pts}
+              color={COLORS.countryFill}
+              lineWidth={0.3}
+              transparent
+              opacity={0.08}
+            />
+          ))}
+
+          {/* 国家填充 */}
           {fillPolygons.map(({ id, iso, shape }) => {
             const isSelected = iso && selectedCountry === iso;
-            const isHovered = false; // 禁用国家 hover 效果
             const color = isSelected
-              ? highlightColor
-              : isHovered
-                ? hoverColor
-                : baseColor;
-            const opacity = isSelected ? 0.6 : isHovered ? 0.4 : 0.2;
+              ? COLORS.countryHighlight
+              : COLORS.countryFill;
+            const opacity = isSelected ? 0.55 : 0.15;
             return (
               <mesh
                 key={id}
                 position={[0, 0, -0.01]}
                 renderOrder={0}
                 onPointerOver={(event) => {
-                  // 禁用国家 hover 效果
                   event.stopPropagation();
-                  // 不执行任何操作
                 }}
                 onPointerOut={(event) => {
-                  // 禁用国家 hover 效果
                   event.stopPropagation();
-                  // 不执行任何操作
                 }}
                 onPointerDown={(event) => {
-                  // 禁用地图点击选择功能
                   event.stopPropagation();
-                  // 不执行任何操作
                 }}
               >
                 <shapeGeometry args={[shape]} />
@@ -718,15 +887,14 @@ export function MapView({ world, atlas }: MapViewProps) {
               </mesh>
             );
           })}
+
+          {/* 国家边界线 */}
           {linePolygons.map(({ id, iso, points }) => {
             const isSelected = iso && selectedCountry === iso;
-            const isHovered = false; // 禁用国家 hover 效果
             const color = isSelected
-              ? highlightColor
-              : isHovered
-                ? hoverColor
-                : baseColor;
-            const lineWidth = isSelected ? 1.4 : isHovered ? 1.1 : 0.8;
+              ? COLORS.countryHighlight
+              : COLORS.countryBorder;
+            const lineWidth = isSelected ? 1.4 : 0.6;
             return (
               <Line
                 key={id}
@@ -734,183 +902,60 @@ export function MapView({ world, atlas }: MapViewProps) {
                 color={color}
                 lineWidth={lineWidth}
                 transparent
-                opacity={isSelected ? 1 : 0.7}
+                opacity={isSelected ? 1 : 0.5}
                 onPointerOver={(event) => {
-                  // 禁用国家 hover 效果
                   event.stopPropagation();
-                  // 不执行任何操作
                 }}
                 onPointerOut={(event) => {
-                  // 禁用国家 hover 效果
                   event.stopPropagation();
-                  // 不执行任何操作
                 }}
                 onPointerDown={(event) => {
-                  // 禁用地图点击选择功能
                   event.stopPropagation();
-                  // 不执行任何操作
                 }}
               />
             );
           })}
+
           {/* 机场显示 */}
-          {airportInstances.map((airport) => {
-            const normalizedSelectedCountry = selectedCountry
-              ? normalizeCountryCode(selectedCountry)
-              : null;
-            const normalizedAirportCountry = normalizeCountryCode(
-              airport.countryCode,
-            );
-            const isSelected =
-              normalizedSelectedCountry === normalizedAirportCountry;
-            return (
-              <MapAirportParticle
-                key={airport.id}
-                airport={airport}
-                isSelected={isSelected}
-              />
-            );
-          })}
+          <AirportCodeMapProvider>
+            {airportInstances.map((airport) => {
+              const normalizedSelectedCountry = selectedCountry
+                ? normalizeCountryCode(selectedCountry)
+                : null;
+              const normalizedAirportCountry = normalizeCountryCode(
+                airport.countryCode,
+              );
+              const isSelected =
+                normalizedSelectedCountry === normalizedAirportCountry;
+              return (
+                <MapAirportParticle
+                  key={airport.id}
+                  airport={airport}
+                  isSelected={isSelected}
+                />
+              );
+            })}
+          </AirportCodeMapProvider>
+
           {/* 航线显示 */}
           {flightRoutes && flightRoutes.length > 0 && (
             <MapFlightPaths routes={flightRoutes} />
           )}
-          {/* 国家标签 - 只显示选中的国家、悬停的国家或主要国家 */}
-          {showLabels &&
-            countryLabels
-              .filter(({ key, iso }) => {
-                // 只显示选中的国家、悬停的国家，或者主要大国
-                const isSelected = iso && selectedCountry === iso;
-                const isHovered = false; // 禁用国家 hover 效果
 
-                // 主要国家列表（基于面积和重要性，只显示最重要的国家）
-                const majorCountries = [
-                  "CN",
-                  "US",
-                  "RU",
-                  "CA",
-                  "BR",
-                  "AU",
-                  "IN",
-                  "AR",
-                  "KZ",
-                  "DZ",
-                  "SA",
-                  "MX",
-                  "ID",
-                  "MN",
-                  "LY",
-                  "IR",
-                  "PE",
-                  "NG",
-                  "TZ",
-                  "EG",
-                  "MA",
-                  "ZA",
-                  "SD",
-                  "YE",
-                  "TH",
-                  "ES",
-                  "TR",
-                  "BO",
-                  "MM",
-                  "AF",
-                  "VE",
-                  "MY",
-                  "PH",
-                  "IQ",
-                  "SE",
-                  "GB",
-                  "FR",
-                  "DE",
-                  "JP",
-                  "IT",
-                  "KR",
-                  "PL",
-                  "VN",
-                  "NO",
-                  "NZ",
-                  "BD",
-                  "EC",
-                  "RO",
-                  "KE",
-                  "SY",
-                  "KH",
-                  "UY",
-                  "TN",
-                  "BG",
-                  "NP",
-                  "GR",
-                  "BA",
-                  "LK",
-                  "GT",
-                  "JO",
-                  "AE",
-                  "CZ",
-                  "PT",
-                  "HU",
-                  "RS",
-                  "IE",
-                  "GE",
-                  "CR",
-                  "SK",
-                  "HR",
-                  "LV",
-                  "LT",
-                  "SI",
-                  "ME",
-                  "EE",
-                  "DK",
-                  "NL",
-                  "CH",
-                  "AT",
-                  "BE",
-                  "SG",
-                ];
-
-                // 省份标签：完全隐藏，避免遮挡地图
-                // 如果需要显示省份，可以改为：return selectedCountry === 'CN' && isHovered
-                if (key.startsWith("CN-")) {
-                  return false; // 不显示省份标签
-                }
-
-                // 中国国家标签仅在未选中中国时显示
-                if (key === "CN") {
-                  return selectedCountry !== "CN";
-                }
-
-                // 显示选中的国家、悬停的国家，或主要国家
-                if (isSelected || isHovered) {
-                  return true;
-                }
-
-                // 只显示主要国家（避免标签过多）
-                return iso && majorCountries.includes(iso);
-              })
-              .map(({ key, iso, name, position }) => {
-                return (
-                  <MapCountryLabel
-                    key={key}
-                    iso={iso}
-                    name={name}
-                    position={position}
-                    isSelected={!!(iso && selectedCountry === iso)}
-                    isHovered={!!(iso && hoveredCountry === iso)}
-                    onPointerOver={() => {
-                      // 禁用国家 hover 效果
-                      // 不执行任何操作
-                    }}
-                    onPointerOut={() => {
-                      // 禁用国家 hover 效果
-                      // 不执行任何操作
-                    }}
-                    onPointerDown={() => {
-                      // 禁用地图点击选择功能
-                      // 不执行任何操作
-                    }}
-                  />
-                );
-              })}
+          {/* 国家标签 */}
+          {filteredLabels.map(({ key, iso, name, position }) => (
+            <MapCountryLabel
+              key={key}
+              iso={iso}
+              name={name}
+              position={position}
+              isSelected={!!(iso && selectedCountry === iso)}
+              isHovered={!!(iso && hoveredCountry === iso)}
+              onPointerOver={() => {}}
+              onPointerOut={() => {}}
+              onPointerDown={() => {}}
+            />
+          ))}
         </Suspense>
         <MapCameraController
           selectedCountry={selectedCountry}
@@ -923,14 +968,14 @@ export function MapView({ world, atlas }: MapViewProps) {
           enablePan={true}
           enableZoom={true}
           enableDamping={true}
-          dampingFactor={0.05}
-          panSpeed={1.0}
-          zoomSpeed={1.0}
+          dampingFactor={0.08}
+          panSpeed={1.2}
+          zoomSpeed={1.2}
           maxZoom={300}
           minZoom={20}
         />
       </Canvas>
-      {/* Tooltip 组件 */}
+      {/* Tooltip */}
       {(hoveredAirport || hoveredFlightRoute) && tooltipPosition && (
         <div
           className="globe-tooltip"
@@ -1032,7 +1077,6 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
   const { gl, camera } = useThree();
   const groupRef = useRef<Group>(null);
   const labelRef = useRef<Group>(null);
-  const glowIntensityRef = useRef(1);
   const materialRefs = useRef<{
     outer?: MeshBasicMaterial;
     inner?: MeshBasicMaterial;
@@ -1046,139 +1090,17 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
     [airport.position],
   );
 
-  // 从航班数据中构建机场三字码到四字码的映射（作为基础映射）
-  const baseAirportCodeMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    FLIGHTS.forEach((flight) => {
-      if (flight.fromAirportCode3 && flight.fromAirportCode4) {
-        map[flight.fromAirportCode3] = flight.fromAirportCode4;
-      }
-      if (flight.toAirportCode3 && flight.toAirportCode4) {
-        map[flight.toAirportCode3] = flight.toAirportCode4;
-      }
-    });
-    return map;
-  }, []);
+  // 使用共享的 CSV 映射（来自 Context，不再每个组件单独加载）
+  const airportCodeMap = useContext(AirportCodeMapContext);
 
-  // 完整的机场编码映射（从CSV加载，包含所有机场）
-  const [fullAirportCodeMap, setFullAirportCodeMap] = useState<
-    Record<string, string>
-  >({});
-
-  // 异步加载完整的机场编码映射
-  useEffect(() => {
-    const loadFullCodeMap = async () => {
-      try {
-        const response = await fetch("/data.csv");
-        const text = await response.text();
-        const lines = text.split("\n");
-
-        if (lines.length < 2) return;
-
-        const headers = lines[0].split(",");
-        const fromCode3Idx = headers.findIndex((h) =>
-          h.includes("起飞机场三字码"),
-        );
-        const fromCode4Idx = headers.findIndex((h) =>
-          h.includes("起飞机场四字码"),
-        );
-        const toCode3Idx = headers.findIndex((h) =>
-          h.includes("降落机场三字码"),
-        );
-        const toCode4Idx = headers.findIndex((h) =>
-          h.includes("降落机场四字码"),
-        );
-
-        if (
-          fromCode3Idx === -1 ||
-          fromCode4Idx === -1 ||
-          toCode3Idx === -1 ||
-          toCode4Idx === -1
-        ) {
-          return;
-        }
-
-        const map: Record<string, string> = {};
-
-        // 解析CSV数据
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-
-          // 简单的CSV解析（处理引号）
-          const row: string[] = [];
-          let current = "";
-          let inQuotes = false;
-
-          for (let j = 0; j < line.length; j++) {
-            const char = line[j];
-            if (char === '"') {
-              inQuotes = !inQuotes;
-            } else if (char === "," && !inQuotes) {
-              row.push(current);
-              current = "";
-            } else {
-              current += char;
-            }
-          }
-          row.push(current);
-
-          if (
-            row.length <=
-            Math.max(fromCode3Idx, fromCode4Idx, toCode3Idx, toCode4Idx)
-          ) {
-            continue;
-          }
-
-          // 处理起飞机场编码
-          const fromCode3 = row[fromCode3Idx]?.trim();
-          const fromCode4 = row[fromCode4Idx]?.trim();
-          if (
-            fromCode3 &&
-            fromCode4 &&
-            fromCode3 !== "nan" &&
-            fromCode4 !== "nan"
-          ) {
-            if (!map[fromCode3]) {
-              map[fromCode3] = fromCode4;
-            }
-          }
-
-          // 处理降落机场编码
-          const toCode3 = row[toCode3Idx]?.trim();
-          const toCode4 = row[toCode4Idx]?.trim();
-          if (toCode3 && toCode4 && toCode3 !== "nan" && toCode4 !== "nan") {
-            if (!map[toCode3]) {
-              map[toCode3] = toCode4;
-            }
-          }
-        }
-
-        setFullAirportCodeMap(map);
-      } catch (error) {
-        console.error("加载完整机场编码映射失败:", error);
-      }
-    };
-
-    loadFullCodeMap();
-  }, []);
-
-  // 合并基础映射和完整映射（完整映射优先）
-  const airportCodeMap = useMemo(() => {
-    return { ...baseAirportCodeMap, ...fullAirportCodeMap };
-  }, [baseAirportCodeMap, fullAirportCodeMap]);
-
-  // 根据用户设置获取机场显示编码
   const getAirportDisplayCode = useMemo(() => {
-    // 始终显示ICAO四字码
     return airport.code4 || airportCodeMap[airport.code] || airport.code;
   }, [airport.code4, airport.code, airportCodeMap]);
 
-  // 根据风险值计算闪烁参数
-  const getPulseParams = useMemo(() => {
+  // 预计算闪烁颜色（避免每帧创建新 Color）
+  const pulseColors = useMemo(() => {
     const risk = airport.environmentRisk;
     if (risk >= 7) {
-      // 高风险：快速闪烁，强度大
       return {
         speed: 4,
         intensity: 0.4,
@@ -1186,7 +1108,6 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
         brightColor: new Color("#ff6b9d"),
       };
     } else if (risk >= 5) {
-      // 中风险：中等速度闪烁
       return {
         speed: 3,
         intensity: 0.3,
@@ -1194,7 +1115,6 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
         brightColor: new Color("#facc15"),
       };
     } else if (risk >= 1) {
-      // 低风险：慢速闪烁
       return {
         speed: 2,
         intensity: 0.25,
@@ -1202,7 +1122,6 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
         brightColor: new Color("#81c784"),
       };
     } else {
-      // 极低风险：很慢的闪烁
       return {
         speed: 1.5,
         intensity: 0.2,
@@ -1211,6 +1130,16 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
       };
     }
   }, [airport.environmentRisk]);
+
+  // 预分配用于帧内插值的 Color 对象（避免 GC）
+  const tempColor = useRef(new Color());
+
+  // 预计算固定位置（z=0.05），避免每帧 clone
+  const fixedPosition = useMemo(() => {
+    const pos = basePosition.clone();
+    pos.z = 0.05;
+    return pos;
+  }, [basePosition]);
 
   const handlePointerOver = useCallback(
     (event: ThreeEvent<PointerEvent>) => {
@@ -1258,11 +1187,8 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
   useFrame(() => {
     if (!groupRef.current) return;
 
-    const finalPosition = basePosition.clone();
-    finalPosition.z = 0.05; // 稍微抬高以便在地图上方显示
-    groupRef.current.position.copy(finalPosition);
+    groupRef.current.position.copy(fixedPosition);
 
-    // 增强发光动画效果 - 提高基础亮度
     const time = Date.now() * 0.001;
     let intensity = isSelected
       ? 1.5 + Math.sin(time * 2) * 0.3
@@ -1272,45 +1198,42 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
       intensity = 2.0 + Math.sin(time * 3) * 0.4;
     }
 
-    glowIntensityRef.current = intensity;
-
-    // 闪烁颜色动画 - 根据风险值动态调整颜色
-    const pulse = Math.sin(time * getPulseParams.speed) * 0.5 + 0.5; // 0 到 1 之间
-    const currentColor = new Color().lerpColors(
-      getPulseParams.baseColor,
-      getPulseParams.brightColor,
-      pulse * getPulseParams.intensity,
+    // 使用预分配的 tempColor 避免 GC
+    const pulse = Math.sin(time * pulseColors.speed) * 0.5 + 0.5;
+    tempColor.current.lerpColors(
+      pulseColors.baseColor,
+      pulseColors.brightColor,
+      pulse * pulseColors.intensity,
     );
 
-    // 增强发光效果 - 提高透明度和亮度
     if (materialRefs.current.outer) {
-      materialRefs.current.outer.color.copy(currentColor);
-      // 大幅提高外层光晕的亮度和透明度
+      materialRefs.current.outer.color.copy(tempColor.current);
       materialRefs.current.outer.opacity =
         (isViewing ? 0.8 : isSelected ? 0.7 : 0.6) * intensity;
     }
     if (materialRefs.current.inner) {
-      materialRefs.current.inner.color.copy(currentColor);
-      // 提高内层实心点的亮度
+      materialRefs.current.inner.color.copy(tempColor.current);
       materialRefs.current.inner.opacity =
         (isViewing ? 1.0 : isSelected ? 1.0 : 1.0) * Math.min(intensity, 1.2);
     }
 
     if (isViewing && labelRef.current && camera) {
       labelRef.current.lookAt(camera.position);
-      const labelOffset = new Vector3(0, 0, 0.08);
-      labelRef.current.position.copy(finalPosition.clone().add(labelOffset));
+      labelRef.current.position.set(
+        fixedPosition.x,
+        fixedPosition.y,
+        fixedPosition.z + 0.08,
+      );
     }
   });
 
-  // 2D地图上的机场显示：使用扁平圆形 - 减小尺寸以减少遮挡
-  const size = isViewing ? 0.04 : isSelected ? 0.03 : 0.02; // 减小外层光晕半径
-  const innerSize = isViewing ? 0.005 : isSelected ? 0.02 : 0.015; // 减小内层半径
-  const glowSize = size * 1.0; // 外层光晕
+  const size = isViewing ? 0.04 : isSelected ? 0.03 : 0.02;
+  const innerSize = isViewing ? 0.005 : isSelected ? 0.02 : 0.015;
+  const glowSize = size * 1.0;
 
   return (
     <group ref={groupRef}>
-      {/* 最外层大光晕（增强发光效果） */}
+      {/* 外层大光晕 */}
       <mesh
         position={[0, 0, -0.01]}
         onPointerOver={handlePointerOver}
@@ -1325,7 +1248,7 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
           side={DoubleSide}
         />
       </mesh>
-      {/* 外层光晕（扁平圆形） */}
+      {/* 外层光晕 */}
       <mesh
         position={[0, 0, 0]}
         onPointerOver={handlePointerOver}
@@ -1366,7 +1289,7 @@ function MapAirportParticle({ airport, isSelected }: MapAirportParticleProps) {
           side={DoubleSide}
         />
       </mesh>
-      {/* 正在查看时的机场名称标签 */}
+      {/* 机场名称标签 */}
       {isViewing && (
         <group ref={labelRef}>
           <Text
@@ -1413,20 +1336,17 @@ function MapCountryLabel({
 
   useFrame(() => {
     if (!groupRef.current || !camera) return;
-    // 在2D地图上，标签始终面向相机
     groupRef.current.lookAt(camera.position);
   });
 
-  // 减小字体大小，避免遮挡地图
   const fontSize = isSelected ? 0.18 : isHovered ? 0.16 : 0.14;
   const outlineWidth = isSelected ? 0.025 : isHovered ? 0.02 : 0.015;
   const renderOrder = isSelected ? 20 : isHovered ? 10 : 5;
-  // 通过颜色透明度实现效果
   const color = isSelected
     ? "#eab308"
     : isHovered
       ? "#facc15"
-      : "rgba(229, 231, 235, 0.7)"; // 降低非选中/悬停标签的透明度
+      : "rgba(229, 231, 235, 0.7)";
 
   return (
     <group ref={groupRef} position={[position.x, position.y, 0.1]}>
@@ -1480,62 +1400,58 @@ function MapCameraController({
 
   const isAnimatingRef = useRef(false);
   const animStartRef = useRef(0);
-  const animDuration = 600; // 毫秒
+  const animDuration = 600;
   const startPosRef = useRef(new Vector3());
   const targetPosRef = useRef(new Vector3());
   const startTargetRef = useRef(new Vector3());
   const targetTargetRef = useRef(new Vector3());
   const startZoomRef = useRef<number>(orthoCamera.zoom);
-  const targetZoomRef = useRef<number>(100); // 默认回到的 zoom
-  const initialZoom = 100; // 初始 zoom
+  const targetZoomRef = useRef<number>(100);
+  const initialZoom = 100;
+  const selectedCountryZoom = 150;
+  // 中国地图居中的初始位置 (lat=35, lon=105, MAP_SCALE=6)
+  const initialTarget = useMemo(() => new Vector3(3.5, 1.17, 0), []);
+  const initialCamPos = useMemo(() => new Vector3(3.5, 1.17, 10), []);
 
-  // 配置：选中时的目标 zoom（数值越大越“放大”）
-  const selectedCountryZoom = 150; // 当选中某国时缩放到这个 zoom
-
-  // 缓动函数（easeInOutQuad）
   const ease = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 
-  // 获取国家中心位置（xy），如果找不到则返回 null
   const findCountryPosition = useCallback(
     (iso: string | null) => {
       if (!iso) return null;
       const found = countryLabels.find((c) => c.iso === iso);
       if (found) return found.position.clone();
-      // 兜底：有时 key 不是 iso，可以尝试按 key 匹配（如果你有这种需求）
       const alt = countryLabels.find((c) => c.key === iso);
       return alt ? alt.position.clone() : null;
     },
     [countryLabels],
   );
 
-  // 启动动画（设置起始/目标状态）
   const startAnimation = useCallback(
     (toPosition: Vector3 | null, toZoom: number) => {
-      // 记录开始时间与起始状态
       isAnimatingRef.current = true;
       animStartRef.current = performance.now();
-
       startPosRef.current.copy(camera.position);
       startTargetRef.current.copy(
         orbitControlsRef.current?.target ?? new Vector3(0, 0, 0),
       );
 
       if (toPosition) {
-        // 摄像机位置保持 z，不改变 z
         const camZ = camera.position.z;
         targetPosRef.current.set(toPosition.x, toPosition.y, camZ);
-        // controls.target 指向地图平面上的点（z = 0）
         targetTargetRef.current.set(toPosition.x, toPosition.y, 0);
       } else {
-        // 回到原点视角
-        targetPosRef.current.set(0, 0, camera.position.z);
-        targetTargetRef.current.set(0, 0, 0);
+        // 回到中国居中视角
+        targetPosRef.current.set(
+          initialTarget.x,
+          initialTarget.y,
+          camera.position.z,
+        );
+        targetTargetRef.current.copy(initialTarget);
       }
 
       startZoomRef.current = orthoCamera.zoom;
       targetZoomRef.current = toZoom;
 
-      // 临时禁用 OrbitControls 的交互以避免用户打断动画
       if (orbitControlsRef.current) {
         orbitControlsRef.current.enabled = false;
       }
@@ -1543,19 +1459,15 @@ function MapCameraController({
     [camera, orthoCamera, orbitControlsRef],
   );
 
-  // 每次 selectedCountry 改变时触发动画
   useEffect(() => {
     const pos = findCountryPosition(selectedCountry);
     if (selectedCountry && pos) {
-      // 有选中时放大
       startAnimation(pos, selectedCountryZoom);
     } else {
-      // 取消选中时回到默认视角与 zoom
       startAnimation(null, initialZoom);
     }
   }, [selectedCountry, findCountryPosition, startAnimation]);
 
-  // useFrame 中执行 LERP 动画
   useFrame(() => {
     if (!isAnimatingRef.current) return;
 
@@ -1564,9 +1476,7 @@ function MapCameraController({
     const t = Math.min(1, Math.max(0, tRaw));
     const tt = ease(t);
 
-    // 位置 lerp
     camera.position.lerpVectors(startPosRef.current, targetPosRef.current, tt);
-    // controls.target lerp (如果存在 controls)
     if (orbitControlsRef.current) {
       const currTarget = orbitControlsRef.current.target;
       currTarget.lerpVectors(
@@ -1577,17 +1487,14 @@ function MapCameraController({
       orbitControlsRef.current.update();
     }
 
-    // zoom lerp（正交相机需要手动 updateProjectionMatrix）
     orthoCamera.zoom =
       startZoomRef.current +
       (targetZoomRef.current - startZoomRef.current) * tt;
     orthoCamera.updateProjectionMatrix();
 
     if (t >= 1) {
-      // 结束动画：确保到达目标，恢复 controls
       isAnimatingRef.current = false;
       if (orbitControlsRef.current) {
-        // 最终写入 target，并允许交互（可根据需求保持禁用）
         orbitControlsRef.current.target.copy(targetTargetRef.current);
         orbitControlsRef.current.update();
         orbitControlsRef.current.enabled = true;
@@ -1595,15 +1502,15 @@ function MapCameraController({
     }
   });
 
-  // 初始化：把 camera 和 controls target 设为默认（只执行一次）
   const initedRef = useRef(false);
   useEffect(() => {
     if (initedRef.current) return;
-    // 确保初始状态一致
+    // 初始化：中国居中
+    camera.position.set(initialCamPos.x, initialCamPos.y, initialCamPos.z);
     orthoCamera.zoom = initialZoom;
     orthoCamera.updateProjectionMatrix();
     if (orbitControlsRef.current) {
-      orbitControlsRef.current.target.set(0, 0, 0);
+      orbitControlsRef.current.target.copy(initialTarget);
       orbitControlsRef.current.update();
     }
     initedRef.current = true;

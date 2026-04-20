@@ -8,10 +8,16 @@ import {
   Bar,
   AreaChart,
   Area,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
+  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { useLanguage } from "../i18n/useLanguage";
@@ -407,73 +413,377 @@ export function PersonnelDetailPage() {
             </div>
           )}
           {activeNav === "personal-vs-fleet" && (
-            <div className="pd-card" style={{ padding: 20 }}>
-              <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
-                {t("个人与机队对比", "Personal vs Fleet")}
-              </h3>
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={peerAnalysisData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                  <XAxis
-                    dataKey="month"
-                    tick={AXIS_TICK}
-                    stroke={GRID_STROKE}
-                    tickFormatter={(v: string) => t(`第${v}次`, `#${v}`)}
-                  />
-                  <YAxis
-                    tick={AXIS_TICK}
-                    stroke={GRID_STROKE}
-                    domain={[0, 50]}
-                  />
-                  <Tooltip {...darkTooltipStyle} />
-                  <Line
-                    type="monotone"
-                    dataKey="individual"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    dot={{ fill: "#3b82f6", r: 4 }}
-                    name={t("个人", "Individual")}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="squadron"
-                    stroke="#ea580c"
-                    strokeWidth={2}
-                    dot={{ fill: "#ea580c", r: 4 }}
-                    name={t("中队平均", "Squadron Avg")}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="fleet"
-                    stroke="#94a3b8"
-                    strokeWidth={2}
-                    strokeDasharray="6 3"
-                    dot={{ fill: "#94a3b8", r: 4 }}
-                    name={t("机队平均", "Fleet Avg")}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* 风险评分对比趋势 */}
+              <div className="pd-card" style={{ padding: 20 }}>
+                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                  {t("个人与机队对比", "Personal vs Fleet")}
+                </h3>
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart data={peerAnalysisData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+                    <XAxis
+                      dataKey="month"
+                      tick={AXIS_TICK}
+                      stroke={GRID_STROKE}
+                      tickFormatter={(v: string) => t(`第${v}次`, `#${v}`)}
+                    />
+                    <YAxis
+                      tick={AXIS_TICK}
+                      stroke={GRID_STROKE}
+                      domain={[0, 50]}
+                    />
+                    <Tooltip {...darkTooltipStyle} />
+                    <Line
+                      type="monotone"
+                      dataKey="individual"
+                      stroke="#3b82f6"
+                      strokeWidth={2}
+                      dot={{ fill: "#3b82f6", r: 4 }}
+                      name={t("个人", "Individual")}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="squadron"
+                      stroke="#ea580c"
+                      strokeWidth={2}
+                      dot={{ fill: "#ea580c", r: 4 }}
+                      name={t("中队平均", "Squadron Avg")}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="fleet"
+                      stroke="#94a3b8"
+                      strokeWidth={2}
+                      strokeDasharray="6 3"
+                      dot={{ fill: "#94a3b8", r: 4 }}
+                      name={t("机队平均", "Fleet Avg")}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* 风险指标雷达图对比 */}
+              <div className="pd-card" style={{ padding: 20 }}>
+                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                  {t(
+                    "个人与机队风险指标对比",
+                    "Individual vs Fleet Risk Indicators",
+                  )}
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <RadarChart
+                    data={[
+                      {
+                        indicator: t("不稳定进近", "Unstable Approach"),
+                        individual: 7.2,
+                        fleet: 4.5,
+                      },
+                      {
+                        indicator: t("重着陆", "Hard Landing"),
+                        individual: 5.8,
+                        fleet: 3.8,
+                      },
+                      {
+                        indicator: t("超限事件", "Exceedance Events"),
+                        individual: 6.5,
+                        fleet: 4.2,
+                      },
+                      {
+                        indicator: t("偏航率", "Deviation Rate"),
+                        individual: 4.1,
+                        fleet: 3.5,
+                      },
+                      {
+                        indicator: t("进近坡度", "Approach Slope"),
+                        individual: 5.5,
+                        fleet: 4.0,
+                      },
+                      {
+                        indicator: t("着陆速度偏差", "Landing Speed Dev"),
+                        individual: 6.0,
+                        fleet: 3.9,
+                      },
+                    ]}
+                  >
+                    <PolarGrid stroke="rgba(148,163,184,0.15)" />
+                    <PolarAngleAxis
+                      dataKey="indicator"
+                      tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    />
+                    <PolarRadiusAxis
+                      angle={30}
+                      domain={[0, 10]}
+                      tick={{ fill: "#64748b", fontSize: 10 }}
+                      axisLine={false}
+                    />
+                    <Radar
+                      name={t("个人", "Individual")}
+                      dataKey="individual"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
+                      fillOpacity={0.25}
+                      strokeWidth={2}
+                    />
+                    <Radar
+                      name={t("机队平均", "Fleet Avg")}
+                      dataKey="fleet"
+                      stroke="#94a3b8"
+                      fill="#94a3b8"
+                      fillOpacity={0.1}
+                      strokeWidth={2}
+                      strokeDasharray="6 3"
+                    />
+                    <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} />
+                    <Tooltip
+                      contentStyle={{
+                        background: "rgba(15,23,42,0.95)",
+                        border: "1px solid rgba(148,163,184,0.2)",
+                        borderRadius: 6,
+                        fontSize: 12,
+                        color: "#e2e8f0",
+                      }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
           {activeNav === "training-data" && (
-            <div className="pd-card" style={{ padding: 20 }}>
-              <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
-                {t("训练数据", "Training Data")}
-              </h3>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: 200,
-                  color: "#64748b",
-                  fontSize: 14,
-                }}
-              >
-                {t(
-                  "训练数据展示内容待确认",
-                  "Training data display content to be confirmed",
-                )}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* 九维度能力评估 */}
+              <div className="pd-card" style={{ padding: 20 }}>
+                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                  {t("九维度能力评估", "Nine-Dimension Competency Assessment")}
+                </h3>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 12,
+                  }}
+                >
+                  {[
+                    { key: "KNO", zh: "知识", en: "Knowledge", score: 4 },
+                    { key: "PRO", zh: "程序", en: "Procedures", score: 5 },
+                    {
+                      key: "FPA",
+                      zh: "飞行路径自动化",
+                      en: "Flight Path Automation",
+                      score: 3,
+                    },
+                    {
+                      key: "FPM",
+                      zh: "飞行路径手动",
+                      en: "Flight Path Manual",
+                      score: 4,
+                    },
+                    { key: "COM", zh: "沟通", en: "Communication", score: 5 },
+                    {
+                      key: "LTW",
+                      zh: "领导与团队协作",
+                      en: "Leadership & Teamwork",
+                      score: 4,
+                    },
+                    {
+                      key: "WLM",
+                      zh: "工作负荷管理",
+                      en: "Workload Management",
+                      score: 3,
+                    },
+                    {
+                      key: "SAW",
+                      zh: "态势感知",
+                      en: "Situation Awareness",
+                      score: 4,
+                    },
+                    {
+                      key: "PSD",
+                      zh: "问题解决与决策",
+                      en: "Problem Solving & Decision",
+                      score: 5,
+                    },
+                  ].map((dim) => (
+                    <div
+                      key={dim.key}
+                      style={{
+                        background: "rgba(15,23,42,0.5)",
+                        borderRadius: 8,
+                        padding: "12px 16px",
+                        border: "1px solid rgba(148,163,184,0.1)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <span style={{ color: "#94a3b8", fontSize: 12 }}>
+                          {dim.key} · {t(dim.zh, dim.en)}
+                        </span>
+                        <span
+                          style={{
+                            color:
+                              dim.score >= 4
+                                ? "#22c55e"
+                                : dim.score >= 3
+                                  ? "#eab308"
+                                  : "#ef4444",
+                            fontWeight: 700,
+                            fontSize: 18,
+                          }}
+                        >
+                          {dim.score}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", gap: 4 }}>
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <div
+                            key={n}
+                            style={{
+                              flex: 1,
+                              height: 6,
+                              borderRadius: 3,
+                              background:
+                                n <= dim.score
+                                  ? dim.score >= 4
+                                    ? "#22c55e"
+                                    : dim.score >= 3
+                                      ? "#eab308"
+                                      : "#ef4444"
+                                  : "rgba(148,163,184,0.15)",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 训练科目推荐 */}
+              <div className="pd-card" style={{ padding: 20 }}>
+                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                  {t("训练科目推荐", "Training Subject Recommendations")}
+                </h3>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
+                >
+                  {[
+                    {
+                      subject: t(
+                        "飞行路径自动化管理强化训练",
+                        "Flight Path Automation Management Training",
+                      ),
+                      dim: "FPA",
+                      reason: t(
+                        "当前评分偏低，需强化自动化飞行管理能力",
+                        "Current score is low, need to strengthen automation management",
+                      ),
+                      priority: t("高", "High"),
+                      color: "#ef4444",
+                    },
+                    {
+                      subject: t(
+                        "工作负荷管理场景模拟训练",
+                        "Workload Management Scenario Simulation",
+                      ),
+                      dim: "WLM",
+                      reason: t(
+                        "工作负荷管理得分不足，建议增加高压场景训练",
+                        "Workload management score insufficient, recommend high-pressure scenario training",
+                      ),
+                      priority: t("高", "High"),
+                      color: "#ef4444",
+                    },
+                    {
+                      subject: t(
+                        "CRM团队协作专项训练",
+                        "CRM Team Coordination Training",
+                      ),
+                      dim: "LTW",
+                      reason: t(
+                        "提升领导力与机组资源管理水平",
+                        "Improve leadership and crew resource management",
+                      ),
+                      priority: t("中", "Medium"),
+                      color: "#eab308",
+                    },
+                    {
+                      subject: t(
+                        "态势感知与威胁识别训练",
+                        "Situation Awareness & Threat Recognition Training",
+                      ),
+                      dim: "SAW",
+                      reason: t(
+                        "巩固态势感知能力，预防潜在风险",
+                        "Consolidate situation awareness, prevent potential risks",
+                      ),
+                      priority: t("低", "Low"),
+                      color: "#22c55e",
+                    },
+                  ].map((item, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        background: "rgba(15,23,42,0.5)",
+                        borderRadius: 8,
+                        padding: "12px 16px",
+                        border: "1px solid rgba(148,163,184,0.1)",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 16,
+                      }}
+                    >
+                      <span
+                        style={{
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: item.color,
+                          background: `${item.color}20`,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.priority}
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            color: "#e2e8f0",
+                            fontSize: 13,
+                            fontWeight: 600,
+                          }}
+                        >
+                          {item.subject}
+                          <span
+                            style={{
+                              color: "#64748b",
+                              fontWeight: 400,
+                              marginLeft: 8,
+                              fontSize: 11,
+                            }}
+                          >
+                            ({item.dim})
+                          </span>
+                        </div>
+                        <div
+                          style={{
+                            color: "#94a3b8",
+                            fontSize: 11,
+                            marginTop: 2,
+                          }}
+                        >
+                          {item.reason}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}

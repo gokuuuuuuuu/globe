@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LineChart,
   Line,
-  AreaChart,
-  Area,
+  // AreaChart,
+  // Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -107,49 +107,49 @@ const alertsData = [
   },
 ];
 
-const anomaliesData = [
-  {
-    time: "17:00",
-    dotColor: "#eab308",
-    tag: "Unusual Wind Gusts Detected",
-    tagLevel: "yellow" as const,
-    desc: "Unusual Wind Gusts Detected at Northern Taxiway B.",
-  },
-  {
-    time: "17:00",
-    dotColor: "#eab308",
-    tag: "Sudden Drop in Pressure",
-    tagLevel: "yellow" as const,
-    desc: "Sudden drop in Pressure is near Northern Taxiway.",
-  },
-  {
-    time: "18:00",
-    dotColor: "#dc2626",
-    tag: "Lightning Strike Near Sector D",
-    tagLevel: "red" as const,
-    desc: "Lightning Strike Near Sector D Instant.",
-  },
-];
+// const anomaliesData = [
+//   {
+//     time: "17:00",
+//     dotColor: "#eab308",
+//     tag: "Unusual Wind Gusts Detected",
+//     tagLevel: "yellow" as const,
+//     desc: "Unusual Wind Gusts Detected at Northern Taxiway B.",
+//   },
+//   {
+//     time: "17:00",
+//     dotColor: "#eab308",
+//     tag: "Sudden Drop in Pressure",
+//     tagLevel: "yellow" as const,
+//     desc: "Sudden drop in Pressure is near Northern Taxiway.",
+//   },
+//   {
+//     time: "18:00",
+//     dotColor: "#dc2626",
+//     tag: "Lightning Strike Near Sector D",
+//     tagLevel: "red" as const,
+//     desc: "Lightning Strike Near Sector D Instant.",
+//   },
+// ];
 
-const visibilityTrend = [
-  { day: "7 day", val: 45 },
-  { day: "Mon", val: 55 },
-  { day: "Tue", val: 30 },
-  { day: "Wed", val: 65 },
-  { day: "Thu", val: 50 },
-  { day: "Fri", val: 72 },
-  { day: "7 day", val: 60 },
-];
+// const visibilityTrend = [
+//   { day: "7 day", val: 45 },
+//   { day: "Mon", val: 55 },
+//   { day: "Tue", val: 30 },
+//   { day: "Wed", val: 65 },
+//   { day: "Thu", val: 50 },
+//   { day: "Fri", val: 72 },
+//   { day: "7 day", val: 60 },
+// ];
 
-const windPatternData = [
-  { day: "7 day", val: 12 },
-  { day: "Mon", val: 18 },
-  { day: "Tue", val: 22 },
-  { day: "Wed", val: 15 },
-  { day: "Thu", val: 25 },
-  { day: "Fri", val: 20 },
-  { day: "7 day", val: 16 },
-];
+// const windPatternData = [
+//   { day: "7 day", val: 12 },
+//   { day: "Mon", val: 18 },
+//   { day: "Tue", val: 22 },
+//   { day: "Wed", val: 15 },
+//   { day: "Thu", val: 25 },
+//   { day: "Fri", val: 20 },
+//   { day: "7 day", val: 16 },
+// ];
 
 // ===== Gauge Component =====
 
@@ -389,32 +389,32 @@ const darkTooltipStyle = {
 
 // ===== Custom Wind Tooltip =====
 
-function WindTooltip({
-  active,
-  payload,
-  t,
-}: {
-  active: boolean;
-  payload: { day: string; value: number }[];
-  t: (zh: string, en: string) => string;
-}) {
-  if (active && payload && payload.length) {
-    return (
-      <div className="env-tooltip-box">
-        <div>
-          {payload[0].day}: {payload[0].value} km/h
-        </div>
-        <div style={{ marginTop: 4, color: "#94a3b8" }}>
-          {t(
-            "预测运营影响窗口 08:00-12:00: 正常",
-            "Predicts operational impact windows 08:00-12:00: Normal",
-          )}
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
+// function WindTooltip({
+//   active,
+//   payload,
+//   t,
+// }: {
+//   active: boolean;
+//   payload: { day: string; value: number }[];
+//   t: (zh: string, en: string) => string;
+// }) {
+//   if (active && payload && payload.length) {
+//     return (
+//       <div className="env-tooltip-box">
+//         <div>
+//           {payload[0].day}: {payload[0].value} km/h
+//         </div>
+//         <div style={{ marginTop: 4, color: "#94a3b8" }}>
+//           {t(
+//             "预测运营影响窗口 08:00-12:00: 正常",
+//             "Predicts operational impact windows 08:00-12:00: Normal",
+//           )}
+//         </div>
+//       </div>
+//     );
+//   }
+//   return null;
+// }
 
 // ===== Main Component =====
 
@@ -486,6 +486,94 @@ export function EnvironmentDetailPage() {
     "all" | "red" | "yellow" | "green"
   >("all");
 
+  // ===== 从 CSV 加载降落 METAR 报文 =====
+  interface MetarRecord {
+    flightNumber: string;
+    landingTime: string;
+    airportCode3: string;
+    airportCode4: string;
+    airportName: string;
+    metar: string;
+    runway: string;
+  }
+
+  const [metarRecords, setMetarRecords] = useState<MetarRecord[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/data.csv");
+        const text = await res.text();
+        const lines = text.split("\n");
+        if (lines.length < 2) return;
+
+        const headers = lines[0].split(",");
+        const flightIdx = headers.findIndex((h) => h.includes("航班号"));
+        const landTimeIdx = headers.findIndex((h) => h.includes("降落时间"));
+        const code3Idx = headers.findIndex((h) => h.includes("降落机场三字码"));
+        const code4Idx = headers.findIndex((h) => h.includes("降落机场四字码"));
+        const metarIdx = headers.findIndex((h) => h.includes("降落metar报文"));
+        const runwayIdx = headers.findIndex((h) => h.includes("降落跑道"));
+        const nameIdx = headers.findIndex((h) => h.includes("降落机场名称"));
+
+        if (metarIdx === -1 || code3Idx === -1) return;
+
+        const records: MetarRecord[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (!line) continue;
+          // CSV 解析（处理引号内逗号）
+          const row: string[] = [];
+          let cur = "";
+          let inQ = false;
+          for (let j = 0; j < line.length; j++) {
+            const c = line[j];
+            if (c === '"') {
+              inQ = !inQ;
+            } else if (c === "," && !inQ) {
+              row.push(cur);
+              cur = "";
+            } else {
+              cur += c;
+            }
+          }
+          row.push(cur);
+
+          const metar = row[metarIdx]?.trim();
+          const c3 = row[code3Idx]?.trim();
+          if (!metar || !c3 || metar === "nan") continue;
+
+          records.push({
+            flightNumber: row[flightIdx]?.trim() || "",
+            landingTime: row[landTimeIdx]?.trim() || "",
+            airportCode3: c3,
+            airportCode4: row[code4Idx]?.trim() || "",
+            airportName: nameIdx >= 0 ? row[nameIdx]?.trim() || "" : "",
+            metar,
+            runway: row[runwayIdx]?.trim() || "",
+          });
+        }
+        setMetarRecords(records);
+      } catch (e) {
+        console.error("加载METAR报文失败:", e);
+      }
+    };
+    load();
+  }, []);
+
+  // 根据选中机场过滤报文
+  const airportMetars = useMemo(() => {
+    if (!selectedAirportCode || metarRecords.length === 0) return [];
+    const code = selectedAirportCode.toUpperCase();
+    return metarRecords
+      .filter(
+        (r) =>
+          r.airportCode3.toUpperCase() === code ||
+          r.airportCode4.toUpperCase() === code,
+      )
+      .slice(0, 10); // 最多显示10条
+  }, [selectedAirportCode, metarRecords]);
+
   const pillClass = (level: string) =>
     level === "red"
       ? "env-pill env-pill-red"
@@ -500,18 +588,16 @@ export function EnvironmentDetailPage() {
         ? t("中", "Medium")
         : t("低", "Low");
 
-  const dayMap: Record<string, string> = {
-    Mon: "周一",
-    Tue: "周二",
-    Wed: "周三",
-    Thu: "周四",
-    Fri: "周五",
-    Sat: "周六",
-    Sun: "周日",
-    "7 day": "7天",
-  };
-
-  const translateDay = (day: string) => t(dayMap[day] || day, day);
+  // const dayMap: Record<string, string> = {
+  //   Mon: "周一",
+  //   Tue: "周二",
+  //   Wed: "周三",
+  //   Thu: "周四",
+  //   Fri: "周五",
+  //   Sat: "周六",
+  //   Sun: "周日",
+  //   "7 day": "7天",
+  // };
 
   return (
     <div className="env-root">
@@ -697,19 +783,7 @@ export function EnvironmentDetailPage() {
             >
               {t("返回", "Back")}
             </button>
-            <button
-              className="env-back-btn"
-              style={{
-                background: "rgba(59,130,246,0.3)",
-                borderColor: "rgba(59,130,246,0.4)",
-              }}
-              onClick={() => {
-                const code = selectedAirportCode || codeParam || "";
-                navigate(`/airport-center/airport-detail?code=${code}`);
-              }}
-            >
-              {t("机场统计", "Airport Statistics")}
-            </button>
+            {/* 机场信息按钮已移除（不与环关联） */}
           </div>
           {/* Phase Environment Card */}
           {(() => {
@@ -1331,185 +1405,7 @@ export function EnvironmentDetailPage() {
               </div>
             </div>
 
-            {/* ===== Row 3: Anomalies + Time-Window Charts ===== */}
-            <div className="env-row">
-              {/* LEFT: Major Environmental Anomalies */}
-              <div className="env-card">
-                <div className="env-card-header">
-                  <div className="env-card-title">
-                    {t("重大环境异常", "Major Environmental Anomalies")}
-                  </div>
-                  {/* <span className="env-card-menu">...</span> */}
-                </div>
-
-                <div className="env-anomaly-list">
-                  {anomaliesData.map((a, i) => (
-                    <div className="env-anomaly-item" key={i}>
-                      <span className="env-anomaly-time">{a.time}</span>
-                      <span
-                        className="env-anomaly-dot"
-                        style={{ background: a.dotColor }}
-                      />
-                      <div className="env-anomaly-content">
-                        <div className="env-anomaly-tag">
-                          <span className={pillClass(a.tagLevel)}>
-                            {t(
-                              a.tag === "Unusual Wind Gusts Detected"
-                                ? "异常阵风检测"
-                                : a.tag === "Sudden Drop in Pressure"
-                                  ? "气压骤降"
-                                  : "D区附近雷击",
-                              a.tag,
-                            )}{" "}
-                            (
-                            {a.tagLevel === "yellow"
-                              ? t("黄色", "Yellow")
-                              : t("红色", "Red")}
-                            )
-                          </span>
-                        </div>
-                        <div className="env-anomaly-desc">
-                          {t(
-                            a.desc
-                              .replace(
-                                "Unusual Wind Gusts Detected at",
-                                "异常阵风检测于",
-                              )
-                              .replace("Northern Taxiway B.", "北滑行道B。")
-                              .replace(
-                                "Sudden drop in Pressure is near Northern Taxiway",
-                                "气压骤降，发生于北滑行道附近",
-                              )
-                              .replace(
-                                "Lightning Strike Near Sector D Instant",
-                                "D区附近闪电雷击",
-                              ),
-                            a.desc,
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* RIGHT: Time-Window Changes */}
-              <div className="env-card">
-                <div className="env-card-header">
-                  <div className="env-card-title">
-                    {t("时间窗口变化", "Time-Window Changes")}
-                  </div>
-                  {/* <span className="env-card-menu">...</span> */}
-                </div>
-
-                <div className="env-tw-grid">
-                  {/* Visibility Change Trend */}
-                  <div>
-                    <div className="env-tw-chart-title">
-                      {t("能见度变化趋势", "Visibility Change Trend")}
-                    </div>
-                    <div className="env-tw-chart">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={visibilityTrend}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="rgba(148,163,184,0.08)"
-                          />
-                          <XAxis
-                            dataKey="day"
-                            tick={{ fill: "#64748b", fontSize: 10 }}
-                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                            tickLine={false}
-                            tickFormatter={translateDay}
-                          />
-                          <YAxis
-                            domain={[0, 100]}
-                            tick={{ fill: "#64748b", fontSize: 10 }}
-                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                            tickLine={false}
-                            width={28}
-                          />
-                          <Tooltip {...darkTooltipStyle} />
-                          <Area
-                            type="monotone"
-                            dataKey="val"
-                            stroke="#3b82f6"
-                            strokeWidth={2}
-                            fill="rgba(59,130,246,0.15)"
-                            name={t("能见度", "Visibility")}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
-                  {/* Wind Pattern Evolution */}
-                  <div>
-                    <div className="env-tw-chart-title">
-                      {t("风型演变", "Wind Pattern Evolution")}
-                    </div>
-                    <div className="env-tw-chart">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={windPatternData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="rgba(148,163,184,0.08)"
-                          />
-                          <XAxis
-                            dataKey="day"
-                            tick={{ fill: "#64748b", fontSize: 10 }}
-                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                            tickLine={false}
-                            tickFormatter={translateDay}
-                          />
-                          <YAxis
-                            domain={[0, 30]}
-                            tick={{ fill: "#64748b", fontSize: 10 }}
-                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                            tickLine={false}
-                            width={28}
-                          />
-                          <Tooltip
-                            content={
-                              <WindTooltip
-                                active={true}
-                                payload={windPatternData.map((d) => ({
-                                  day: d.day,
-                                  value: d.val,
-                                }))}
-                                t={t}
-                              />
-                            }
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="val"
-                            stroke="#ef4444"
-                            strokeWidth={2}
-                            dot={{ fill: "#ef4444", r: 4, strokeWidth: 0 }}
-                            activeDot={{ r: 6, fill: "#ef4444" }}
-                            name={t("风速", "Wind")}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="env-tw-windows">
-                  <div className="env-tw-window">
-                    {t("运营窗口", "Operational Window")} 08:00-12:00:{" "}
-                    <span className="env-tw-normal">{t("正常", "Normal")}</span>
-                  </div>
-                  <div className="env-tw-window">
-                    {t("运营窗口", "Operational Window")} 12:00-16:00:{" "}
-                    <span className="env-tw-disruption">
-                      {t("可能中断", "Disruption Likely")}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* Row 3: 重大环境异常 + 时间窗口变化 已移除 */}
           </div>
 
           {/* Messages & Notices (merged from MessageDetailPage & NoticeDetailPage) */}
@@ -1538,63 +1434,105 @@ export function EnvironmentDetailPage() {
                   marginBottom: 12,
                 }}
               >
-                {t("报文信息", "Message Information")}
+                {t("降落METAR报文", "Landing METAR Reports")}
+                {airportMetars.length > 0 && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 400,
+                      color: "#64748b",
+                      marginLeft: 8,
+                    }}
+                  >
+                    {t(
+                      `共 ${airportMetars.length} 条`,
+                      `${airportMetars.length} records`,
+                    )}
+                  </span>
+                )}
               </h3>
-              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
+              {airportMetars.length === 0 ? (
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 8,
-                    marginBottom: 12,
+                    color: "#64748b",
+                    fontSize: 12,
+                    padding: "20px 0",
+                    textAlign: "center",
                   }}
                 >
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("报文ID", "Message ID")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>MSG-123456</span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("来源", "Source")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>FAA NOTAM</span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("类型", "Type")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>
-                      {t("空域限制", "Airspace Restriction")}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("接收时间", "Received")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>11/22/23, 11:39 PM</span>
-                  </div>
+                  {t(
+                    "暂无该机场的METAR报文数据",
+                    "No METAR data for this airport",
+                  )}
                 </div>
-              </div>
-              <div
-                style={{
-                  background: "rgba(0,0,0,0.3)",
-                  borderRadius: 6,
-                  padding: 12,
-                  fontSize: 11,
-                  fontFamily: "monospace",
-                  color: "#94a3b8",
-                  maxHeight: 120,
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap",
-                }}
-              >
-                {`METAR ZBAA 150600Z 20008G18KT 150V250
-1500 R01/1000N R36R/1200D +TSRA SCT015CB
-BKN030 25/18 Q1005 NOSIG TEMPO 1200
-+TSRA GR GS CB`}
-              </div>
+              ) : (
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                    maxHeight: 400,
+                    overflowY: "auto",
+                  }}
+                >
+                  {airportMetars.map((rec, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        background: "rgba(0,0,0,0.25)",
+                        borderRadius: 8,
+                        padding: 12,
+                        border: "1px solid rgba(148,163,184,0.08)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginBottom: 8,
+                          fontSize: 11,
+                        }}
+                      >
+                        <span style={{ color: "#3b82f6", fontWeight: 600 }}>
+                          {rec.flightNumber}
+                        </span>
+                        <span style={{ color: "#64748b" }}>|</span>
+                        <span style={{ color: "#94a3b8" }}>
+                          {rec.landingTime}
+                        </span>
+                        {rec.runway && (
+                          <>
+                            <span style={{ color: "#64748b" }}>|</span>
+                            <span style={{ color: "#94a3b8" }}>
+                              {t("跑道", "RWY")} {rec.runway}
+                            </span>
+                          </>
+                        )}
+                        <span
+                          style={{
+                            marginLeft: "auto",
+                            color: "#475569",
+                            fontSize: 10,
+                          }}
+                        >
+                          {rec.airportCode4 || rec.airportCode3}
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#cbd5e1",
+                          lineHeight: 1.7,
+                          whiteSpace: "pre-wrap",
+                        }}
+                      >
+                        {rec.metar}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Notices */}

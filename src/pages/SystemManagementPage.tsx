@@ -19,7 +19,7 @@ interface User {
 
 // ===== Mock Data =====
 
-const USERS: User[] = [
+const INITIAL_USERS: User[] = [
   {
     id: "80001",
     name: "Jame Smith",
@@ -128,22 +128,25 @@ const USERS: User[] = [
 
 const PERM_MATRIX = [
   {
-    role: "Admin",
+    role: "系统管理员",
+    roleEn: "System Admin",
     viewReports: "granted",
     editRules: "granted",
     manageUsers: "granted",
   },
   {
-    role: "Analyst",
-    viewReports: "granted",
-    editRules: "partial",
-    manageUsers: "granted",
-  },
-  {
-    role: "Risk Manager",
+    role: "安全管理者",
+    roleEn: "Safety Manager",
     viewReports: "granted",
     editRules: "granted",
-    manageUsers: "granted",
+    manageUsers: "denied",
+  },
+  {
+    role: "普通用户",
+    roleEn: "User",
+    viewReports: "granted",
+    editRules: "denied",
+    manageUsers: "denied",
   },
 ];
 
@@ -154,6 +157,42 @@ export function SystemManagementPage() {
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [page] = useState(1);
+  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    role: "analyst" as Role,
+  });
+
+  const toggleUserStatus = (userId: string) => {
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId
+          ? { ...u, status: u.status === "active" ? "disabled" : "active" }
+          : u,
+      ),
+    );
+  };
+
+  const handleAddUser = () => {
+    if (!newUser.name || !newUser.email) return;
+    const id = String(90000 + Math.floor(Math.random() * 10000));
+    setUsers((prev) => [
+      ...prev,
+      {
+        id,
+        name: newUser.name,
+        email: newUser.email,
+        roles: [newUser.role],
+        status: "active" as UserStatus,
+        lastLogin: "",
+      },
+    ]);
+    setNewUser({ name: "", email: "", role: "analyst" });
+    setShowAddModal(false);
+  };
 
   const tRole = (role: Role) => {
     const map: Record<Role, [string, string]> = {
@@ -167,7 +206,14 @@ export function SystemManagementPage() {
   const tStatus = (status: UserStatus) =>
     status === "active" ? t("启用", "Active") : t("禁用", "Disabled");
 
-  const filtered = USERS.filter((u) => {
+  const confirmDelete = () => {
+    if (deletingUser) {
+      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+    }
+    setDeletingUser(null);
+  };
+
+  const filtered = users.filter((u) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -211,14 +257,14 @@ export function SystemManagementPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            {/* <div className="smp-toolbar-right">
-              <button className="smp-filter-btn">
-                &#9776;&nbsp;{t("筛选", "Filters")}&nbsp;&#9662;
+            <div className="smp-toolbar-right">
+              <button
+                className="smp-add-btn"
+                onClick={() => setShowAddModal(true)}
+              >
+                + {t("添加用户", "Add User")}
               </button>
-              <button className="smp-add-btn">
-                {t("添加用户", "Add User")}
-              </button>
-            </div> */}
+            </div>
           </div>
 
           <div className="smp-table-card">
@@ -262,15 +308,25 @@ export function SystemManagementPage() {
                         </div>
                       </td>
                       <td>
-                        <span className="smp-status">
+                        <span
+                          className="smp-status smp-status-toggle"
+                          onClick={() => toggleUserStatus(u.id)}
+                          title={t("点击切换状态", "Click to toggle status")}
+                        >
                           <span className={`smp-status-dot ${u.status}`} />
                           {tStatus(u.status)}
                         </span>
                       </td>
                       <td>{u.lastLogin || "—"}</td>
-                      {/* <td>
-                        <button className="smp-more-btn">&#8943;</button>
-                      </td> */}
+                      <td>
+                        <button
+                          className="smp-delete-btn"
+                          title={t("删除", "Delete")}
+                          onClick={() => setDeletingUser(u)}
+                        >
+                          &#128465;
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -318,16 +374,7 @@ export function SystemManagementPage() {
               <tbody>
                 {PERM_MATRIX.map((row) => (
                   <tr key={row.role}>
-                    <td>
-                      {t(
-                        row.role === "Admin"
-                          ? "管理员"
-                          : row.role === "Analyst"
-                            ? "分析师"
-                            : "风险经理",
-                        row.role,
-                      )}
-                    </td>
+                    <td>{t(row.role, row.roleEn)}</td>
                     <td>
                       <span className={`smp-perm-icon ${row.viewReports}`}>
                         {row.viewReports === "granted" ? "✅" : "⚪"}
@@ -356,6 +403,156 @@ export function SystemManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Delete Confirm Modal */}
+      {deletingUser && (
+        <div
+          className="smp-modal-overlay"
+          onClick={() => setDeletingUser(null)}
+        >
+          <div className="smp-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="smp-modal-header">
+              <h3>{t("确认删除", "Confirm Delete")}</h3>
+              <button
+                className="smp-modal-close"
+                onClick={() => setDeletingUser(null)}
+              >
+                &#10005;
+              </button>
+            </div>
+            <div className="smp-modal-body">
+              <p>
+                {t(
+                  `确定要删除用户「${deletingUser.name}」吗？此操作不可撤销。`,
+                  `Are you sure you want to delete user "${deletingUser.name}"? This action cannot be undone.`,
+                )}
+              </p>
+            </div>
+            <div className="smp-modal-footer">
+              <button
+                className="smp-modal-btn smp-modal-cancel"
+                onClick={() => setDeletingUser(null)}
+              >
+                {t("取消", "Cancel")}
+              </button>
+              <button
+                className="smp-modal-btn smp-modal-delete"
+                onClick={confirmDelete}
+              >
+                {t("删除", "Delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div
+          className="smp-modal-overlay"
+          onClick={() => setShowAddModal(false)}
+        >
+          <div className="smp-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="smp-modal-header">
+              <h3>{t("添加用户", "Add User")}</h3>
+              <button
+                className="smp-modal-close"
+                onClick={() => setShowAddModal(false)}
+              >
+                &#10005;
+              </button>
+            </div>
+            <div className="smp-modal-body">
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 12 }}
+              >
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 12,
+                      color: "#94a3b8",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {t("姓名", "Name")}
+                  </label>
+                  <input
+                    className="smp-modal-input"
+                    value={newUser.name}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, name: e.target.value })
+                    }
+                    placeholder={t("输入姓名", "Enter name")}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 12,
+                      color: "#94a3b8",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {t("邮箱", "Email")}
+                  </label>
+                  <input
+                    className="smp-modal-input"
+                    value={newUser.email}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, email: e.target.value })
+                    }
+                    placeholder={t("输入邮箱", "Enter email")}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 12,
+                      color: "#94a3b8",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {t("角色", "Role")}
+                  </label>
+                  <select
+                    className="smp-modal-input"
+                    value={newUser.role}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, role: e.target.value as Role })
+                    }
+                  >
+                    <option value="admin">
+                      {t("系统管理员", "System Admin")}
+                    </option>
+                    <option value="analyst">
+                      {t("安全管理者", "Safety Manager")}
+                    </option>
+                    <option value="risk-manager">
+                      {t("普通用户", "User")}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="smp-modal-footer">
+              <button
+                className="smp-modal-btn smp-modal-cancel"
+                onClick={() => setShowAddModal(false)}
+              >
+                {t("取消", "Cancel")}
+              </button>
+              <button
+                className="smp-modal-btn smp-modal-save"
+                onClick={handleAddUser}
+              >
+                {t("添加", "Add")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

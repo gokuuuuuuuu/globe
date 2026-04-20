@@ -214,12 +214,7 @@ export function FlightDetailPage() {
           >
             {t("查看报告", "View Report")}
           </button>
-          <button
-            className="fd-btn fd-btn-danger"
-            onClick={() => navigate("/governance/work-order-detail")}
-          >
-            {t("发起处置", "Initiate Action")}
-          </button>
+          {/* 处置按钮已移除 */}
         </div>
       </div>
 

@@ -17,16 +17,7 @@ import {
 } from "react";
 import { GlowingFlightPaths } from "../components/GlowingFlightPaths";
 import { Sidebar } from "../components/Sidebar";
-import {
-  WindLegend,
-  TemperatureLegend,
-  PrecipitationLegend,
-  FogLegend,
-  MoistureLegend,
-  LightningLegend,
-  CATLegend,
-  VisibilityLegend,
-} from "../components/Legend";
+import { UnifiedLegend } from "../components/Legend";
 import { WindLayer } from "./windLayer";
 import { TemperatureLayer } from "./TemperatureLayer";
 import { PrecipitationLayer } from "./PrecipitationLayer";
@@ -1312,19 +1303,19 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             })()}
         </div>
       )}
-      {/* 图例组件 */}
-      <WindLegend visible={showWindLayer} />
-      <TemperatureLegend
-        visible={showTemperatureLayer}
-        minTemp={-40}
-        maxTemp={50}
+      {/* 统一图例面板 */}
+      <UnifiedLegend
+        activeLayers={{
+          wind: showWindLayer,
+          temperature: showTemperatureLayer,
+          precipitation: showPrecipitationLayer,
+          fog: showFogLayer,
+          moisture: showMoistureLayer,
+          lightning: showLightningLayer,
+          cat: showCATLayer,
+          visibility: showVisibilityLayer,
+        }}
       />
-      <PrecipitationLegend visible={showPrecipitationLayer} />
-      <FogLegend visible={showFogLayer} />
-      <MoistureLegend visible={showMoistureLayer} />
-      <LightningLegend visible={showLightningLayer} />
-      <CATLegend visible={showCATLayer} />
-      <VisibilityLegend visible={showVisibilityLayer} />
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         performance={{ min: 0.5 }}

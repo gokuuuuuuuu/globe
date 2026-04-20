@@ -87,6 +87,13 @@
   flex-wrap: wrap;
 }
 
+.rfl-record-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+}
+
 .rfl-filter-label {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.62);
@@ -111,6 +118,25 @@
 .rfl-select:focus {
   outline: none;
   border-color: #3b82f6;
+}
+
+.rfl-input {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 12px;
+  min-width: 130px;
+  outline: none;
+}
+
+.rfl-input:focus {
+  border-color: #3b82f6;
+}
+
+.rfl-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .rfl-date-range {
