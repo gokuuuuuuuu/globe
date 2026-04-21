@@ -1407,8 +1407,8 @@ function MapCameraController({
   const targetTargetRef = useRef(new Vector3());
   const startZoomRef = useRef<number>(orthoCamera.zoom);
   const targetZoomRef = useRef<number>(100);
-  const initialZoom = 100;
-  const selectedCountryZoom = 150;
+  const initialZoom = 180;
+  const selectedCountryZoom = 300;
   // 中国地图居中的初始位置 (lat=35, lon=105, MAP_SCALE=6)
   const initialTarget = useMemo(() => new Vector3(3.5, 1.17, 0), []);
   const initialCamPos = useMemo(() => new Vector3(3.5, 1.17, 10), []);

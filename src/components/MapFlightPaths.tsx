@@ -236,17 +236,12 @@ const MapFlightPath = memo(function MapFlightPath({
     const dist = vStart.distanceTo(vEnd);
     const vMid = new Vector3().addVectors(vStart, vEnd).multiplyScalar(0.5);
 
-    // 只在长距离航线时稍微拱起，短距离使用直线
-    if (dist > 2) {
-      // 计算垂直于起点到终点方向的偏移
-      const dir = new Vector3().subVectors(vEnd, vStart).normalize();
-      const perp = new Vector3(-dir.y, dir.x, 0); // 垂直向量
-      const offset = perp.multiplyScalar(Math.min(dist * 0.1, 0.3));
-      vMid.add(offset);
-      vMid.z = 0.05; // 轻微抬高
-    } else {
-      vMid.z = 0.02; // 短距离航线几乎直线
-    }
+    // 所有航线都使用曲线弧度
+    const dir = new Vector3().subVectors(vEnd, vStart).normalize();
+    const perp = new Vector3(-dir.y, dir.x, 0); // 垂直向量
+    const offset = perp.multiplyScalar(Math.min(dist * 0.2, 0.6));
+    vMid.add(offset);
+    vMid.z = 0.05;
 
     return new QuadraticBezierCurve3(vStart, vMid, vEnd);
   }, [start, end]);
@@ -356,7 +351,7 @@ const MapFlightPath = memo(function MapFlightPath({
       </mesh>
       {/* 可见的航线（2D地图上使用更细的线条） */}
       <mesh>
-        <tubeGeometry args={[curve, 16, 0.012, 4, false]} />
+        <tubeGeometry args={[curve, 32, 0.006, 4, false]} />
         <shaderMaterial
           ref={(ref) => {
             if (ref) {

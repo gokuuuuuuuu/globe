@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Legend.css";
 
 // ===== 图例数据定义 =====
@@ -138,99 +138,104 @@ interface UnifiedLegendProps {
 }
 
 export function UnifiedLegend({ activeLayers }: UnifiedLegendProps) {
-  const [expanded, setExpanded] = useState(false);
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string | null>(null);
 
   const activeGroups = ALL_LEGENDS.filter((g) => activeLayers[g.key]);
 
+  // 生成活跃图层 key 列表作为稳定依赖
+  const activeKeys = activeGroups.map((g) => g.key).join(",");
+
+  // 当活跃图层变化时，自动选中第一个（如果当前选中的被关闭了）
+  useEffect(() => {
+    const keys = activeKeys.split(",").filter(Boolean);
+    if (keys.length === 0) {
+      setActiveTab(null);
+      return;
+    }
+    setActiveTab((prev) => {
+      if (!prev || !keys.includes(prev)) return keys[0];
+      return prev;
+    });
+  }, [activeKeys]);
+
   if (activeGroups.length === 0) return null;
 
-  return (
-    <div className={`legend-panel ${expanded ? "legend-panel-open" : ""}`}>
-      {/* 收起状态：紧凑图标条 */}
-      <button
-        className="legend-toggle"
-        onClick={() => setExpanded(!expanded)}
-        title={expanded ? "收起图例" : "展开图例"}
-      >
-        <span className="legend-toggle-icons">
-          {activeGroups.map((g) => (
-            <span key={g.key} className="legend-toggle-icon">
-              {g.icon}
-            </span>
-          ))}
-        </span>
-        <span className="legend-toggle-label">
-          {expanded ? "收起" : "图例"}
-        </span>
-        <span className={`legend-toggle-arrow ${expanded ? "open" : ""}`}>
-          ›
-        </span>
-      </button>
+  const currentGroup =
+    activeGroups.find((g) => g.key === activeTab) || activeGroups[0];
 
-      {/* 展开状态：紧凑色块列表 */}
-      {expanded && (
-        <div className="legend-groups">
-          {activeGroups.map((group) => {
-            const isOpen = expandedGroup === group.key;
-            return (
-              <div key={group.key} className="legend-group">
-                <button
-                  className="legend-group-header"
-                  onClick={() => setExpandedGroup(isOpen ? null : group.key)}
-                >
-                  <span className="legend-group-icon">{group.icon}</span>
-                  <span className="legend-group-title">{group.title}</span>
-                  {group.unit && (
-                    <span className="legend-group-unit">({group.unit})</span>
-                  )}
-                  {/* 内联色条预览 */}
-                  <span className="legend-group-preview">
-                    {group.items.map((item, i) => (
-                      <span
-                        key={i}
-                        className="legend-preview-dot"
-                        style={{
-                          backgroundColor: item.color,
-                          border:
-                            item.color === "transparent"
-                              ? "1px solid rgba(200,200,200,0.5)"
-                              : "none",
-                        }}
-                      />
-                    ))}
-                  </span>
-                  <span
-                    className={`legend-group-arrow ${isOpen ? "open" : ""}`}
-                  >
-                    ›
-                  </span>
-                </button>
-                {isOpen && (
-                  <div className="legend-group-body">
-                    {group.items.map((item, i) => (
-                      <div key={i} className="legend-row">
-                        <span
-                          className="legend-row-color"
-                          style={{
-                            backgroundColor: item.color,
-                            border:
-                              item.color === "transparent"
-                                ? "1px solid rgba(200,200,200,0.5)"
-                                : "none",
-                          }}
-                        />
-                        <span className="legend-row-label">{item.label}</span>
-                        {item.desc && (
-                          <span className="legend-row-desc">{item.desc}</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+  // 渐变色条
+  const gradientColors = currentGroup.items
+    .filter((item) => item.color !== "transparent")
+    .map((item) => item.color);
+  const gradientCSS =
+    gradientColors.length > 1
+      ? `linear-gradient(to right, ${gradientColors.join(", ")})`
+      : gradientColors[0] || "transparent";
+
+  return (
+    <div className="legend-panel">
+      <div className="legend-content">
+        {/* 头部 */}
+        <div className="legend-content-header">
+          <span className="legend-content-icon">{currentGroup.icon}</span>
+          <span className="legend-content-title">{currentGroup.title}</span>
+          {currentGroup.unit && (
+            <span className="legend-content-unit">{currentGroup.unit}</span>
+          )}
+        </div>
+
+        {/* 色条 + 刻度 */}
+        <div className="legend-bar-wrap">
+          <div
+            className="legend-gradient-bar"
+            style={{ background: gradientCSS }}
+          />
+          <div className="legend-scale">
+            {currentGroup.items.map((item, i) => (
+              <span key={i} className="legend-scale-tick">
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* 条目列表 */}
+        <div className="legend-items">
+          {currentGroup.items.map((item, i) => (
+            <div key={i} className="legend-item">
+              <span
+                className="legend-item-swatch"
+                style={{
+                  backgroundColor: item.color,
+                  border:
+                    item.color === "transparent"
+                      ? "1px solid rgba(255,255,255,0.25)"
+                      : "none",
+                }}
+              />
+              <span className="legend-item-label">{item.label}</span>
+              {item.desc && (
+                <span className="legend-item-desc">{item.desc}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 底部 Tab */}
+      {activeGroups.length > 1 && (
+        <div className="legend-tabs">
+          {activeGroups.map((group) => (
+            <button
+              key={group.key}
+              className={`legend-tab ${activeTab === group.key ? "active" : ""}`}
+              onClick={() => setActiveTab(group.key)}
+              title={group.title}
+            >
+              <span className="legend-tab-icon">{group.icon}</span>
+              <span className="legend-tab-label">{group.title}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>

@@ -86,27 +86,6 @@ const hourlyForecast = [
   { time: "02 PM", icon: "☀️", temp: "26°" },
 ];
 
-const alertsData = [
-  {
-    level: "yellow" as const,
-    alert: "Strong Crosswinds",
-    area: "RWY 09",
-    timestamp: "2023-10-23 18:08:54",
-  },
-  {
-    level: "yellow" as const,
-    alert: "Foggy Conditions",
-    area: "Near Northern Taxiway",
-    timestamp: "2023-10-23 18:08:28",
-  },
-  {
-    level: "red" as const,
-    alert: "Hazardous Icing",
-    area: "RWY 27L",
-    timestamp: "2023-10-23 18:08:39",
-  },
-];
-
 // const anomaliesData = [
 //   {
 //     time: "17:00",
@@ -580,13 +559,6 @@ export function EnvironmentDetailPage() {
       : level === "yellow"
         ? "env-pill env-pill-yellow"
         : "env-pill env-pill-green";
-
-  const levelLabel = (level: string) =>
-    level === "red"
-      ? t("高", "High")
-      : level === "yellow"
-        ? t("中", "Medium")
-        : t("低", "Low");
 
   // const dayMap: Record<string, string> = {
   //   Mon: "周一",
@@ -1342,66 +1314,6 @@ export function EnvironmentDetailPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-
-              {/* RIGHT: Runway and Airport Environment Alerts */}
-              <div className="env-card">
-                <div className="env-card-header">
-                  <div className="env-card-title">
-                    {t(
-                      "跑道与机场环境警报",
-                      "Runway and Airport Environment Alerts",
-                    )}
-                  </div>
-                  {/* <button className="env-alerts-dropdown">
-                    {t("最近警报", "Recent alerts")} ▾
-                  </button> */}
-                </div>
-
-                <table className="env-table">
-                  <thead>
-                    <tr>
-                      <th>{t("风险等级", "Risk Level")}</th>
-                      <th>{t("警报", "Alert")}</th>
-                      <th>{t("影响区域", "Affected Area")}</th>
-                      <th>{t("时间戳", "Timestamp")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {alertsData.map((a, i) => (
-                      <tr key={i}>
-                        <td>
-                          <span className={pillClass(a.level)}>
-                            {levelLabel(a.level)}
-                          </span>
-                        </td>
-                        <td
-                          style={{
-                            color: a.level === "red" ? "#dc2626" : "#eab308",
-                          }}
-                        >
-                          {t(
-                            a.alert === "Strong Crosswinds"
-                              ? "强侧风"
-                              : a.alert === "Foggy Conditions"
-                                ? "大雾条件"
-                                : "危险结冰",
-                            a.alert,
-                          )}
-                        </td>
-                        <td>
-                          {t(
-                            a.area === "Near Northern Taxiway"
-                              ? "北滑行道附近"
-                              : a.area,
-                            a.area,
-                          )}
-                        </td>
-                        <td style={{ color: "#64748b" }}>{a.timestamp}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             </div>
 

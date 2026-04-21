@@ -17,7 +17,6 @@ import {
 } from "react";
 import { GlowingFlightPaths } from "../components/GlowingFlightPaths";
 import { Sidebar } from "../components/Sidebar";
-import { UnifiedLegend } from "../components/Legend";
 import { WindLayer } from "./windLayer";
 import { TemperatureLayer } from "./TemperatureLayer";
 import { PrecipitationLayer } from "./PrecipitationLayer";
@@ -1303,19 +1302,6 @@ export function GlobeView({ world, atlas }: GlobeViewProps) {
             })()}
         </div>
       )}
-      {/* 统一图例面板 */}
-      <UnifiedLegend
-        activeLayers={{
-          wind: showWindLayer,
-          temperature: showTemperatureLayer,
-          precipitation: showPrecipitationLayer,
-          fog: showFogLayer,
-          moisture: showMoistureLayer,
-          lightning: showLightningLayer,
-          cat: showCATLayer,
-          visibility: showVisibilityLayer,
-        }}
-      />
       <Canvas
         camera={{ position: [0, 0, 5], fov: 50 }}
         performance={{ min: 0.5 }}

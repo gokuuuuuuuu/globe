@@ -19,6 +19,7 @@ import { AnalysisPage } from "./AnalysisPage";
 import { useLanguage } from "../i18n/useLanguage";
 import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
 import { Timeline } from "../components/Timeline";
+import { UnifiedLegend } from "../components/Legend";
 
 type ObjectTab = "flights" | "airports" | "personnel";
 
@@ -858,6 +859,20 @@ export function HomePage() {
             {/* 操作按钮已移除，改为点击卡片跳转 */}
           </div>
         )}
+
+        {/* 图例面板 - 填满左下角 */}
+        <UnifiedLegend
+          activeLayers={{
+            wind: showWindLayer,
+            temperature: showTemperatureLayer,
+            precipitation: showPrecipitationLayer,
+            fog: showFogLayer,
+            moisture: showMoistureLayer,
+            lightning: showLightningLayer,
+            cat: showCATLayer,
+            visibility: showVisibilityLayer,
+          }}
+        />
       </div>
 
       {/* ===== Right Column: Risk Queue ===== */}

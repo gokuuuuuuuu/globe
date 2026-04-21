@@ -1,18 +1,18 @@
-/* ===== Unified Legend Panel ===== */
+/* ===== Legend Panel ===== */
 
 .legend-panel {
-  position: absolute;
-  bottom: 120px;
-  left: 310px;
-  z-index: 100;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  animation: legendFadeIn 0.2s ease-out;
+  animation: legendFadeIn 0.25s ease-out;
 }
 
 @keyframes legendFadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -20,199 +20,250 @@
   }
 }
 
-/* Toggle button */
-.legend-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 8px;
-  border: 1px solid rgba(148, 163, 184, 0.15);
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  color: #94a3b8;
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
+/* ===== 内容卡片 ===== */
 
-.legend-toggle:hover {
-  background: rgba(15, 23, 42, 0.9);
-  border-color: rgba(148, 163, 184, 0.25);
-  color: #e2e8f0;
-}
-
-.legend-toggle-icons {
-  display: flex;
-  gap: 2px;
-}
-
-.legend-toggle-icon {
-  font-size: 12px;
-  line-height: 1;
-}
-
-.legend-toggle-label {
-  font-size: 10px;
-  font-weight: 500;
-}
-
-.legend-toggle-arrow {
-  font-size: 14px;
-  transition: transform 0.2s;
-  transform: rotate(0deg);
-}
-
-.legend-toggle-arrow.open {
-  transform: rotate(90deg);
-}
-
-/* Expanded groups container */
-.legend-groups {
-  margin-top: 6px;
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 10px;
-  padding: 4px;
-  min-width: 200px;
-  max-width: 260px;
-  max-height: 360px;
+.legend-content {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 12px 32px rgba(0, 0, 0, 0.4);
+  isolation: isolate;
+  padding: 16px;
   overflow-y: auto;
   scrollbar-width: thin;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-}
-
-.legend-groups::-webkit-scrollbar {
-  width: 3px;
-}
-.legend-groups::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.2);
-  border-radius: 2px;
-}
-
-/* Group */
-.legend-group {
-  border-bottom: 1px solid rgba(148, 163, 184, 0.06);
-}
-
-.legend-group:last-child {
-  border-bottom: none;
-}
-
-.legend-group-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  padding: 7px 8px;
-  border: none;
-  background: none;
-  color: #cbd5e1;
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 6px;
-  transition: background 0.1s;
-}
-
-.legend-group-header:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.legend-group-icon {
-  font-size: 13px;
-  line-height: 1;
-  flex-shrink: 0;
-}
-
-.legend-group-title {
-  font-weight: 600;
-  font-size: 11px;
-}
-
-.legend-group-unit {
-  font-size: 9px;
-  color: #64748b;
-}
-
-/* Inline preview dots */
-.legend-group-preview {
-  display: flex;
-  gap: 2px;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.legend-preview-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.legend-group-arrow {
-  font-size: 12px;
-  color: #64748b;
-  margin-left: 4px;
-  transition: transform 0.15s;
-  transform: rotate(0deg);
-  flex-shrink: 0;
-}
-
-.legend-group-arrow.open {
-  transform: rotate(90deg);
-}
-
-/* Expanded group body */
-.legend-group-body {
-  padding: 0 8px 8px 28px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
 }
 
-.legend-row {
+.legend-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.legend-content::-webkit-scrollbar {
+  width: 3px;
+}
+.legend-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+/* --- 头部 --- */
+
+.legend-content-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 10px;
-}
-
-.legend-row-color {
-  width: 14px;
-  height: 10px;
-  border-radius: 2px;
+  gap: 7px;
+  margin-bottom: 14px;
   flex-shrink: 0;
 }
 
-.legend-row-label {
-  color: #cbd5e1;
-  font-weight: 500;
-  min-width: 40px;
+.legend-content-icon {
+  font-size: 14px;
+  line-height: 1;
 }
 
-.legend-row-desc {
-  color: #64748b;
+.legend-content-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.legend-content-unit {
   font-size: 9px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: auto;
 }
 
-/* ===== Responsive ===== */
-@media (max-width: 1200px) {
-  .legend-panel {
-    left: 18px;
-    bottom: 120px;
-  }
+/* --- 色条 + 刻度 --- */
+
+.legend-bar-wrap {
+  flex-shrink: 0;
+  margin-bottom: 14px;
 }
 
-@media (max-width: 768px) {
-  .legend-panel {
-    left: 10px;
-    bottom: 100px;
-  }
+.legend-gradient-bar {
+  height: 10px;
+  border-radius: 5px;
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
 
-  .legend-groups {
-    min-width: 170px;
-    max-width: 220px;
-  }
+.legend-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  padding: 0 1px;
+}
+
+.legend-scale-tick {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 条目列表 --- */
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.legend-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.legend-item-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.legend-item-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 500;
+}
+
+.legend-item-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  margin-left: auto;
+}
+
+/* ===== Tab 栏 ===== */
+
+.legend-tabs {
+  display: flex;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 3px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.3),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  isolation: isolate;
+  flex-shrink: 0;
+}
+
+.legend-tabs::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0) 60%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.legend-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 2px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 0;
+  position: relative;
+  z-index: 3;
+}
+
+.legend-tab:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.legend-tab.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.legend-tab-icon {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.legend-tab-label {
+  font-size: 8px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  letter-spacing: 0.3px;
 }
