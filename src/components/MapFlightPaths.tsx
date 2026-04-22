@@ -351,7 +351,7 @@ const MapFlightPath = memo(function MapFlightPath({
       </mesh>
       {/* 可见的航线（2D地图上使用更细的线条） */}
       <mesh>
-        <tubeGeometry args={[curve, 32, 0.006, 4, false]} />
+        <tubeGeometry args={[curve, 32, 0.003, 4, false]} />
         <shaderMaterial
           ref={(ref) => {
             if (ref) {

@@ -15,7 +15,7 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
     if (!employeeId || !password) {
-      setError(t("请输入工号和密码", "Please enter employee ID and password"));
+      setError(t("请输入联合办公账号和密码", "Please enter employee ID and password"));
       return;
     }
     setLoading(true);
@@ -23,7 +23,7 @@ export function LoginPage() {
     setTimeout(() => {
       const ok = login(employeeId, password);
       if (!ok) {
-        setError(t("工号或密码错误", "Invalid employee ID or password"));
+        setError(t("联合办公账号或密码错误", "Invalid employee ID or password"));
       }
       setLoading(false);
     }, 400);
@@ -85,12 +85,12 @@ export function LoginPage() {
         {/* Login Form */}
         <form className="login-form" onSubmit={handleSubmit}>
           <div className="login-field">
-            <label>{t("工号", "Employee ID")}</label>
+            <label>{t("联合办公账号", "Employee ID")}</label>
             <input
               type="text"
               value={employeeId}
               onChange={(e) => setEmployeeId(e.target.value)}
-              placeholder={t("请输入工号", "Enter employee ID")}
+              placeholder={t("请输入联合办公账号", "Enter employee ID")}
               autoFocus
               autoComplete="username"
             />

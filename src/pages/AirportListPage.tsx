@@ -483,7 +483,6 @@ export function AirportListPage() {
                         strokeWidth="1.5"
                       />
                     </svg>
-                    <span className="ap-summary-menu">&#8942;</span>
                   </div>
                   <div className="ap-summary-stats">
                     <div className="ap-summary-stat">
