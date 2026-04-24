@@ -124,6 +124,18 @@
   color: #475569;
 }
 
+/* Field-level validation */
+.login-field-error input {
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.login-field-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #f87171;
+}
+
 .login-error {
   padding: 8px 12px;
   border-radius: 6px;

@@ -1,97 +1,16 @@
 // @ts-nocheck
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  FLIGHTS,
-  // calculateRiskFromEnvironmentRisk,
-  getIcaoCode,
-} from "../data/flightData";
-import { AIRPORT_LIST } from "../data/airportList";
-import type { Flight } from "../data/flightData";
 import { useLanguage } from "../i18n/useLanguage";
 import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
-import { downloadCSV } from "../utils/exportUtils";
+import {
+  getFlightList,
+  getFlightFilterOptions,
+  exportFlights,
+} from "../api/flight";
 import "./FlightListPage.css";
 
-const PAGE_SIZE = 15;
-
-// Extract unique values from flight data for filter dropdowns
-function getUniqueValues(key: keyof Flight): string[] {
-  const set = new Set<string>();
-  FLIGHTS.forEach((f) => {
-    const v = f[key];
-    if (v && typeof v === "string") set.add(v);
-  });
-  return Array.from(set).sort();
-}
-
-const ALL_DEPARTURE_AIRPORTS = (() => {
-  const set = new Set<string>();
-  FLIGHTS.forEach((f) => {
-    const code = f.fromAirportCode4 || getIcaoCode(f.fromAirport);
-    if (code) set.add(code);
-  });
-  return Array.from(set).sort();
-})();
-const ALL_ARRIVAL_AIRPORTS = (() => {
-  const set = new Set<string>();
-  FLIGHTS.forEach((f) => {
-    const code = f.toAirportCode4 || getIcaoCode(f.toAirport);
-    if (code) set.add(code);
-  });
-  return Array.from(set).sort();
-})();
-const ALL_OPERATING_UNITS = getUniqueValues("operatingUnit");
-const ALL_AIRCRAFT_TYPES = getUniqueValues("aircraftType");
-
-// 飞行单位列表
-const FLIGHT_UNITS = [
-  "中货航",
-  "云南",
-  "西北",
-  "中联航",
-  "山东",
-  "山西",
-  "武汉",
-  "北京",
-  "江苏",
-  "飞行总队",
-  "厦门",
-  "江西",
-  "浙江",
-  "四川",
-  "上航",
-  "甘肃",
-  "安徽",
-  "广东",
-];
-
-// 大机型筛选
-const MAJOR_AIRCRAFT_TYPES = [
-  "A320",
-  "A330",
-  "A350",
-  "B737",
-  "B777",
-  "B787",
-  "ARJ21",
-  "C919",
-];
-
-// 机型明细映射
-const AIRCRAFT_TYPE_DETAILS: Record<string, string[]> = {
-  A320: ["A319", "A320", "A320-NEO", "A321", "A321-NEO"],
-  A330: ["A330-200", "A330-300"],
-  A350: ["A350-900"],
-  B737: ["B737-700", "B737-800", "B737-MAX"],
-  B777: ["B777-300ER", "B777F"],
-  B787: ["B787-9"],
-  ARJ21: ["ARJ21-700ER"],
-  C919: ["C919"],
-};
-
-// 所有机型明细
-const ALL_AIRCRAFT_TYPE_DETAILS = Object.values(AIRCRAFT_TYPE_DETAILS).flat();
+const PAGE_SIZE = 25;
 
 // 主要风险类型
 const RISK_TYPE_OPTIONS = [
@@ -109,177 +28,66 @@ const RISK_TYPE_OPTIONS = [
   "重要系统故障",
 ];
 
-const RISK_LEVELS = ["High Risk", "Medium Risk", "Low Risk"];
-const FLIGHT_STATUSES = ["未起飞", "巡航中", "已落地"];
+const RISK_LEVELS = [
+  { value: "LOW", labelZh: "低风险", labelEn: "Low Risk" },
+  { value: "MEDIUM", labelZh: "中风险", labelEn: "Medium Risk" },
+  { value: "HIGH", labelZh: "高风险", labelEn: "High Risk" },
+];
 
-// Map Chinese risk level to English display
-function riskLevelToEn(riskLevel: string): string {
-  if (riskLevel === "高风险") return "High Risk";
-  if (riskLevel === "中风险") return "Medium Risk";
-  return "Low Risk";
+const FLIGHT_STATUSES = [
+  { value: "SCHEDULED", labelZh: "未起飞", labelEn: "Scheduled" },
+  { value: "CRUISING", labelZh: "巡航中", labelEn: "Cruising" },
+  { value: "LANDED", labelZh: "已落地", labelEn: "Landed" },
+];
+
+const GOVERNANCE_STATUSES = [
+  { value: "PENDING", labelZh: "未处置", labelEn: "Pending" },
+  { value: "IN_PROGRESS", labelZh: "处置中", labelEn: "In Progress" },
+  { value: "RESOLVED", labelZh: "已解决", labelEn: "Resolved" },
+  { value: "CLOSED", labelZh: "已关闭", labelEn: "Closed" },
+];
+
+function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-// Get risk tags from flight data
-function getRiskTags(flight: Flight): string[] {
-  const tags: string[] = [];
-  if (flight.predictedRisks && flight.predictedRisks.length > 0) {
-    flight.predictedRisks.forEach((r) => {
-      if (!tags.includes(r.type)) tags.push(r.type);
-    });
-  }
-  if (flight.environmentRisk >= 7) tags.push("Severe Weather");
-  if (flight.machineRisk >= 5) tags.push("Engine Fault");
-  if (flight.humanRisk >= 5) tags.push("Pilot Fatigue");
-  // deduplicate
-  return [...new Set(tags)].length ? [...new Set(tags)] : ["—"];
-}
-
-// Get all unique risk tag types
-const ALL_RISK_TYPES = (() => {
-  const set = new Set<string>();
-  FLIGHTS.forEach((f) => {
-    getRiskTags(f).forEach((t) => {
-      if (t !== "—") set.add(t);
-    });
-  });
-  return Array.from(set).sort();
-})();
-
-// Governance status derived from composite risk
-function getGovernanceStatus(flight: Flight): string {
-  const composite =
-    flight.humanRisk + flight.machineRisk + flight.environmentRisk;
-  if (composite > 180) return "Not Addressed";
-  if (composite > 100) return "In Progress";
-  return "Closed";
-}
-
-const GOVERNANCE_STATUSES = ["Not Addressed", "In Progress", "Closed"];
-
-function getCompositeRiskLabel(flight: Flight): string {
-  return riskLevelToEn(flight.riskLevel);
-}
-
-function riskLabelClass(label: string): string {
-  if (label === "High Risk") return "fl-risk-high";
-  if (label === "Medium Risk") return "fl-risk-medium";
+function riskLabelClass(level: string): string {
+  if (level === "HIGH") return "fl-risk-high";
+  if (level === "MEDIUM") return "fl-risk-medium";
   return "fl-risk-low";
 }
 
-function govStatusClass(status: string): string {
-  if (status === "Not Addressed") return "fl-gov-not";
-  if (status === "In Progress") return "fl-gov-progress";
-  return "fl-gov-closed";
+function riskLevelDisplay(
+  level: string,
+  t: (zh: string, en: string) => string,
+): string {
+  if (level === "HIGH") return t("高风险", "High Risk");
+  if (level === "MEDIUM") return t("中风险", "Medium Risk");
+  return t("低风险", "Low Risk");
+}
+
+function statusBadgeClass(status: string): string {
+  if (status === "LANDED") return "fl-status-landed";
+  if (status === "CRUISING") return "fl-status-cruise";
+  return "fl-status-pending";
+}
+
+function statusDisplay(
+  status: string,
+  t: (zh: string, en: string) => string,
+): string {
+  if (status === "LANDED") return t("已落地", "Landed");
+  if (status === "CRUISING") return t("巡航中", "Cruising");
+  return t("未起飞", "Scheduled");
 }
 
 function scoreColorClass(score: number): string {
   if (score >= 70) return "fl-score-red";
   if (score >= 40) return "fl-score-yellow";
   return "fl-score-green";
-}
-
-// Mock PF/PM names for display
-const PF_NAMES = [
-  "张伟",
-  "李强",
-  "王军",
-  "刘洋",
-  "陈鹏",
-  "赵明",
-  "孙磊",
-  "周涛",
-  "吴刚",
-  "郑辉",
-];
-const PM_NAMES = [
-  "黄勇",
-  "林峰",
-  "何斌",
-  "马超",
-  "朱健",
-  "胡波",
-  "高远",
-  "罗翔",
-  "谢宏",
-  "唐杰",
-];
-function getMockPF(flight: Flight): string {
-  const hash = flight.id ? flight.id.charCodeAt(flight.id.length - 1) : 0;
-  return PF_NAMES[hash % PF_NAMES.length];
-}
-function getMockPM(flight: Flight): string {
-  const hash = flight.id ? flight.id.charCodeAt(0) : 0;
-  return PM_NAMES[hash % PM_NAMES.length];
-}
-
-// Add airline code prefix to flight number for display
-const AIRLINE_CODES = [
-  "MU",
-  "FM",
-  "KN",
-  "MU",
-  "MU",
-  "FM",
-  "MU",
-  "KN",
-  "FM",
-  "MU",
-];
-function getDisplayFlightNumber(flight: Flight): string {
-  // Use a deterministic index based on flight id hash
-  const hash = flight.id ? flight.id.charCodeAt(flight.id.length - 1) : 0;
-  const code = AIRLINE_CODES[hash % AIRLINE_CODES.length];
-  // If flightNumber already starts with letters, return as-is
-  if (/^[A-Z]{2}/.test(flight.flightNumber)) return flight.flightNumber;
-  return `${code}${flight.flightNumber}`;
-}
-
-// Translate risk tag at render time
-function translateRiskTag(
-  tag: string,
-  t: (zh: string, en: string) => string,
-): string {
-  const map: Record<string, [string, string]> = {
-    "Severe Weather": ["恶劣天气", "Severe Weather"],
-    "Engine Fault": ["发动机故障", "Engine Fault"],
-    "Pilot Fatigue": ["飞行员疲劳", "Pilot Fatigue"],
-    "Mechanical Issue": ["机械问题", "Mechanical Issue"],
-    "Communication Error": ["通信错误", "Communication Error"],
-    "Bad Weather": ["恶劣天气", "Bad Weather"],
-  };
-  const entry = map[tag];
-  if (entry) return t(entry[0], entry[1]);
-  return tag;
-}
-
-// Translate risk level at render time
-function translateRiskLevel(
-  level: string,
-  t: (zh: string, en: string) => string,
-): string {
-  if (level === "High Risk") return t("高风险", "High Risk");
-  if (level === "Medium Risk") return t("中风险", "Medium Risk");
-  return t("低风险", "Low Risk");
-}
-
-// Translate governance status at render time
-function translateGovStatus(
-  status: string,
-  t: (zh: string, en: string) => string,
-): string {
-  if (status === "Not Addressed") return t("未处置", "Not Addressed");
-  if (status === "In Progress") return t("处置中", "In Progress");
-  return t("已关闭", "Closed");
-}
-
-// Translate flight status at render time
-function translateFlightStatus(
-  status: string,
-  t: (zh: string, en: string) => string,
-): string {
-  if (status === "未起飞") return t("未起飞", "Not Departed");
-  if (status === "巡航中") return t("巡航中", "Cruising");
-  return t("已落地", "Landed");
 }
 
 export function FlightListPage() {
@@ -299,6 +107,14 @@ export function FlightListPage() {
     }
     setSearchParams(sp, { replace: true });
   };
+
+  // Filter options from API
+  const [filterOptions, setFilterOptions] = useState<{
+    airports: { id: number; code: string; name: string }[];
+    aircraftModels: string[];
+    operatingUnits: string[];
+  }>({ airports: [], aircraftModels: [], operatingUnits: [] });
+
   // Filters
   const [flightNumberFilter, setFlightNumberFilter] = useState("");
   const [aircraftNumberFilter, setAircraftNumberFilter] = useState("");
@@ -306,18 +122,15 @@ export function FlightListPage() {
   const [arrivalFilter, setArrivalFilter] = useState("");
   const [operatingUnitFilter, setOperatingUnitFilter] = useState("");
   const [aircraftTypeFilter, setAircraftTypeFilter] = useState("");
-  const [majorAircraftTypeFilter, setMajorAircraftTypeFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [riskLevelFilter, setRiskLevelFilter] = useState("");
   const [riskTypeFilter, setRiskTypeFilter] = useState("");
+  const [governanceStatusFilter, setGovernanceStatusFilter] = useState("");
 
-  // Read URL params to pre-fill filters
-  useEffect(() => {
-    const risk = searchParams.get("risk");
-    if (risk === "high") setRiskLevelFilter("High Risk");
-    const aircraft = searchParams.get("aircraft");
-    if (aircraft) setAircraftNumberFilter(aircraft);
-  }, [searchParams]);
+  // Data state
+  const [flights, setFlights] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const [airportPopover, setAirportPopover] = useState<{
     code: string;
@@ -325,116 +138,83 @@ export function FlightListPage() {
     y: number;
   } | null>(null);
 
-  // 根据角色过滤基础数据集
-  const baseFlights = useMemo(() => {
-    if (fullAccess) return FLIGHTS;
-    const userUnit = authUser?.unit;
-    if (!userUnit) return FLIGHTS;
-    return FLIGHTS.filter((f) => {
-      const unit = f.operatingUnit === "上海" ? "飞行总队" : f.operatingUnit;
-      return unit === userUnit;
-    });
-  }, [fullAccess, authUser?.unit]);
+  // Read URL params to pre-fill filters
+  useEffect(() => {
+    const risk = searchParams.get("risk");
+    if (risk === "high") setRiskLevelFilter("HIGH");
+    const aircraft = searchParams.get("aircraft");
+    if (aircraft) setAircraftNumberFilter(aircraft);
+  }, []);
 
-  // Filtered data
-  const filteredFlights = useMemo(() => {
-    return baseFlights
-      .filter((f) => {
-        // Flight number filter
-        if (
-          flightNumberFilter &&
-          !f.flightNumber
-            .toLowerCase()
-            .includes(flightNumberFilter.toLowerCase())
-        )
-          return false;
-
-        // Aircraft number filter
-        if (
-          aircraftNumberFilter &&
-          !(f.aircraftNumber || "")
-            .toLowerCase()
-            .includes(aircraftNumberFilter.toLowerCase())
-        )
-          return false;
-
-        // Departure airport filter (ICAO 4-letter code)
-        if (
-          departureFilter &&
-          (f.fromAirportCode4 || getIcaoCode(f.fromAirport)) !== departureFilter
-        )
-          return false;
-
-        // Arrival airport filter (ICAO 4-letter code)
-        if (
-          arrivalFilter &&
-          (f.toAirportCode4 || getIcaoCode(f.toAirport)) !== arrivalFilter
-        )
-          return false;
-
-        // 飞行单位 filter（"上海"视为"飞行总队"）
-        if (operatingUnitFilter) {
-          const unit =
-            f.operatingUnit === "上海" ? "飞行总队" : f.operatingUnit;
-          if (unit !== operatingUnitFilter) return false;
-        }
-
-        // 大机型 filter
-        if (majorAircraftTypeFilter) {
-          const details = AIRCRAFT_TYPE_DETAILS[majorAircraftTypeFilter] || [];
-          if (
-            !details.some(
-              (d) =>
-                (f.aircraftType || "").includes(d) ||
-                d.includes(f.aircraftType || ""),
-            )
-          )
-            return false;
-        }
-
-        // Aircraft type filter
-        if (aircraftTypeFilter && f.aircraftType !== aircraftTypeFilter)
-          return false;
-
-        // Flight status filter
-        if (statusFilter && f.status !== statusFilter) return false;
-
-        // Risk level filter
-        if (riskLevelFilter && getCompositeRiskLabel(f) !== riskLevelFilter)
-          return false;
-
-        // Risk type filter
-        if (riskTypeFilter && !getRiskTags(f).includes(riskTypeFilter))
-          return false;
-
-        return true;
+  // Load filter options on mount
+  useEffect(() => {
+    getFlightFilterOptions()
+      .then((res) => {
+        setFilterOptions(res);
       })
-      .sort(
-        (a, b) =>
-          b.humanRisk +
-          b.machineRisk +
-          b.environmentRisk -
-          (a.humanRisk + a.machineRisk + a.environmentRisk),
-      );
+      .catch((err) => {
+        console.error("Failed to load filter options:", err);
+      });
+  }, []);
+
+  // Build query params
+  const buildParams = useCallback(() => {
+    const params: Record<string, any> = {
+      page,
+      pageSize: PAGE_SIZE,
+    };
+    if (flightNumberFilter) params.flightNo = flightNumberFilter;
+    if (aircraftNumberFilter) params.planeRegistration = aircraftNumberFilter;
+    if (departureFilter) params.departureAirportId = Number(departureFilter);
+    if (arrivalFilter) params.arrivalAirportId = Number(arrivalFilter);
+    if (aircraftTypeFilter) params.aircraftModel = aircraftTypeFilter;
+    if (operatingUnitFilter) params.operatingUnit = operatingUnitFilter;
+    if (riskLevelFilter) params.riskLevel = riskLevelFilter;
+    if (statusFilter) params.status = statusFilter;
+    if (riskTypeFilter) params.riskType = riskTypeFilter;
+    if (governanceStatusFilter)
+      params.governanceStatus = governanceStatusFilter;
+    return params;
   }, [
+    page,
     flightNumberFilter,
     aircraftNumberFilter,
     departureFilter,
     arrivalFilter,
     operatingUnitFilter,
     aircraftTypeFilter,
-    majorAircraftTypeFilter,
     statusFilter,
     riskLevelFilter,
     riskTypeFilter,
-    baseFlights,
+    governanceStatusFilter,
   ]);
 
-  const totalPages = Math.ceil(filteredFlights.length / PAGE_SIZE);
-  const pageFlights = filteredFlights.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  // Fetch flights
+  const fetchFlights = useCallback(() => {
+    setLoading(true);
+    const params = buildParams();
+    getFlightList(params)
+      .then((res) => {
+        const data = res;
+        setFlights(data.items || []);
+        setTotal(data.total || 0);
+      })
+      .catch((err) => {
+        console.error("Failed to load flights:", err);
+        setFlights([]);
+        setTotal(0);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [buildParams]);
+
+  // Fetch data when params change
+  useEffect(() => {
+    fetchFlights();
+  }, [fetchFlights]);
+
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const handleSearch = () => setPage(1);
   const handleReset = () => {
@@ -444,11 +224,30 @@ export function FlightListPage() {
     setArrivalFilter("");
     setOperatingUnitFilter("");
     setAircraftTypeFilter("");
-    setMajorAircraftTypeFilter("");
-    setStatusFilter([]);
-    setRiskLevelFilter([]);
-    setRiskTypeFilter([]);
+    setStatusFilter("");
+    setRiskLevelFilter("");
+    setRiskTypeFilter("");
+    setGovernanceStatusFilter("");
     setPage(1);
+  };
+
+  const handleExport = async () => {
+    try {
+      const params = buildParams();
+      delete params.page;
+      delete params.pageSize;
+      const blob = await exportFlights(params);
+      const url = window.URL.createObjectURL(
+        blob instanceof Blob ? blob : new Blob([blob]),
+      );
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${t("航班列表", "flight_list")}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
   };
 
   const closeAllDropdowns = () => {
@@ -480,52 +279,11 @@ export function FlightListPage() {
         <div className="fl-page-title">
           <h1>{t("航班列表", "Flight List")}</h1>
           <span className="fl-flight-count">
-            {filteredFlights.length} {t("航班", "flights")}
+            {total} {t("航班", "flights")}
           </span>
         </div>
         <div className="fl-page-actions">
-          <button
-            className="fl-action-btn"
-            onClick={() => {
-              const headers = [
-                t("航班号", "Flight Number"),
-                t("机尾号", "Tail Number"),
-                t("机型", "Aircraft Type"),
-                "PF",
-                "PM",
-                t("出发", "Departure"),
-                t("到达", "Arrival"),
-                t("起飞时间", "Departure Time"),
-                t("降落时间", "Arrival Time"),
-                t("状态", "Status"),
-                t("综合风险等级", "Composite Risk Level"),
-                t("人为因素评分", "Human Factor Score"),
-                t("飞机因素评分", "Aircraft Factor Score"),
-                t("环境因素评分", "Environmental Factor Score"),
-                t("主要风险标签", "Major Risk Tags"),
-              ];
-              const rows = filteredFlights.map((f) => [
-                getDisplayFlightNumber(f),
-                f.aircraftNumber || "",
-                f.aircraftType || "",
-                getMockPF(f),
-                getMockPM(f),
-                f.fromAirportCode4 ||
-                  getIcaoCode(f.fromAirport) ||
-                  f.fromAirport,
-                f.toAirportCode4 || getIcaoCode(f.toAirport) || f.toAirport,
-                f.scheduledDeparture || f.actualDeparture || "",
-                f.scheduledArrival || f.actualArrival || "",
-                f.status,
-                getCompositeRiskLabel(f),
-                f.humanRisk,
-                f.machineRisk,
-                f.environmentRisk,
-                getRiskTags(f).join("; "),
-              ]);
-              downloadCSV(t("航班列表", "flight_list"), headers, rows);
-            }}
-          >
+          <button className="fl-action-btn" onClick={handleExport}>
             <svg
               width="14"
               height="14"
@@ -540,35 +298,6 @@ export function FlightListPage() {
             </svg>
             {t("导出", "Export")}
           </button>
-          {/* <button className="fl-action-btn">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-              <polyline points="17 21 17 13 7 13 7 21" />
-              <polyline points="7 3 7 8 15 8" />
-            </svg>
-            {t("保存筛选", "Save Filters")}
-          </button>
-          <button className="fl-action-btn">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-            {t("列设置", "Column Settings")}
-          </button> */}
         </div>
       </div>
 
@@ -601,9 +330,9 @@ export function FlightListPage() {
               onChange={(e) => setDepartureFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {AIRPORT_LIST.map((a) => (
-                <option key={a.icao} value={a.icao}>
-                  {a.icao} - {a.name}
+              {filterOptions.airports.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.code} - {a.name}
                 </option>
               ))}
             </select>
@@ -616,27 +345,9 @@ export function FlightListPage() {
               onChange={(e) => setArrivalFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {AIRPORT_LIST.map((a) => (
-                <option key={a.icao} value={a.icao}>
-                  {a.icao} - {a.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="fl-filter-item">
-            <label>{t("大机型", "Major Aircraft Type")}</label>
-            <select
-              className="fl-select"
-              value={majorAircraftTypeFilter}
-              onChange={(e) => {
-                setMajorAircraftTypeFilter(e.target.value);
-                setAircraftTypeFilter("");
-              }}
-            >
-              <option value="">{t("全部", "All")}</option>
-              {MAJOR_AIRCRAFT_TYPES.map((m) => (
-                <option key={m} value={m}>
-                  {m}
+              {filterOptions.airports.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.code} - {a.name}
                 </option>
               ))}
             </select>
@@ -649,12 +360,9 @@ export function FlightListPage() {
               onChange={(e) => setAircraftTypeFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {(majorAircraftTypeFilter
-                ? AIRCRAFT_TYPE_DETAILS[majorAircraftTypeFilter] || []
-                : ALL_AIRCRAFT_TYPE_DETAILS
-              ).map((at) => (
-                <option key={at} value={at}>
-                  {at}
+              {filterOptions.aircraftModels.map((m) => (
+                <option key={m} value={m}>
+                  {m}
                 </option>
               ))}
             </select>
@@ -667,7 +375,7 @@ export function FlightListPage() {
               onChange={(e) => setOperatingUnitFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {FLIGHT_UNITS.map((u) => (
+              {filterOptions.operatingUnits.map((u) => (
                 <option key={u} value={u}>
                   {u}
                 </option>
@@ -686,8 +394,8 @@ export function FlightListPage() {
             >
               <option value="">{t("全部", "All")}</option>
               {RISK_LEVELS.map((r) => (
-                <option key={r} value={r}>
-                  {translateRiskLevel(r, t)}
+                <option key={r.value} value={r.value}>
+                  {t(r.labelZh, r.labelEn)}
                 </option>
               ))}
             </select>
@@ -703,8 +411,8 @@ export function FlightListPage() {
             >
               <option value="">{t("全部", "All")}</option>
               {FLIGHT_STATUSES.map((s) => (
-                <option key={s} value={s}>
-                  {translateFlightStatus(s, t)}
+                <option key={s.value} value={s.value}>
+                  {t(s.labelZh, s.labelEn)}
                 </option>
               ))}
             </select>
@@ -727,6 +435,23 @@ export function FlightListPage() {
             </select>
           </div>
 
+          {/* Governance Status */}
+          <div className="fl-filter-item">
+            <label>{t("治理状态", "Governance Status")}</label>
+            <select
+              className="fl-select"
+              value={governanceStatusFilter}
+              onChange={(e) => setGovernanceStatusFilter(e.target.value)}
+            >
+              <option value="">{t("全部", "All")}</option>
+              {GOVERNANCE_STATUSES.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {t(g.labelZh, g.labelEn)}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="fl-filter-actions">
             <button className="fl-btn-search" onClick={handleSearch}>
               {t("搜索", "Search")}
@@ -740,7 +465,18 @@ export function FlightListPage() {
 
       {/* Table */}
       <div className="fl-table-wrapper">
-        <table className="fl-table">
+        {loading && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 0",
+              color: "#94a3b8",
+            }}
+          >
+            {t("加载中...", "Loading...")}
+          </div>
+        )}
+        <table className="fl-table" style={{ opacity: loading ? 0.5 : 1 }}>
           <thead>
             <tr>
               <th>{t("航班号", "Flight Number")}</th>
@@ -761,10 +497,12 @@ export function FlightListPage() {
             </tr>
           </thead>
           <tbody>
-            {pageFlights.map((flight) => {
-              const riskLabel = getCompositeRiskLabel(flight);
-              const govStatus = getGovernanceStatus(flight);
-              const tags = getRiskTags(flight);
+            {flights.map((flight) => {
+              const tags = flight.riskTags
+                ? Array.isArray(flight.riskTags)
+                  ? flight.riskTags
+                  : [flight.riskTags]
+                : ["—"];
               return (
                 <tr
                   key={flight.id}
@@ -773,23 +511,21 @@ export function FlightListPage() {
                     navigate(`/risk-monitoring/flight-detail?id=${flight.id}`)
                   }
                 >
-                  <td className="fl-td-flight-no">
-                    {getDisplayFlightNumber(flight)}
-                  </td>
+                  <td className="fl-td-flight-no">{flight.flightNo}</td>
                   <td>
                     <span
                       style={{ cursor: "pointer", color: "#60a5fa" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/aircraft-topic/aircraft-detail?tail=${flight.aircraftNumber || ""}`,
+                          `/aircraft-topic/aircraft-detail?tail=${flight.plane?.registration || ""}`,
                         );
                       }}
                     >
-                      {flight.aircraftNumber || "—"}
+                      {flight.plane?.registration || "—"}
                     </span>
                     {" / "}
-                    {flight.aircraftType || "—"}
+                    {flight.plane?.model || "—"}
                   </td>
                   <td>
                     <span
@@ -797,10 +533,12 @@ export function FlightListPage() {
                       style={{ cursor: "pointer", color: "#60a5fa" }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/personnel-center/personnel-detail?id=p-0`);
+                        navigate(
+                          `/personnel-center/personnel-detail?id=${flight.pf?.empNo || ""}`,
+                        );
                       }}
                     >
-                      {getMockPF(flight)}
+                      {flight.pf?.name || "—"}
                     </span>
                   </td>
                   <td>
@@ -809,89 +547,86 @@ export function FlightListPage() {
                       style={{ cursor: "pointer", color: "#60a5fa" }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/personnel-center/personnel-detail?id=p-1`);
+                        navigate(
+                          `/personnel-center/personnel-detail?id=${flight.pm?.empNo || ""}`,
+                        );
                       }}
                     >
-                      {getMockPM(flight)}
+                      {flight.pm?.name || "—"}
                     </span>
                   </td>
                   <td style={{ position: "relative" }}>
                     <span
                       className="fl-airport-code"
                       style={{ cursor: "pointer", color: "#60a5fa" }}
-                      data-tip={flight.fromAirportZh || flight.fromAirport}
+                      data-tip={flight.departureAirport?.name}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/environment-topic/environment-detail?code=${flight.fromAirport}`,
+                          `/environment-topic/environment-detail?code=${flight.departureAirport?.code || ""}`,
                         );
                       }}
                     >
-                      {flight.fromAirportCode4 ||
-                        getIcaoCode(flight.fromAirport)}
+                      {flight.departureAirport?.code || "—"}
                     </span>
                   </td>
                   <td style={{ position: "relative" }}>
                     <span
                       className="fl-airport-code"
                       style={{ cursor: "pointer", color: "#60a5fa" }}
-                      data-tip={flight.toAirportZh || flight.toAirport}
+                      data-tip={flight.arrivalAirport?.name}
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(
-                          `/environment-topic/environment-detail?code=${flight.toAirport}`,
+                          `/environment-topic/environment-detail?code=${flight.arrivalAirport?.code || ""}`,
                         );
                       }}
                     >
-                      {flight.toAirportCode4 || getIcaoCode(flight.toAirport)}
+                      {flight.arrivalAirport?.code || "—"}
                     </span>
                   </td>
-                  <td>
-                    {flight.scheduledDeparture || flight.actualDeparture || "—"}
-                  </td>
-                  <td>
-                    {flight.scheduledArrival || flight.actualArrival || "—"}
-                  </td>
+                  <td>{formatDateTime(flight.departureTime)}</td>
+                  <td>{formatDateTime(flight.arrivalTime)}</td>
                   <td>
                     <span
-                      className={`fl-status-badge fl-status-${flight.status === "已落地" ? "landed" : flight.status === "巡航中" ? "cruise" : "pending"}`}
+                      className={`fl-status-badge ${statusBadgeClass(flight.status)}`}
                     >
-                      {translateFlightStatus(flight.status, t)}
+                      {statusDisplay(flight.status, t)}
                     </span>
                   </td>
                   <td>
                     <span
-                      className={`fl-risk-badge ${riskLabelClass(riskLabel)}`}
+                      className={`fl-risk-badge ${riskLabelClass(flight.riskLevel)}`}
                     >
-                      {translateRiskLevel(riskLabel, t)}
+                      {riskLevelDisplay(flight.riskLevel, t)}
                     </span>
                   </td>
                   <td>
                     <span
-                      className={`fl-score ${scoreColorClass(flight.humanRisk)}`}
+                      className={`fl-score ${scoreColorClass(flight.humanFactorScore)}`}
                     >
-                      {flight.humanRisk}
+                      {flight.humanFactorScore}
                     </span>
                   </td>
                   <td>
                     <span
-                      className={`fl-score ${scoreColorClass(flight.machineRisk)}`}
+                      className={`fl-score ${scoreColorClass(flight.aircraftFactorScore)}`}
                     >
-                      {flight.machineRisk}
+                      {flight.aircraftFactorScore}
                     </span>
                   </td>
                   <td>
                     <span
-                      className={`fl-score ${scoreColorClass(flight.environmentRisk)}`}
+                      className={`fl-score ${scoreColorClass(flight.environmentFactorScore)}`}
                     >
-                      {flight.environmentRisk}
+                      {flight.environmentFactorScore}
                     </span>
                   </td>
                   <td>
                     <div className="fl-tags">
                       {tags.map((tag, i) => (
                         <span key={i} className="fl-tag">
-                          {tag === "—" ? "—" : translateRiskTag(tag, t)}
+                          {tag || "—"}
                         </span>
                       ))}
                     </div>
@@ -927,7 +662,6 @@ export function FlightListPage() {
                           <line x1="16" y1="17" x2="8" y2="17" />
                         </svg>
                       </button>
-                      {/* 处置按钮已移除 */}
                     </div>
                   </td>
                 </tr>
@@ -940,8 +674,8 @@ export function FlightListPage() {
       {/* Pagination */}
       <div className="fl-pagination">
         <span className="fl-page-info">
-          {filteredFlights.length} {t("条结果", "results")} | {t("第", "Page")}{" "}
-          {page} {t("页，共", "of")} {totalPages || 1}
+          {total} {t("条结果", "results")} | {t("第", "Page")} {page}{" "}
+          {t("页，共", "of")} {totalPages || 1}
         </span>
         <div className="fl-page-btns">
           <button disabled={page === 1} onClick={() => setPage(1)}>

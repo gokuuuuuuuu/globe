@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -10,12 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import {
-  AIRPORTS,
-  FLIGHTS,
-  calculateRiskFromEnvironmentRisk,
-  getIcaoCode,
-} from "../data/flightData";
+import { getAirportDetail } from "../api/airport";
 import { useLanguage } from "../i18n/useLanguage";
 import "./AirportDetailPage.css";
 
@@ -126,58 +121,78 @@ function GaugeArc({
 
 // ===== Component =====
 
+interface AirportDetailData {
+  id: number;
+  code: string;
+  name: string;
+  totalFlightCount: number;
+  highRiskFlightRatio: string;
+  topRisk: string | null;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  createdAt: string;
+  updatedAt: string;
+}
+
 export function AirportDetailPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const code = searchParams.get("code") || "";
 
-  // Pick first airport as displayed airport
-  const airport = AIRPORTS[0];
-  const airportFullName = airport.nameZh || airport.name;
+  const [airport, setAirport] = useState<AirportDetailData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Related flights (flights from or to this airport)
-  const relatedFlights = useMemo(() => {
-    return FLIGHTS.filter(
-      (f) => f.fromAirport === airport.code || f.toAirport === airport.code,
-    );
-  }, [airport.code]);
+  useEffect(() => {
+    if (!code) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    getAirportDetail(code)
+      .then((res: any) => {
+        setAirport(res);
+      })
+      .catch(() => {
+        setAirport(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [code]);
 
-  // Count risk categories
-  const riskCounts = useMemo(() => {
-    const counts = { red: 0, yellow: 0, green: 0 };
-    relatedFlights.forEach((f) => {
-      const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
-      counts[riskZone]++;
-    });
-    return counts;
-  }, [relatedFlights]);
+  // Derive risk counts from API data
+  const highRiskRatio = airport
+    ? parseFloat(airport.highRiskFlightRatio) || 0
+    : 0;
+  const totalFlights = airport ? airport.totalFlightCount : 0;
+  const highRiskCount = Math.round(totalFlights * highRiskRatio);
+  const medRiskCount = Math.round(totalFlights * 0.15); // mock medium ratio
+  const lowRiskCount = Math.max(totalFlights - highRiskCount - medRiskCount, 0);
 
-  // Inbound/Outbound risk data
+  const riskCounts = {
+    red: highRiskCount,
+    yellow: medRiskCount,
+    green: lowRiskCount,
+  };
+
+  // Inbound/Outbound risk data (mock split)
   const inOutData = useMemo(() => {
-    const inbound = { red: 0, yellow: 0, green: 0 };
-    const outbound = { red: 0, yellow: 0, green: 0 };
-    relatedFlights.forEach((f) => {
-      const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
-      if (f.toAirport === airport.code) {
-        inbound[riskZone]++;
-      } else {
-        outbound[riskZone]++;
-      }
-    });
+    const half = (v: number) => Math.round(v / 2);
     return [
       {
         name: t("进港", "Inbound"),
-        red: inbound.red,
-        yellow: inbound.yellow,
-        green: inbound.green,
+        red: half(riskCounts.red),
+        yellow: half(riskCounts.yellow),
+        green: half(riskCounts.green),
       },
       {
         name: t("出港", "Outbound"),
-        red: outbound.red,
-        yellow: outbound.yellow,
-        green: outbound.green,
+        red: riskCounts.red - half(riskCounts.red),
+        yellow: riskCounts.yellow - half(riskCounts.yellow),
+        green: riskCounts.green - half(riskCounts.green),
       },
     ];
-  }, [relatedFlights, airport.code, t]);
+  }, [riskCounts.red, riskCounts.yellow, riskCounts.green, t]);
 
   // Time period risk data (mock distribution)
   const timePeriodData = useMemo(() => {
@@ -189,17 +204,16 @@ export function AirportDetailPage() {
       t("16小时", "16 hr"),
       t("24小时", "24 hr"),
     ];
-    const total = relatedFlights.length;
     return periods.map((label, i) => {
       const seed = i + 1;
       const red = Math.round(riskCounts.red * (seed * 0.15 + 0.1));
-      const yellow = Math.round((total * 0.1 * seed) / periods.length);
+      const yellow = Math.round((totalFlights * 0.1 * seed) / periods.length);
       const green = Math.round(
-        (total * 0.2 * (periods.length - i)) / periods.length,
+        (totalFlights * 0.2 * (periods.length - i)) / periods.length,
       );
       return { name: label, red, yellow, green };
     });
-  }, [relatedFlights.length, riskCounts, t]);
+  }, [totalFlights, riskCounts.red, t]);
 
   // Risk type distribution data (horizontal)
   const riskTypeData = useMemo(() => {
@@ -235,10 +249,49 @@ export function AirportDetailPage() {
         green: Math.round(riskCounts.green * 0.3),
       },
     ];
-  }, [riskCounts, t]);
+  }, [riskCounts.red, riskCounts.yellow, riskCounts.green, t]);
 
-  // Determine composite risk
-  const isHighRisk = airport.environmentRisk >= 7;
+  // Determine composite risk from API riskLevel
+  const isHighRisk = airport?.riskLevel === "HIGH";
+  const isMediumRisk = airport?.riskLevel === "MEDIUM";
+
+  if (loading) {
+    return (
+      <div
+        className="ad-root"
+        style={{ padding: 48, textAlign: "center", color: "#94a3b8" }}
+      >
+        {t("加载中...", "Loading...")}
+      </div>
+    );
+  }
+
+  if (!airport) {
+    return (
+      <div
+        className="ad-root"
+        style={{ padding: 48, textAlign: "center", color: "#94a3b8" }}
+      >
+        {t("未找到机场信息", "Airport not found")}
+        <div style={{ marginTop: 16 }}>
+          <button
+            style={{
+              background: "rgba(71,85,105,0.5)",
+              border: "1px solid rgba(148,163,184,0.2)",
+              color: "#e2e8f0",
+              borderRadius: 6,
+              padding: "4px 14px",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+            onClick={() => navigate(-1)}
+          >
+            {t("返回", "Back")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ad-root">
@@ -282,8 +335,7 @@ export function AirportDetailPage() {
       <div className="ad-header-card">
         <div className="ad-header-left">
           <h1 className="ad-header-title">
-            {t("机场详情", "Airport Detail")}: {airportFullName} (
-            {airport.code4 || airport.code})
+            {t("机场详情", "Airport Detail")}: {airport.name} ({airport.code})
           </h1>
           <div className="ad-header-row">
             {/* Composite Risk Level */}
@@ -299,11 +351,11 @@ export function AirportDetailPage() {
                 {t("综合风险等级", "Composite Risk Level")}
               </div>
               <div
-                className={`ad-risk-level-box ${isHighRisk ? "ad-risk-high" : airport.environmentRisk >= 5 ? "ad-risk-medium" : "ad-risk-low"}`}
+                className={`ad-risk-level-box ${isHighRisk ? "ad-risk-high" : isMediumRisk ? "ad-risk-medium" : "ad-risk-low"}`}
               >
                 {isHighRisk
                   ? t("高风险", "HIGH RISK")
-                  : airport.environmentRisk >= 5
+                  : isMediumRisk
                     ? t("中风险", "MEDIUM RISK")
                     : t("低风险", "LOW RISK")}
               </div>
@@ -322,19 +374,14 @@ export function AirportDetailPage() {
               <span className="ad-stat-ratio">
                 {t("高风险占比", "High Risk Ratio")}:{" "}
                 <strong className="ad-stat-red">
-                  {airport.flightCount > 0
-                    ? ((riskCounts.red / airport.flightCount) * 100).toFixed(1)
-                    : 0}
-                  %
+                  {(highRiskRatio * 100).toFixed(1)}%
                 </strong>
               </span>
               <span className="ad-stat-ratio">
                 {t("中风险占比", "Med Risk Ratio")}:{" "}
                 <strong className="ad-stat-yellow">
-                  {airport.flightCount > 0
-                    ? ((riskCounts.yellow / airport.flightCount) * 100).toFixed(
-                        1,
-                      )
+                  {totalFlights > 0
+                    ? ((riskCounts.yellow / totalFlights) * 100).toFixed(1)
                     : 0}
                   %
                 </strong>
@@ -344,25 +391,19 @@ export function AirportDetailPage() {
             {/* Major Risk Types */}
             <div className="ad-risk-types">
               <div className="ad-risk-types-label">
-                {t("主要风险类型", "Major Risk Types")}
+                {t("首要风险", "Top Risk")}
               </div>
               <div className="ad-risk-types-tags">
-                <span className="ad-risk-type-tag">
-                  <span className="ad-tag-icon">&#9889;</span>
-                  {t("雷暴", "Thunderstorms")}
-                </span>
-                <span className="ad-risk-type-tag">
-                  <span className="ad-tag-icon">&#9940;</span>
-                  {t("空域限制", "Airspace Restriction")}
-                </span>
-                <span className="ad-risk-type-tag">
-                  <span className="ad-tag-icon">&#9992;</span>
-                  {t("高密度交通", "High Traffic")}
-                </span>
-                <span className="ad-risk-type-tag">
-                  <span className="ad-tag-icon">&#128274;</span>
-                  {t("安全", "Security")}
-                </span>
+                {airport.topRisk ? (
+                  <span className="ad-risk-type-tag">
+                    <span className="ad-tag-icon">&#9888;</span>
+                    {airport.topRisk}
+                  </span>
+                ) : (
+                  <span style={{ color: "#94a3b8", fontSize: 12 }}>
+                    {t("暂无", "None")}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -552,85 +593,16 @@ export function AirportDetailPage() {
             </tr>
           </thead>
           <tbody>
-            {relatedFlights.slice(0, 20).map((f) => {
-              const { riskZone } = calculateRiskFromEnvironmentRisk(
-                f.environmentRisk,
-              );
-              const badgeCls = getRiskBadgeCls(riskZone);
-              const badgeLabel = getRiskLabel(riskZone, t);
-
-              // Mock risk reasons based on zone
-              const reasons =
-                riskZone === "red"
-                  ? t("雷暴, 低能见度", "Thunderstorms, Low Visibility")
-                  : riskZone === "yellow"
-                    ? t(
-                        "空域限制, 高密度交通",
-                        "Airspace Restriction, High Traffic",
-                      )
-                    : t("正常", "Normal");
-
-              // Status translation
-              const statusText =
-                f.status === "未起飞"
-                  ? t("未起飞", "Scheduled")
-                  : f.status === "巡航中"
-                    ? t("巡航中", "In Flight")
-                    : t("已落地", "Landed");
-
-              return (
-                <tr
-                  key={f.id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() =>
-                    navigate(`/risk-monitoring/flight-detail?id=${f.id}`)
-                  }
+            {totalFlights === 0 && (
+              <tr>
+                <td
+                  colSpan={9}
+                  style={{ textAlign: "center", color: "#94a3b8", padding: 24 }}
                 >
-                  <td style={{ fontWeight: 600, color: "#f8fafc" }}>
-                    {/^[A-Z]{2}/.test(f.flightNumber)
-                      ? f.flightNumber
-                      : `MU${f.flightNumber}`}
-                  </td>
-                  <td>
-                    {f.fromAirportCode4 ||
-                      getIcaoCode(f.fromAirport) ||
-                      f.fromAirport}
-                  </td>
-                  <td>
-                    {f.toAirportCode4 ||
-                      getIcaoCode(f.toAirport) ||
-                      f.toAirport}
-                  </td>
-                  <td>{f.scheduledDeparture}</td>
-                  <td>
-                    {f.estimatedDeparture !== f.scheduledDeparture ? (
-                      <span>
-                        {f.estimatedDeparture}{" "}
-                        <span style={{ fontSize: 10, color: "#ea580c" }}>
-                          ({t("已修正", "Corrected")})
-                        </span>
-                      </span>
-                    ) : (
-                      f.estimatedDeparture
-                    )}
-                  </td>
-                  <td>{statusText}</td>
-                  <td>
-                    <span className={`ad-risk-badge ${badgeCls}`}>
-                      {badgeLabel}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: 11, color: "#94a3b8", maxWidth: 160 }}>
-                    {reasons}
-                  </td>
-                  <td>
-                    <span className="ad-view-link">
-                      {t("查看航班详情", "View Flight Detail")}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+                  {t("暂无航班数据", "No flight data available")}
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

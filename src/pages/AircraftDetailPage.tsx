@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LineChart,
@@ -9,15 +10,26 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useLanguage } from "../i18n/useLanguage";
+import { getPlaneDetail } from "../api/plane";
 import "./AircraftDetailPage.css";
 
-// ===== Mock Data =====
+// ===== Type =====
 
-const aircraftInfo = {
-  tailNumber: "N12345",
-  aircraftType: "Boeing 737-800",
-  aircraftAge: 12.5,
-};
+interface PlaneDetail {
+  id: number;
+  registration: string;
+  model: string;
+  ageYears: number | null;
+  totalFlightHours: number;
+  airworthinessStatus: string;
+  riskLevel: string;
+  riskScore: number;
+  highRiskFlightCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ===== Mock Data =====
 
 const factorScore = {
   score: 78,
@@ -240,8 +252,28 @@ export function AircraftDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const tailParam = searchParams.get("tail");
-  // Use URL param if available, otherwise fall back to mock data
-  const displayTailNumber = tailParam || aircraftInfo.tailNumber;
+
+  const [planeDetail, setPlaneDetail] = useState<PlaneDetail | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!tailParam) return;
+    setLoading(true);
+    setNotFound(false);
+    getPlaneDetail(tailParam)
+      .then((data: any) => {
+        setPlaneDetail(data as PlaneDetail);
+      })
+      .catch(() => {
+        setNotFound(true);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [tailParam]);
+
+  const displayTailNumber = planeDetail?.registration || tailParam || "—";
 
   const riskLevelText =
     factorScore.riskLevel === "High"
@@ -256,6 +288,97 @@ export function AircraftDetailPage() {
       : factorScore.riskLevel === "Medium"
         ? "acd-risk-badge-medium"
         : "acd-risk-badge-low";
+
+  const formatAirworthinessStatus = (status: string) => {
+    switch (status) {
+      case "AIRWORTHY":
+        return t("适航", "Airworthy");
+      case "NOT_AIRWORTHY":
+        return t("不适航", "Not Airworthy");
+      case "CONDITIONAL":
+        return t("有条件适航", "Conditional");
+      default:
+        return status;
+    }
+  };
+
+  const formatRiskLevel = (level: string) => {
+    switch (level) {
+      case "LOW":
+        return t("低", "Low");
+      case "MEDIUM":
+        return t("中", "Medium");
+      case "HIGH":
+        return t("高", "High");
+      default:
+        return level;
+    }
+  };
+
+  const airworthinessColor = (status: string) => {
+    switch (status) {
+      case "AIRWORTHY":
+        return "#22c55e";
+      case "NOT_AIRWORTHY":
+        return "#ef4444";
+      case "CONDITIONAL":
+        return "#eab308";
+      default:
+        return "#94a3b8";
+    }
+  };
+
+  if (loading) {
+    return (
+      <div
+        className="acd-root"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 300,
+        }}
+      >
+        <span style={{ color: "#94a3b8", fontSize: 16 }}>
+          {t("加载中...", "Loading...")}
+        </span>
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div
+        className="acd-root"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 300,
+          gap: 16,
+        }}
+      >
+        <span style={{ color: "#ef4444", fontSize: 16 }}>
+          {t("未找到该飞机信息", "Aircraft not found")}
+        </span>
+        <button
+          style={{
+            background: "rgba(71,85,105,0.5)",
+            border: "1px solid rgba(148,163,184,0.2)",
+            color: "#e2e8f0",
+            borderRadius: 6,
+            padding: "4px 14px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+          onClick={() => navigate(-1)}
+        >
+          {t("返回", "Back")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="acd-root">
@@ -316,9 +439,7 @@ export function AircraftDetailPage() {
             <AirplaneIcon />
           </div>
           <div>
-            <div className="acd-info-label">
-              {t("机尾号", "Aircraft Tail Number")}
-            </div>
+            <div className="acd-info-label">{t("机号", "Registration")}</div>
             <div className="acd-info-value">{displayTailNumber}</div>
           </div>
         </div>
@@ -328,7 +449,7 @@ export function AircraftDetailPage() {
           </div>
           <div>
             <div className="acd-info-label">{t("机型", "Aircraft Type")}</div>
-            <div className="acd-info-value">{aircraftInfo.aircraftType}</div>
+            <div className="acd-info-value">{planeDetail?.model || "—"}</div>
           </div>
         </div>
         <div className="acd-info-item">
@@ -338,7 +459,79 @@ export function AircraftDetailPage() {
           <div>
             <div className="acd-info-label">{t("机龄", "Aircraft Age")}</div>
             <div className="acd-info-value">
-              {aircraftInfo.aircraftAge} {t("年", "Years")}
+              {planeDetail?.ageYears != null
+                ? `${planeDetail.ageYears} ${t("年", "Years")}`
+                : "—"}
+            </div>
+          </div>
+        </div>
+        <div className="acd-info-item">
+          <div className="acd-info-icon">
+            <WrenchIcon />
+          </div>
+          <div>
+            <div className="acd-info-label">
+              {t("总飞行小时", "Total Flight Hours")}
+            </div>
+            <div className="acd-info-value">
+              {planeDetail?.totalFlightHours ?? "—"}
+            </div>
+          </div>
+        </div>
+        <div className="acd-info-item">
+          <div className="acd-info-icon">
+            <AirplaneIcon />
+          </div>
+          <div>
+            <div className="acd-info-label">
+              {t("适航状态", "Airworthiness")}
+            </div>
+            <div
+              className="acd-info-value"
+              style={{
+                color: planeDetail
+                  ? airworthinessColor(planeDetail.airworthinessStatus)
+                  : undefined,
+              }}
+            >
+              {planeDetail
+                ? formatAirworthinessStatus(planeDetail.airworthinessStatus)
+                : "—"}
+            </div>
+          </div>
+        </div>
+        <div className="acd-info-item">
+          <div className="acd-info-icon">
+            <CalendarIcon />
+          </div>
+          <div>
+            <div className="acd-info-label">{t("风险等级", "Risk Level")}</div>
+            <div className="acd-info-value">
+              {planeDetail ? formatRiskLevel(planeDetail.riskLevel) : "—"}
+            </div>
+          </div>
+        </div>
+        <div className="acd-info-item">
+          <div className="acd-info-icon">
+            <WrenchIcon />
+          </div>
+          <div>
+            <div className="acd-info-label">{t("风险评分", "Risk Score")}</div>
+            <div className="acd-info-value">
+              {planeDetail?.riskScore ?? "—"}
+            </div>
+          </div>
+        </div>
+        <div className="acd-info-item">
+          <div className="acd-info-icon">
+            <AirplaneIcon />
+          </div>
+          <div>
+            <div className="acd-info-label">
+              {t("高风险航班数", "High Risk Flights")}
+            </div>
+            <div className="acd-info-value">
+              {planeDetail?.highRiskFlightCount ?? "—"}
             </div>
           </div>
         </div>

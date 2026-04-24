@@ -1,6 +1,7 @@
 // @ts-nocheck
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { getFlightPersonDetail } from "../api/flightPerson";
 import {
   LineChart,
   Line,
@@ -175,6 +176,24 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    key: "training-scenarios",
+    label: "Recommended Scenarios",
+    labelZh: "推荐训练场景",
+    icon: (
+      <svg
+        className="pd-nav-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+      </svg>
+    ),
+  },
+  {
     key: "squadron-monthly",
     label: "Squadron Monthly Report",
     labelZh: "中队月报",
@@ -199,13 +218,60 @@ const navItems: NavItem[] = [
 
 // ---------- Component ----------
 
+function riskLevelLabel(level: string, t: (zh: string, en: string) => string) {
+  if (level === "HIGH") return t("高", "High");
+  if (level === "MEDIUM") return t("中", "Medium");
+  return t("低", "Low");
+}
+
+function riskLevelColor(level: string) {
+  if (level === "HIGH") return "#ef4444";
+  if (level === "MEDIUM") return "#f97316";
+  return "#22c55e";
+}
+
 export function PersonnelDetailPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const empNo = searchParams.get("empNo") || searchParams.get("id") || "";
   const [activeNav, setActiveNav] = useState(
     searchParams.get("tab") || "risk-profile",
   );
+  const [person, setPerson] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!empNo) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    getFlightPersonDetail(empNo)
+      .then((res) => setPerson(res))
+      .catch((err) => console.error("Failed to load person detail:", err))
+      .finally(() => setLoading(false));
+  }, [empNo]);
+
+  if (loading) {
+    return (
+      <div className="pd-root">
+        <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
+          {t("加载中...", "Loading...")}
+        </div>
+      </div>
+    );
+  }
+
+  if (!person) {
+    return (
+      <div className="pd-root">
+        <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
+          {t("未找到人员信息", "Personnel not found")}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pd-root">
@@ -246,63 +312,37 @@ export function PersonnelDetailPage() {
       </div>
       <div className="pd-header-card">
         <div className="pd-header-top">
-          <h1 className="pd-header-title">P1300456 - John M. Stevenson</h1>
-          <div className="pd-header-icons">
-            {/* <button className="pd-icon-btn" title={t("信息", "Info")}>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-            </button>
-            <button className="pd-icon-btn" title={t("更多", "More")}>
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="5" r="1" />
-                <circle cx="12" cy="12" r="1" />
-                <circle cx="12" cy="19" r="1" />
-              </svg>
-            </button> */}
-          </div>
+          <h1 className="pd-header-title">
+            {person.empNo} - {person.name}
+          </h1>
+          <div className="pd-header-icons" />
         </div>
         <div className="pd-header-info">
           <div className="pd-info-item">
             <div className="pd-info-label">{t("工号", "Employee No.")}</div>
-            <div className="pd-info-value">P1300456</div>
+            <div className="pd-info-value">{person.empNo}</div>
+          </div>
+          <div className="pd-info-item">
+            <div className="pd-info-label">{t("飞行单位", "Flight Unit")}</div>
+            <div className="pd-info-value">{person.flightUnit || "—"}</div>
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">{t("机型", "Aircraft Type")}</div>
-            <div className="pd-info-value">B737-800</div>
+            <div className="pd-info-value">{person.aircraftType || "—"}</div>
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">
               {t("技术等级", "Technical Level")}
             </div>
-            <div className="pd-info-value">{t("机长", "Captain")}</div>
+            <div className="pd-info-value">{person.techGrade || "—"}</div>
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">
-              {t("部门 / 中队", "Division / Squadron")}
+              {t("大队 / 中队", "Team / Squadron")}
             </div>
             <div className="pd-info-value">
-              {t("空中侦察 / 第42情报中队", "Air Recon / 42nd ISR Sq.")}
+              {[person.team, person.squadron].filter(Boolean).join(" / ") ||
+                "—"}
             </div>
           </div>
           <div className="pd-info-item">
@@ -310,31 +350,50 @@ export function PersonnelDetailPage() {
               {t("当前综合风险等级", "Current Composite Risk Level")}
             </div>
             <div className="pd-info-value">
-              <span className="pd-risk-badge">
-                {t("升高（3级）", "ELEVATED (LEVEL 3)")}
-                <span className="pd-risk-badge-arrow">&uarr;</span>
+              <span
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <span
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: riskLevelColor(person.riskLevel),
+                    display: "inline-block",
+                  }}
+                />
+                {riskLevelLabel(person.riskLevel, t)}
               </span>
             </div>
           </div>
           <div className="pd-info-item">
-            <div className="pd-info-label">
-              {t("人为因素评分", "Human Factor Score")}
-            </div>
+            <div className="pd-info-label">{t("风险评分", "Risk Score")}</div>
             <div className="pd-info-value">
               <div className="pd-hf-score">
-                <span className="pd-hf-score-text">78 / 100</span>
+                <span className="pd-hf-score-text">
+                  {person.riskScore || 0} / 100
+                </span>
                 <div className="pd-hf-bar-bg">
-                  <div className="pd-hf-bar-fill" style={{ width: "78%" }} />
+                  <div
+                    className="pd-hf-bar-fill"
+                    style={{ width: `${person.riskScore || 0}%` }}
+                  />
                 </div>
               </div>
             </div>
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">
-              {t("相关高风险航班数", "Number of Related High-Risk Flights")}
+              {t("人为因素标签", "Human Factor Tags")}
+            </div>
+            <div className="pd-info-value">{person.humanFactorTags || "—"}</div>
+          </div>
+          <div className="pd-info-item">
+            <div className="pd-info-label">
+              {t("相关高风险航班数", "High-Risk Flights")}
             </div>
             <div className="pd-info-value">
-              5 {t("航班（近90天）", "Flights (Last 90 Days)")}
+              {person.highRiskFlightCount} {t("航班", "flights")}
             </div>
           </div>
         </div>
@@ -787,20 +846,10 @@ export function PersonnelDetailPage() {
               </div>
             </div>
           )}
-          {activeNav === "squadron-monthly" && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: 300,
-                color: "#64748b",
-                fontSize: 14,
-              }}
-            >
-              {t("此部分正在开发中...", "This section is under development...")}
-            </div>
+          {activeNav === "training-scenarios" && (
+            <TrainingScenariosSection t={t} />
           )}
+          {activeNav === "squadron-monthly" && <SquadronMonthlySection t={t} />}
           {activeNav === "historical-flights" && (
             <div className="pd-card" style={{ padding: 20 }}>
               <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
@@ -1255,5 +1304,747 @@ function RiskProfileSection() {
         </div>
       </div>
     </>
+  );
+}
+
+// ---------- Squadron Monthly Report Section ----------
+
+const squadronMonthlyFlightData = [
+  { month: "2024-01", high: 3, medium: 8 },
+  { month: "2024-02", high: 5, medium: 12 },
+  { month: "2024-03", high: 2, medium: 9 },
+  { month: "2024-04", high: 4, medium: 11 },
+  { month: "2024-05", high: 6, medium: 14 },
+  { month: "2024-06", high: 3, medium: 10 },
+];
+
+const squadronRiskPersonnel = [
+  {
+    empNo: "P130012",
+    name: "张伟",
+    riskLevel: "HIGH",
+    riskScore: 82,
+    highFlights: 4,
+    tags: "疲劳超标、不稳定进近",
+  },
+  {
+    empNo: "P130045",
+    name: "李强",
+    riskLevel: "HIGH",
+    riskScore: 76,
+    highFlights: 3,
+    tags: "CRM不足",
+  },
+  {
+    empNo: "P130078",
+    name: "王军",
+    riskLevel: "MEDIUM",
+    riskScore: 58,
+    highFlights: 2,
+    tags: "着陆偏差",
+  },
+  {
+    empNo: "P130091",
+    name: "刘洋",
+    riskLevel: "MEDIUM",
+    riskScore: 52,
+    highFlights: 1,
+    tags: "进近坡度偏差",
+  },
+  {
+    empNo: "P130103",
+    name: "陈鹏",
+    riskLevel: "MEDIUM",
+    riskScore: 48,
+    highFlights: 1,
+    tags: "排班异常",
+  },
+];
+
+const squadronRiskScoreTrend = [
+  { month: "2024-01", avg: 32, max: 78, min: 8 },
+  { month: "2024-02", avg: 35, max: 82, min: 10 },
+  { month: "2024-03", avg: 30, max: 71, min: 7 },
+  { month: "2024-04", avg: 38, max: 85, min: 12 },
+  { month: "2024-05", avg: 41, max: 88, min: 15 },
+  { month: "2024-06", avg: 36, max: 76, min: 11 },
+];
+
+const squadronTopIndicators = [
+  {
+    label: "不稳定进近",
+    labelEn: "Unstable Approach",
+    count: 18,
+    color: "#ef4444",
+  },
+  { label: "重着陆", labelEn: "Hard Landing", count: 12, color: "#ef4444" },
+  {
+    label: "疲劳指数超标",
+    labelEn: "Fatigue Index Exceeded",
+    count: 9,
+    color: "#f97316",
+  },
+  {
+    label: "进近速度偏差",
+    labelEn: "Approach Speed Deviation",
+    count: 7,
+    color: "#eab308",
+  },
+  {
+    label: "着陆接地点偏差",
+    labelEn: "Touchdown Point Deviation",
+    count: 6,
+    color: "#eab308",
+  },
+  {
+    label: "侧风着陆偏差",
+    labelEn: "Crosswind Landing Deviation",
+    count: 4,
+    color: "#22c55e",
+  },
+];
+
+function SquadronMonthlySection({
+  t,
+}: {
+  t: (zh: string, en: string) => string;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* 月度高/中风险航班趋势 */}
+      <div className="pd-card" style={{ padding: 20 }}>
+        <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+          {t("月度高/中风险航班数", "Monthly High/Medium Risk Flights")}
+        </h3>
+        <ResponsiveContainer width="100%" height={240}>
+          <BarChart data={squadronMonthlyFlightData}>
+            <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+            <XAxis
+              dataKey="month"
+              tick={AXIS_TICK}
+              stroke={GRID_STROKE}
+              tickFormatter={(v: string) => v.slice(5)}
+            />
+            <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} />
+            <Tooltip {...darkTooltipStyle} />
+            <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} />
+            <Bar
+              dataKey="high"
+              fill="#ef4444"
+              name={t("高风险", "High Risk")}
+              barSize={20}
+              radius={[3, 3, 0, 0]}
+            />
+            <Bar
+              dataKey="medium"
+              fill="#f97316"
+              name={t("中风险", "Medium Risk")}
+              barSize={20}
+              radius={[3, 3, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* 高/中风险对应人员 */}
+      <div className="pd-card" style={{ padding: 20 }}>
+        <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+          {t("高/中风险人员", "High/Medium Risk Personnel")}
+        </h3>
+        <table
+          style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}
+        >
+          <thead>
+            <tr style={{ borderBottom: "1px solid rgba(148,163,184,0.15)" }}>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {t("工号", "Emp No.")}
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {t("姓名", "Name")}
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {t("风险等级", "Risk Level")}
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {t("风险评分", "Score")}
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {t("高风险航班", "High-Risk Flights")}
+              </th>
+              <th
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {t("风险标签", "Risk Tags")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {squadronRiskPersonnel.map((p) => (
+              <tr
+                key={p.empNo}
+                style={{ borderBottom: "1px solid rgba(148,163,184,0.08)" }}
+              >
+                <td
+                  style={{
+                    padding: "8px 12px",
+                    color: "#e2e8f0",
+                    fontWeight: 600,
+                  }}
+                >
+                  {p.empNo}
+                </td>
+                <td style={{ padding: "8px 12px", color: "#e2e8f0" }}>
+                  {p.name}
+                </td>
+                <td style={{ padding: "8px 12px" }}>
+                  <span
+                    style={{
+                      color: p.riskLevel === "HIGH" ? "#ef4444" : "#f97316",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {p.riskLevel === "HIGH"
+                      ? t("高", "High")
+                      : t("中", "Medium")}
+                  </span>
+                </td>
+                <td style={{ padding: "8px 12px", color: "#e2e8f0" }}>
+                  {p.riskScore}
+                </td>
+                <td style={{ padding: "8px 12px", color: "#e2e8f0" }}>
+                  {p.highFlights}
+                </td>
+                <td
+                  style={{
+                    padding: "8px 12px",
+                    color: "#94a3b8",
+                    fontSize: 12,
+                  }}
+                >
+                  {p.tags}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {/* 风险评分趋势 */}
+        <div className="pd-card" style={{ padding: 20 }}>
+          <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+            {t("中队风险评分趋势", "Squadron Risk Score Trend")}
+          </h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={squadronRiskScoreTrend}>
+              <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
+              <XAxis
+                dataKey="month"
+                tick={AXIS_TICK}
+                stroke={GRID_STROKE}
+                tickFormatter={(v: string) => v.slice(5)}
+              />
+              <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} domain={[0, 100]} />
+              <Tooltip {...darkTooltipStyle} />
+              <Area
+                type="monotone"
+                dataKey="max"
+                stroke="#ef4444"
+                fill="rgba(239,68,68,0.08)"
+                strokeWidth={1.5}
+                name={t("最高", "Max")}
+              />
+              <Line
+                type="monotone"
+                dataKey="avg"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{ fill: "#3b82f6", r: 3 }}
+                name={t("平均", "Avg")}
+              />
+              <Area
+                type="monotone"
+                dataKey="min"
+                stroke="#22c55e"
+                fill="rgba(34,197,94,0.08)"
+                strokeWidth={1.5}
+                name={t("最低", "Min")}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+          <div className="pd-legend">
+            <div className="pd-legend-item">
+              <span
+                className="pd-legend-line"
+                style={{ background: "#ef4444" }}
+              />
+              {t("最高", "Max")}
+            </div>
+            <div className="pd-legend-item">
+              <span
+                className="pd-legend-line"
+                style={{ background: "#3b82f6" }}
+              />
+              {t("平均", "Avg")}
+            </div>
+            <div className="pd-legend-item">
+              <span
+                className="pd-legend-line"
+                style={{ background: "#22c55e" }}
+              />
+              {t("最低", "Min")}
+            </div>
+          </div>
+        </div>
+
+        {/* 主要风险指标 */}
+        <div className="pd-card" style={{ padding: 20 }}>
+          <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+            {t("主要风险指标", "Top Risk Indicators")}
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {squadronTopIndicators.map((item, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "8px 12px",
+                  background: "rgba(15,23,42,0.5)",
+                  borderRadius: 6,
+                  border: "1px solid rgba(148,163,184,0.08)",
+                }}
+              >
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: item.color,
+                    flexShrink: 0,
+                  }}
+                />
+                <span style={{ flex: 1, color: "#e2e8f0", fontSize: 13 }}>
+                  {t(item.label, item.labelEn)}
+                </span>
+                <span
+                  style={{
+                    color: "#94a3b8",
+                    fontSize: 12,
+                    minWidth: 50,
+                    textAlign: "right",
+                  }}
+                >
+                  {item.count} {t("次", "times")}
+                </span>
+                <div
+                  style={{
+                    width: 80,
+                    height: 6,
+                    borderRadius: 3,
+                    background: "rgba(148,163,184,0.12)",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${(item.count / 20) * 100}%`,
+                      height: "100%",
+                      borderRadius: 3,
+                      background: item.color,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Training Scenarios Section ----------
+
+const trainingScenarios = [
+  {
+    id: 1,
+    env: {
+      airport: "浦东 ZSPD 35L",
+      time: "黄昏",
+      wind: "L20",
+      visibility: "1300米",
+      weather: "小雨",
+      temp: "25°C",
+      friction: "5",
+      lights: "亮",
+    },
+    sop: "按侧风着陆标准程序要求进行着陆；在 1300 米低能见度环境下严格执行仪表至目视的转换程序",
+    focus: `必须高度关注 L20 强侧风与 1300 米低能见度的叠加挑战，要求在 150ft 至 50ft 阶段保持极高的仪表扫描频率，严禁过早盲目抬头寻找跑道，确保在看清灯光瞬间能立即判断并修正由左侧风导致的向右侧下风区偏离的倾向；针对 20 节左侧风，修正动作需遵循"左翼下沉、右舵补偿"的侧滑逻辑，在 50ft 关键高度前必须完成精准的蟹形角转换，严禁在低高度出现大幅度、非协调的横侧摆动，确保接地瞬间机头与中心线平行，并保证合理的下滑道追踪。`,
+    tags: ["侧风着陆", "低能见度", "仪表转目视"],
+    difficulty: "high",
+  },
+  {
+    id: 2,
+    env: {
+      airport: "浦东 ZSPD 35L",
+      time: "昼",
+      wind: "H10",
+      visibility: "2000米",
+      weather: "中雨",
+      temp: "10°C",
+      friction: "3",
+      lights: "亮",
+    },
+    sop: "稳定进近标准程序要求飞行员在昼间中雨及低能见度条件下建立并保持精准的下滑剖面",
+    focus: `针对昼间中雨环境带来的视界干扰，飞行员需高度警惕挡风玻璃水膜导致的"下滑道偏高"视觉幻觉，防止在 150ft 至 50ft 关键阶段因盲目下压机头修正而低于标准下滑道，应坚持以仪表下滑指引为核心参考并辅以 PAPI 灯核对，确保垂直速度平稳可控，保持合理的下滑道追踪。10 节迎风虽然有利于降低地速，但在中雨环境下仍需严密监控空速趋势，确保推力补偿，严防能量衰减导致的下沉率增大。鉴于摩擦系数仅为 3，应果断放弃追求"轻飘"接地的操作，寻求在目标接地区内实施扎实触地以有效刺破水膜，确保自动刹车和扰流板及时生效。`,
+    tags: ["湿滑跑道", "视觉幻觉", "能量管理"],
+    difficulty: "medium",
+  },
+  {
+    id: 3,
+    env: {
+      airport: "浦东 ZSPD 35L",
+      time: "黄昏",
+      wind: "H20",
+      visibility: "2000米",
+      weather: "中雨",
+      temp: "25°C",
+      friction: "3",
+      lights: "亮",
+    },
+    sop: "稳定进近标准程序要求飞行员在强迎风及中雨条件下严格监控空速与地速的关系，针对摩擦系数 3 的湿滑道面，必须执行性能受限条件下的进近与着陆程序",
+    focus: `必须强化 20 节强迎风环境下的能量与剖面管控，由于迎风会导致地速较低，飞行员在 150ft 至 50ft 阶段需严密监控空速趋势并保持精准的推力补偿，严防因中雨环境下的推力调节滞后导致下降率骤增或低于下滑道；针对黄昏中雨产生的视程干扰，需高度警惕挡风玻璃水膜引发的"视景抬升"幻觉，这种错觉常诱使飞行员产生"高度偏高"的误判从而盲目下压机头，因此必须坚持"仪表主导、目视核对"的扫描模式，严格对标 ILS 指引与 PAPI 灯，并保证合理的下滑道追踪。`,
+    tags: ["强迎风", "湿滑跑道", "能量管控"],
+    difficulty: "high",
+  },
+  {
+    id: 4,
+    env: {
+      airport: "浦东 ZSPD 35L",
+      time: "夜",
+      wind: "L38",
+      visibility: "2000米",
+      weather: "小雨",
+      temp: "20°C",
+      friction: "5",
+      lights: "亮",
+    },
+    sop: `执行"减小偏流角"着陆程序，严密监控侧风极限。若在减小偏流角过程中操纵量达到极限，或无法将偏流角控制在 5度以内，必须立即复飞。`,
+    focus: `针对 L38 极限侧风结合夜间小雨带来的复合压力，飞行员须保持全蟹形进近以锁定航迹安定。在拉平执行"减小偏流角"动作时，应采取"小偏流角"接地策略（不大于 5度），同时必须落实"舵杆联动"操纵逻辑，通过侧杆微调俯仰以补偿因蹬舵带来的垂直升力波动，严防下滑道（G/S）产生瞬时低偏离。严密监控侧杆横向输入角度，严防因向风侧机翼压杆过量导致 1 号发动机短舱（Pod Strike）触地的极限风险。鉴于夜间视程干扰，应坚持"仪表主导、目视校核"的高频扫描模式，严禁过早或长时间抬头盲目寻找跑道参考，确保下滑剖面在 PFD 指引下始终稳定直至接地。`,
+    tags: ["极限侧风", "夜间", "减小偏流角"],
+    difficulty: "critical",
+  },
+];
+
+function difficultyStyle(d: string) {
+  if (d === "critical")
+    return { color: "#dc2626", bg: "rgba(220,38,38,0.12)", label: "极高" };
+  if (d === "high")
+    return { color: "#ef4444", bg: "rgba(239,68,68,0.12)", label: "高" };
+  if (d === "medium")
+    return { color: "#f97316", bg: "rgba(249,115,22,0.12)", label: "中" };
+  return { color: "#22c55e", bg: "rgba(34,197,94,0.12)", label: "低" };
+}
+
+function TrainingScenariosSection({
+  t,
+}: {
+  t: (zh: string, en: string) => string;
+}) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div className="pd-card" style={{ padding: 20 }}>
+        <h3 className="pd-card-title" style={{ marginBottom: 4 }}>
+          {t("推荐训练场景", "Recommended Training Scenarios")}
+        </h3>
+        <p style={{ color: "#64748b", fontSize: 12, margin: "0 0 16px" }}>
+          {t(
+            "基于飞行员风险档案和历史数据，推荐以下模拟机训练场景",
+            "Based on pilot risk profile and historical data, the following simulator training scenarios are recommended",
+          )}
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {trainingScenarios.map((s) => {
+            const diff = difficultyStyle(s.difficulty);
+            const isOpen = expanded === s.id;
+            return (
+              <div
+                key={s.id}
+                style={{
+                  background: "rgba(15,23,42,0.6)",
+                  border: `1px solid ${isOpen ? "rgba(59,130,246,0.3)" : "rgba(148,163,184,0.1)"}`,
+                  borderRadius: 10,
+                  overflow: "hidden",
+                  transition: "border-color 0.2s",
+                }}
+              >
+                {/* Header */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "14px 16px",
+                    cursor: "pointer",
+                  }}
+                  onClick={() => setExpanded(isOpen ? null : s.id)}
+                >
+                  <span
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 6,
+                      background: "rgba(59,130,246,0.15)",
+                      color: "#60a5fa",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                    }}
+                  >
+                    {s.id}
+                  </span>
+                  <div style={{ flex: 1 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "#e2e8f0",
+                          fontSize: 14,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {t("场景", "Scenario")} {s.id}
+                      </span>
+                      <span
+                        style={{
+                          padding: "2px 8px",
+                          borderRadius: 4,
+                          fontSize: 11,
+                          fontWeight: 600,
+                          color: diff.color,
+                          background: diff.bg,
+                        }}
+                      >
+                        {t(diff.label, s.difficulty.toUpperCase())}
+                      </span>
+                      {s.tags.map((tag, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            padding: "1px 6px",
+                            borderRadius: 3,
+                            fontSize: 10,
+                            color: "#94a3b8",
+                            background: "rgba(148,163,184,0.1)",
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <div
+                      style={{ color: "#64748b", fontSize: 12, marginTop: 4 }}
+                    >
+                      {s.env.airport} | {s.env.time} | {t("风", "Wind")}:{" "}
+                      {s.env.wind} | {t("能见度", "Vis")}: {s.env.visibility} |{" "}
+                      {s.env.weather}
+                    </div>
+                  </div>
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#64748b"
+                    strokeWidth="2"
+                    style={{
+                      transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </div>
+
+                {/* Expanded Content */}
+                {isOpen && (
+                  <div
+                    style={{
+                      padding: "0 16px 16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 14,
+                    }}
+                  >
+                    {/* 环境参数 */}
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#94a3b8",
+                          fontWeight: 600,
+                          marginBottom: 8,
+                        }}
+                      >
+                        {t("环境要素及参数", "Environment Parameters")}
+                      </div>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(4, 1fr)",
+                          gap: 8,
+                        }}
+                      >
+                        {[
+                          [t("机场跑道", "Runway"), s.env.airport],
+                          [t("昼夜", "Time"), s.env.time],
+                          [t("风速风向", "Wind"), s.env.wind],
+                          [t("能见度", "Visibility"), s.env.visibility],
+                          [t("天气", "Weather"), s.env.weather],
+                          [t("温度", "Temp"), s.env.temp],
+                          [t("摩擦系数", "Friction"), s.env.friction],
+                          [t("跑道灯光", "Lights"), s.env.lights],
+                        ].map(([label, val], i) => (
+                          <div
+                            key={i}
+                            style={{
+                              background: "rgba(30,41,59,0.5)",
+                              borderRadius: 6,
+                              padding: "6px 10px",
+                              border: "1px solid rgba(148,163,184,0.06)",
+                            }}
+                          >
+                            <div style={{ fontSize: 10, color: "#64748b" }}>
+                              {label}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                color: "#e2e8f0",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {val}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* SOP */}
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#94a3b8",
+                          fontWeight: 600,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {t("手册标准", "SOP Standard")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: "#cbd5e1",
+                          lineHeight: 1.6,
+                          background: "rgba(30,41,59,0.5)",
+                          borderRadius: 6,
+                          padding: "10px 12px",
+                          border: "1px solid rgba(148,163,184,0.06)",
+                        }}
+                      >
+                        {s.sop}
+                      </div>
+                    </div>
+
+                    {/* 训练侧重点 */}
+                    <div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "#f97316",
+                          fontWeight: 600,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {t("训练侧重点", "Training Focus")}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: "#cbd5e1",
+                          lineHeight: 1.7,
+                          background: "rgba(249,115,22,0.04)",
+                          borderRadius: 6,
+                          padding: "10px 12px",
+                          border: "1px solid rgba(249,115,22,0.12)",
+                        }}
+                      >
+                        {s.focus}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,10 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
-import { useAuthStore, getRoleName } from "../store/useAuthStore";
+import {
+  useAuthStore,
+  getRoleName,
+  type Permission,
+} from "../store/useAuthStore";
 import {
   LayoutDashboard,
   Plane,
@@ -20,6 +24,7 @@ interface MenuItem {
   label: string;
   icon: React.ReactNode;
   children?: { path: string; label: string }[];
+  permission?: Permission; // 需要的权限，不设则所有人可见
 }
 
 export function AdminLayout() {
@@ -27,6 +32,7 @@ export function AdminLayout() {
   const { lang, setLang, t } = useLanguage();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const menuItems: MenuItem[] = [
     {
@@ -69,13 +75,19 @@ export function AdminLayout() {
       path: "/knowledge-center",
       label: t("风险因子库", "Risk Factor Library"),
       icon: <ShieldAlert size={16} />,
+      permission: "edit_rules",
     },
     {
       path: "/system-management",
       label: t("系统管理", "System Mgmt"),
       icon: <Settings size={16} />,
+      permission: "manage_users",
     },
   ];
+
+  const visibleMenuItems = menuItems.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
 
   const isMenuActive = (item: MenuItem) => {
     if (item.path === "/") return location.pathname === "/";
@@ -101,7 +113,7 @@ export function AdminLayout() {
 
         {/* Menu items */}
         <div className="al-nav-menu">
-          {menuItems.map((item) => (
+          {visibleMenuItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
@@ -146,8 +158,7 @@ export function AdminLayout() {
               <div className="al-meta-item al-user-info">
                 <span className="al-user-name">{user.name}</span>
                 <span className="al-user-role">
-                  {getRoleName(user.role, t)}
-                  {user.unit ? ` · ${user.unit}` : ""}
+                  {user.roles?.map((r) => getRoleName(r, t)).join(" / ")}
                 </span>
               </div>
               <button

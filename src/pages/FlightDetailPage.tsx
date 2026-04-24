@@ -1,20 +1,32 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { getFlightDetail } from "../api/flight";
 import "./FlightDetailPage.css";
 
-// Mock data for the flight detail
-const flightInfo = {
-  flightNumber: "FL7890",
-  tailNumber: "N567UA",
-  aircraftType: "Boeing 737-8MAX",
-  departure: "KSFO (San Francisco)",
-  arrival: "KORD (Chicago O'Hare)",
-  scheduledTime: "Oct 28, 2024 08:15 AM",
-  forecastWindow: "±20 min",
-  compositeRiskLevel: "High",
-  majorRiskAlert: "Severe Turbulence",
-  governanceStatus: "In Progress",
-};
+// ===== Types =====
+
+interface FlightDetail {
+  id: number;
+  flightNo: string;
+  departureTime: string;
+  arrivalTime: string;
+  status: "SCHEDULED" | "CRUISING" | "LANDED";
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  humanFactorScore: number;
+  aircraftFactorScore: number;
+  environmentFactorScore: number;
+  riskTags: string | null;
+  governanceStatus: string;
+  operatingUnit: string;
+  plane: { registration: string; model: string } | null;
+  pf: { empNo: string; name: string } | null;
+  pm: { empNo: string; name: string } | null;
+  departureAirport: { code: string; name: string } | null;
+  arrivalAirport: { code: string; name: string } | null;
+}
+
+// ===== Mock data (API 暂不提供) =====
 
 const phases = [
   {
@@ -125,16 +137,72 @@ const majorRiskEvents = [
   },
 ];
 
+// ===== Helpers =====
+
 function getDotClass(color: string) {
   if (color === "red") return "fd-dot-red";
   if (color === "yellow") return "fd-dot-yellow";
   return "fd-dot-green";
 }
 
+function formatTime(dateStr: string | null | undefined) {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function riskLevelLabel(level: string, t: (zh: string, en: string) => string) {
+  if (level === "HIGH") return t("高", "High");
+  if (level === "MEDIUM") return t("中", "Medium");
+  return t("低", "Low");
+}
+
+function riskLevelColor(level: string) {
+  if (level === "HIGH") return "#ef4444";
+  if (level === "MEDIUM") return "#f97316";
+  return "#22c55e";
+}
+
+function statusLabel(status: string, t: (zh: string, en: string) => string) {
+  if (status === "SCHEDULED") return t("未起飞", "Scheduled");
+  if (status === "CRUISING") return t("巡航中", "Cruising");
+  return t("已落地", "Landed");
+}
+
+function govStatusLabel(status: string, t: (zh: string, en: string) => string) {
+  if (status === "PENDING") return t("待处理", "Pending");
+  if (status === "IN_PROGRESS") return t("进行中", "In Progress");
+  if (status === "RESOLVED") return t("已解决", "Resolved");
+  if (status === "CLOSED") return t("已关闭", "Closed");
+  return status;
+}
+
+// ===== Component =====
+
 export function FlightDetailPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  // Tabs removed per requirements
+  const [searchParams] = useSearchParams();
+  const flightId = searchParams.get("id");
+
+  const [flight, setFlight] = useState<FlightDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!flightId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    getFlightDetail(Number(flightId))
+      .then((res) => {
+        setFlight(res as FlightDetail);
+      })
+      .catch((err) => {
+        console.error("Failed to load flight detail:", err);
+      })
+      .finally(() => setLoading(false));
+  }, [flightId]);
 
   const tFactor = (name: string) => {
     const map: Record<string, string> = {
@@ -177,6 +245,26 @@ export function FlightDetailPage() {
     return map[name] ? t(map[name], name) : name;
   };
 
+  if (loading) {
+    return (
+      <div className="fd-root">
+        <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
+          {t("加载中...", "Loading...")}
+        </div>
+      </div>
+    );
+  }
+
+  if (!flight) {
+    return (
+      <div className="fd-root">
+        <div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>
+          {t("未找到航班信息", "Flight not found")}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fd-root">
       {/* Breadcrumb */}
@@ -204,17 +292,18 @@ export function FlightDetailPage() {
             {t("返回", "Back")}
           </button>
           <h1 className="fd-page-title">
-            {t("航班信息", "Flight Info")} - {flightInfo.flightNumber}
+            {t("航班信息", "Flight Info")} - {flight.flightNo}
           </h1>
         </div>
         <div className="fd-header-actions">
           <button
             className="fd-btn"
-            onClick={() => navigate("/risk-monitoring/flight-report")}
+            onClick={() =>
+              navigate(`/risk-monitoring/flight-report?id=${flight.id}`)
+            }
           >
             {t("查看报告", "View Report")}
           </button>
-          {/* 处置按钮已移除 */}
         </div>
       </div>
 
@@ -222,24 +311,34 @@ export function FlightDetailPage() {
       <div className="fd-info-bar">
         <div className="fd-info-item">
           <div className="fd-info-label">{t("航班号", "Flight Number")}</div>
-          <div className="fd-info-value">{flightInfo.flightNumber}</div>
+          <div className="fd-info-value">{flight.flightNo}</div>
         </div>
         <div className="fd-info-item">
-          <div className="fd-info-label">
-            {t("机尾号", "Aircraft Tail Number")}
+          <div className="fd-info-label">{t("机号", "Registration")}</div>
+          <div className="fd-info-value">
+            {flight.plane?.registration || "—"}
           </div>
-          <div className="fd-info-value">{flightInfo.tailNumber}</div>
         </div>
         <div className="fd-info-item">
           <div className="fd-info-label">{t("机型", "Aircraft Type")}</div>
-          <div className="fd-info-value">{flightInfo.aircraftType}</div>
+          <div className="fd-info-value">{flight.plane?.model || "—"}</div>
+        </div>
+        <div className="fd-info-item">
+          <div className="fd-info-label">PF</div>
+          <div className="fd-info-value">{flight.pf?.name || "—"}</div>
+        </div>
+        <div className="fd-info-item">
+          <div className="fd-info-label">PM</div>
+          <div className="fd-info-value">{flight.pm?.name || "—"}</div>
         </div>
         <div className="fd-info-item">
           <div className="fd-info-label">
             {t("出发机场", "Departure Airport")}
           </div>
           <div className="fd-info-value">
-            {t("KSFO (旧金山)", "KSFO (San Francisco)")}
+            {flight.departureAirport
+              ? `${flight.departureAirport.code} (${flight.departureAirport.name})`
+              : "—"}
           </div>
         </div>
         <div className="fd-info-item">
@@ -247,20 +346,24 @@ export function FlightDetailPage() {
             {t("到达机场", "Arrival Airport")}
           </div>
           <div className="fd-info-value">
-            {t("KORD (芝加哥奥黑尔)", "KORD (Chicago O'Hare)")}
+            {flight.arrivalAirport
+              ? `${flight.arrivalAirport.code} (${flight.arrivalAirport.name})`
+              : "—"}
           </div>
         </div>
         <div className="fd-info-item">
-          <div className="fd-info-label">{t("计划时间", "Scheduled Time")}</div>
+          <div className="fd-info-label">{t("起飞时间", "Departure Time")}</div>
           <div className="fd-info-value">
-            {t("2024年10月28日 08:15", "Oct 28, 2024 08:15 AM")}
+            {formatTime(flight.departureTime)}
           </div>
         </div>
         <div className="fd-info-item">
-          <div className="fd-info-label">
-            {t("预测时间窗口", "Forecast Time Window")}
-          </div>
-          <div className="fd-info-value">{t("±20 分钟", "±20 min")}</div>
+          <div className="fd-info-label">{t("降落时间", "Arrival Time")}</div>
+          <div className="fd-info-value">{formatTime(flight.arrivalTime)}</div>
+        </div>
+        <div className="fd-info-item">
+          <div className="fd-info-label">{t("状态", "Status")}</div>
+          <div className="fd-info-value">{statusLabel(flight.status, t)}</div>
         </div>
         <div className="fd-info-item">
           <div className="fd-info-label">
@@ -275,33 +378,21 @@ export function FlightDetailPage() {
                   width: 7,
                   height: 7,
                   borderRadius: "50%",
-                  background: "#f97316",
+                  background: riskLevelColor(flight.riskLevel),
                   display: "inline-block",
                 }}
               />
-              {t("高", "High")}
+              {riskLevelLabel(flight.riskLevel, t)}
             </span>
           </div>
         </div>
         <div className="fd-info-item">
           <div className="fd-info-label">
-            {t("重大风险告警", "Major Risk Alert")}
+            {t("人为/飞机/环境评分", "H / A / E Score")}
           </div>
-          <div className="fd-info-value fd-info-value-red">
-            <span
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-            >
-              <span
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background: "#ef4444",
-                  display: "inline-block",
-                }}
-              />
-              {t("严重湍流", "Severe Turbulence")}
-            </span>
+          <div className="fd-info-value">
+            {flight.humanFactorScore} / {flight.aircraftFactorScore} /{" "}
+            {flight.environmentFactorScore}
           </div>
         </div>
         <div className="fd-info-item">
@@ -311,7 +402,7 @@ export function FlightDetailPage() {
           <div className="fd-info-value">
             <span className="fd-gov-status">
               <span className="fd-gov-dot" style={{ background: "#22c55e" }} />
-              {t("进行中", "In Progress")}
+              {govStatusLabel(flight.governanceStatus, t)}
             </span>
           </div>
         </div>
@@ -519,8 +610,6 @@ export function FlightDetailPage() {
             ))}
           </tbody>
         </table>
-
-        {/* Governance Section - hidden */}
       </div>
     </div>
   );

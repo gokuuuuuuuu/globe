@@ -1,151 +1,51 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import { getUserList, createUser } from "../api/user";
+import type { UserListParams, CreateUserDto } from "../api/user";
+import { useToast } from "../components/Toast";
 import "./SystemManagementPage.css";
 
 // ===== Types =====
 
-type Role = "admin" | "analyst" | "risk-manager";
-type UserStatus = "active" | "disabled";
+type Role = "ADMIN" | "ANALYST" | "RISK_MANAGER";
+type UserStatus = "ACTIVE" | "DISABLED";
 
 interface User {
-  id: string;
+  id: number;
   name: string;
   email: string;
   roles: Role[];
   status: UserStatus;
-  lastLogin: string;
+  lastLoginAt: string | null;
+  createdAt: string;
 }
 
-// ===== Mock Data =====
-
-const INITIAL_USERS: User[] = [
-  {
-    id: "80001",
-    name: "Jame Smith",
-    email: "dennseaan@gmail.com",
-    roles: ["admin"],
-    status: "active",
-    lastLogin: "Jun 13, 2023",
-  },
-  {
-    id: "90002",
-    name: "Manny Smith",
-    email: "manzjiat@gmail.com",
-    roles: ["analyst", "risk-manager"],
-    status: "disabled",
-    lastLogin: "Jan 25, 2023",
-  },
-  {
-    id: "80003",
-    name: "Ramclateny",
-    email: "darashnoa@gmail.com",
-    roles: ["analyst", "analyst"],
-    status: "active",
-    lastLogin: "Jun 13, 2023",
-  },
-  {
-    id: "80004",
-    name: "Jamtissov",
-    email: "jamshurl@gmail.com",
-    roles: ["risk-manager"],
-    status: "active",
-    lastLogin: "Jun 17, 2023",
-  },
-  {
-    id: "80005",
-    name: "Davin Smith",
-    email: "barinsmith@gmail.com",
-    roles: ["risk-manager"],
-    status: "disabled",
-    lastLogin: "Jun 17, 2023",
-  },
-  {
-    id: "80006",
-    name: "Marvy Thumni",
-    email: "manarston@gmail.com",
-    roles: ["admin"],
-    status: "active",
-    lastLogin: "",
-  },
-  {
-    id: "80007",
-    name: "Marc Hode",
-    email: "mewhools@gmail.com",
-    roles: ["analyst"],
-    status: "active",
-    lastLogin: "",
-  },
-  {
-    id: "80008",
-    name: "Laran Say",
-    email: "larankey@gmail.com",
-    roles: ["analyst"],
-    status: "disabled",
-    lastLogin: "",
-  },
-  {
-    id: "800010",
-    name: "Saroni Wooom",
-    email: "nazsaan@gmail.com",
-    roles: ["risk-manager"],
-    status: "active",
-    lastLogin: "",
-  },
-  {
-    id: "800011",
-    name: "Jory Deenn",
-    email: "maleven@gmail.com",
-    roles: ["admin"],
-    status: "disabled",
-    lastLogin: "",
-  },
-  {
-    id: "800112",
-    name: "Farma Manguin",
-    email: "arrernan@gmail.com",
-    roles: ["analyst", "risk-manager"],
-    status: "active",
-    lastLogin: "",
-  },
-  {
-    id: "800113",
-    name: "Nick Bang",
-    email: "nicktrans@gmail.com",
-    roles: ["risk-manager", "analyst"],
-    status: "active",
-    lastLogin: "",
-  },
-  {
-    id: "800114",
-    name: "John Emtha",
-    email: "adkostas@gmail.com",
-    roles: ["risk-manager"],
-    status: "disabled",
-    lastLogin: "",
-  },
-];
+const PAGE_SIZE = 10;
 
 const PERM_MATRIX = [
   {
     role: "系统管理员",
-    roleEn: "System Admin",
+    roleEn: "Admin",
+    roleKey: "ADMIN",
     viewReports: "granted",
     editRules: "granted",
     manageUsers: "granted",
   },
   {
-    role: "安全管理者",
-    roleEn: "Safety Manager",
+    role: "分析员",
+    roleEn: "Analyst",
+    roleKey: "ANALYST",
     viewReports: "granted",
-    editRules: "granted",
+    editRules: "denied",
     manageUsers: "denied",
   },
   {
-    role: "普通用户",
-    roleEn: "User",
+    role: "风险管理者",
+    roleEn: "Risk Manager",
+    roleKey: "RISK_MANAGER",
     viewReports: "granted",
-    editRules: "denied",
+    editRules: "granted",
     manageUsers: "denied",
   },
 ];
@@ -155,73 +55,95 @@ const PERM_MATRIX = [
 export function SystemManagementPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [search, setSearch] = useState("");
-  const [page] = useState(1);
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS);
-  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [page, setPage] = useState(1);
+  const [users, setUsers] = useState<User[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<UserStatus | "">("");
+  const [roleFilter, setRoleFilter] = useState<Role | "">("");
+
   const [showAddModal, setShowAddModal] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState("");
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
-    role: "analyst" as Role,
+    password: "",
+    role: "ANALYST" as Role,
   });
 
-  const toggleUserStatus = (userId: string) => {
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId
-          ? { ...u, status: u.status === "active" ? "disabled" : "active" }
-          : u,
-      ),
-    );
-  };
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params: UserListParams = { page, pageSize: PAGE_SIZE };
+      if (search.trim()) params.keyword = search.trim();
+      if (statusFilter) params.status = statusFilter;
+      if (roleFilter) params.role = roleFilter;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const res = (await getUserList(params)) as Record<string, any>;
+      setUsers(res.items ?? []);
+      setTotal(res.total ?? 0);
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, statusFilter, roleFilter]);
 
-  const handleAddUser = () => {
-    if (!newUser.name || !newUser.email) return;
-    const id = String(90000 + Math.floor(Math.random() * 10000));
-    setUsers((prev) => [
-      ...prev,
-      {
-        id,
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      setAddError(t("请填写所有必填项", "Please fill in all required fields"));
+      return;
+    }
+    setAddLoading(true);
+    setAddError("");
+    try {
+      const dto: CreateUserDto = {
         name: newUser.name,
         email: newUser.email,
+        password: newUser.password,
         roles: [newUser.role],
-        status: "active" as UserStatus,
-        lastLogin: "",
-      },
-    ]);
-    setNewUser({ name: "", email: "", role: "analyst" });
-    setShowAddModal(false);
+      };
+      await createUser(dto);
+      toast(t("用户创建成功", "User created successfully"), "success");
+      setNewUser({ name: "", email: "", password: "", role: "ANALYST" });
+      setShowAddModal(false);
+      setPage(1);
+      fetchUsers();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      toast(msg || t("创建失败", "Failed to create user"), "error");
+      setAddError(msg || t("创建失败", "Failed to create user"));
+    } finally {
+      setAddLoading(false);
+    }
   };
 
   const tRole = (role: Role) => {
     const map: Record<Role, [string, string]> = {
-      admin: ["管理员", "Admin"],
-      analyst: ["分析师", "Analyst"],
-      "risk-manager": ["风险经理", "Risk Manager"],
+      ADMIN: ["管理员", "Admin"],
+      ANALYST: ["分析员", "Analyst"],
+      RISK_MANAGER: ["风险管理者", "Risk Manager"],
     };
-    return t(map[role][0], map[role][1]);
+    return t(map[role]?.[0] || role, map[role]?.[1] || role);
   };
 
   const tStatus = (status: UserStatus) =>
-    status === "active" ? t("启用", "Active") : t("禁用", "Disabled");
+    status === "ACTIVE" ? t("启用", "Active") : t("禁用", "Disabled");
 
-  const confirmDelete = () => {
-    if (deletingUser) {
-      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
-    }
-    setDeletingUser(null);
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "—";
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("zh-CN");
   };
-
-  const filtered = users.filter((u) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      u.id.includes(q) ||
-      u.name.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
-    );
-  });
 
   return (
     <div className="smp-root">
@@ -252,12 +174,42 @@ export function SystemManagementPage() {
               <input
                 className="smp-search"
                 type="text"
-                placeholder={t("搜索...", "Search")}
+                placeholder={t("搜索姓名/邮箱...", "Search name/email...")}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
               />
             </div>
             <div className="smp-toolbar-right">
+              <select
+                className="smp-filter-select"
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value as UserStatus | "");
+                  setPage(1);
+                }}
+              >
+                <option value="">{t("全部状态", "All Status")}</option>
+                <option value="ACTIVE">{t("启用", "Active")}</option>
+                <option value="DISABLED">{t("禁用", "Disabled")}</option>
+              </select>
+              <select
+                className="smp-filter-select"
+                value={roleFilter}
+                onChange={(e) => {
+                  setRoleFilter(e.target.value as Role | "");
+                  setPage(1);
+                }}
+              >
+                <option value="">{t("全部角色", "All Roles")}</option>
+                <option value="ADMIN">{t("管理员", "Admin")}</option>
+                <option value="ANALYST">{t("分析员", "Analyst")}</option>
+                <option value="RISK_MANAGER">
+                  {t("风险管理者", "Risk Manager")}
+                </option>
+              </select>
               <button
                 className="smp-add-btn"
                 onClick={() => setShowAddModal(true)}
@@ -273,87 +225,120 @@ export function SystemManagementPage() {
                 <thead>
                   <tr>
                     <th style={{ width: 36 }} />
-                    <th className="sortable">
-                      {t("用户 ID", "User ID")}
-                      <span className="smp-sort-icon">↑</span>
-                    </th>
+                    <th>ID</th>
                     <th>{t("姓名", "Name")}</th>
                     <th>{t("邮箱", "Email")}</th>
-                    <th className="sortable">
-                      {t("分配角色", "Assigned Roles")}
-                      <span className="smp-sort-icon">⇅</span>
-                    </th>
+                    <th>{t("分配角色", "Assigned Roles")}</th>
                     <th>{t("状态", "Status")}</th>
-                    <th className="sortable">
-                      {t("最后登录", "Last Login")}
-                      <span className="smp-sort-icon">⇅</span>
-                    </th>
-                    <th />
+                    <th>{t("最后登录", "Last Login")}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((u) => (
-                    <tr key={u.id}>
-                      <td />
-                      <td>{u.id}</td>
-                      <td>{u.name}</td>
-                      <td>{u.email}</td>
-                      <td>
-                        <div className="smp-role-badges">
-                          {u.roles.map((r, i) => (
-                            <span key={i} className={`smp-role-badge ${r}`}>
-                              {tRole(r)}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td>
-                        <span
-                          className="smp-status smp-status-toggle"
-                          onClick={() => toggleUserStatus(u.id)}
-                          title={t("点击切换状态", "Click to toggle status")}
-                        >
-                          <span className={`smp-status-dot ${u.status}`} />
-                          {tStatus(u.status)}
-                        </span>
-                      </td>
-                      <td>{u.lastLogin || "—"}</td>
-                      <td>
-                        <button
-                          className="smp-delete-btn"
-                          title={t("删除", "Delete")}
-                          onClick={() => setDeletingUser(u)}
-                        >
-                          &#128465;
-                        </button>
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        style={{
+                          textAlign: "center",
+                          padding: 32,
+                          color: "#64748b",
+                        }}
+                      >
+                        {t("加载中...", "Loading...")}
                       </td>
                     </tr>
-                  ))}
+                  ) : users.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        style={{
+                          textAlign: "center",
+                          padding: 32,
+                          color: "#64748b",
+                        }}
+                      >
+                        {t("暂无数据", "No data")}
+                      </td>
+                    </tr>
+                  ) : (
+                    users.map((u) => (
+                      <tr key={u.id}>
+                        <td />
+                        <td>{u.id}</td>
+                        <td>{u.name}</td>
+                        <td>{u.email}</td>
+                        <td>
+                          <div className="smp-role-badges">
+                            {u.roles.map((r, i) => (
+                              <span
+                                key={i}
+                                className={`smp-role-badge ${r.toLowerCase()}`}
+                              >
+                                {tRole(r)}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td>
+                          <span className="smp-status">
+                            <span
+                              className={`smp-status-dot ${u.status.toLowerCase()}`}
+                            />
+                            {tStatus(u.status)}
+                          </span>
+                        </td>
+                        <td>{formatDate(u.lastLoginAt)}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="smp-pagination">
-              <button className="smp-page-btn">&lsaquo;</button>
-              <button className="smp-page-btn active">{page}</button>
-              <button className="smp-page-btn">&rsaquo;</button>
+              <span style={{ color: "#64748b", fontSize: 12, marginRight: 12 }}>
+                {total} {t("条记录", "records")}
+              </span>
+              <button
+                className="smp-page-btn"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                &lsaquo;
+              </button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const start = Math.max(1, Math.min(page - 2, totalPages - 4));
+                const p = start + i;
+                if (p > totalPages) return null;
+                return (
+                  <button
+                    key={p}
+                    className={`smp-page-btn ${p === page ? "active" : ""}`}
+                    onClick={() => setPage(p)}
+                  >
+                    {p}
+                  </button>
+                );
+              })}
+              <button
+                className="smp-page-btn"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                &rsaquo;
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Right: Role-Permission Matrices */}
+        {/* Right: Role-Permission Matrix */}
         <div className="smp-right">
           <div className="smp-right-card">
             <div className="smp-right-title">
-              {t("角色权限矩阵", "Role-Permission Matrices")}
+              {t("角色权限矩阵", "Role-Permission Matrix")}
             </div>
             <table className="smp-perm-table">
               <thead>
-                <tr>
-                  <th>{t("分配角色", "Assigned Role")}</th>
-                  <th colSpan={3}>{t("权限", "Permissions")}</th>
-                  <th>{t("操作", "Actions")}</th>
-                </tr>
                 <tr>
                   <th>{t("角色", "Role")}</th>
                   <th>
@@ -368,12 +353,11 @@ export function SystemManagementPage() {
                     <span className="smp-perm-header-icon">&#128101;</span>
                     {t("管理用户", "Manage Users")}
                   </th>
-                  <th />
                 </tr>
               </thead>
               <tbody>
                 {PERM_MATRIX.map((row) => (
-                  <tr key={row.role}>
+                  <tr key={row.roleKey}>
                     <td>{t(row.role, row.roleEn)}</td>
                     <td>
                       <span className={`smp-perm-icon ${row.viewReports}`}>
@@ -390,61 +374,14 @@ export function SystemManagementPage() {
                         {row.manageUsers === "granted" ? "✅" : "⚪"}
                       </span>
                     </td>
-                    <td />
                   </tr>
                 ))}
               </tbody>
             </table>
-            <div className="smp-perm-pagination">
-              <span>1 our 3</span>
-              <button className="smp-perm-nav-btn">&lsaquo;</button>
-              <button className="smp-perm-nav-btn">&rsaquo;</button>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Delete Confirm Modal */}
-      {deletingUser && (
-        <div
-          className="smp-modal-overlay"
-          onClick={() => setDeletingUser(null)}
-        >
-          <div className="smp-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="smp-modal-header">
-              <h3>{t("确认删除", "Confirm Delete")}</h3>
-              <button
-                className="smp-modal-close"
-                onClick={() => setDeletingUser(null)}
-              >
-                &#10005;
-              </button>
-            </div>
-            <div className="smp-modal-body">
-              <p>
-                {t(
-                  `确定要删除用户「${deletingUser.name}」吗？此操作不可撤销。`,
-                  `Are you sure you want to delete user "${deletingUser.name}"? This action cannot be undone.`,
-                )}
-              </p>
-            </div>
-            <div className="smp-modal-footer">
-              <button
-                className="smp-modal-btn smp-modal-cancel"
-                onClick={() => setDeletingUser(null)}
-              >
-                {t("取消", "Cancel")}
-              </button>
-              <button
-                className="smp-modal-btn smp-modal-delete"
-                onClick={confirmDelete}
-              >
-                {t("删除", "Delete")}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Add User Modal */}
       {showAddModal && (
         <div
@@ -474,7 +411,7 @@ export function SystemManagementPage() {
                       marginBottom: 4,
                     }}
                   >
-                    {t("姓名", "Name")}
+                    {t("姓名", "Name")} *
                   </label>
                   <input
                     className="smp-modal-input"
@@ -494,7 +431,7 @@ export function SystemManagementPage() {
                       marginBottom: 4,
                     }}
                   >
-                    {t("邮箱", "Email")}
+                    {t("邮箱", "Email")} *
                   </label>
                   <input
                     className="smp-modal-input"
@@ -503,6 +440,30 @@ export function SystemManagementPage() {
                       setNewUser({ ...newUser, email: e.target.value })
                     }
                     placeholder={t("输入邮箱", "Enter email")}
+                  />
+                </div>
+                <div>
+                  <label
+                    style={{
+                      display: "block",
+                      fontSize: 12,
+                      color: "#94a3b8",
+                      marginBottom: 4,
+                    }}
+                  >
+                    {t("密码", "Password")} *
+                  </label>
+                  <input
+                    className="smp-modal-input"
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) =>
+                      setNewUser({ ...newUser, password: e.target.value })
+                    }
+                    placeholder={t(
+                      "8-64位，含字母和数字",
+                      "8-64 chars, letters & numbers",
+                    )}
                   />
                 </div>
                 <div>
@@ -523,17 +484,18 @@ export function SystemManagementPage() {
                       setNewUser({ ...newUser, role: e.target.value as Role })
                     }
                   >
-                    <option value="admin">
-                      {t("系统管理员", "System Admin")}
-                    </option>
-                    <option value="analyst">
-                      {t("安全管理者", "Safety Manager")}
-                    </option>
-                    <option value="risk-manager">
-                      {t("普通用户", "User")}
+                    <option value="ADMIN">{t("管理员", "Admin")}</option>
+                    <option value="ANALYST">{t("分析员", "Analyst")}</option>
+                    <option value="RISK_MANAGER">
+                      {t("风险管理者", "Risk Manager")}
                     </option>
                   </select>
                 </div>
+                {addError && (
+                  <div style={{ color: "#f87171", fontSize: 12 }}>
+                    {addError}
+                  </div>
+                )}
               </div>
             </div>
             <div className="smp-modal-footer">
@@ -546,8 +508,9 @@ export function SystemManagementPage() {
               <button
                 className="smp-modal-btn smp-modal-save"
                 onClick={handleAddUser}
+                disabled={addLoading}
               >
-                {t("添加", "Add")}
+                {addLoading ? t("添加中...", "Adding...") : t("添加", "Add")}
               </button>
             </div>
           </div>

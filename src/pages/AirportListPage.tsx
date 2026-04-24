@@ -1,48 +1,47 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import {
-  AIRPORTS,
-  FLIGHTS,
-  calculateRiskFromEnvironmentRisk,
-} from "../data/flightData";
+import { getAirportList } from "../api/airport";
+import AIRPORT_COORDS from "../data/airportCoords";
 import { useLanguage } from "../i18n/useLanguage";
 import "./AirportListPage.css";
 
+// ===== Types =====
+
+interface AirportItem {
+  rank: number;
+  id: number;
+  code: string;
+  name: string;
+  totalFlightCount: number;
+  highRiskFlightCount: number;
+  highRiskFlightRatio: number;
+  topRisk: string;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH";
+  riskDrivers: string[];
+  trend: { date: string; value: number }[];
+  lat?: number;
+  lon?: number;
+}
+
 // ===== Helpers =====
 
-function getRiskBadge(risk: number, t: (zh: string, en: string) => string) {
-  if (risk >= 7) return { label: t("高", "HIGH"), cls: "ap-badge-high" };
-  if (risk >= 3) return { label: t("中", "MEDIUM"), cls: "ap-badge-medium" };
+function getRiskBadge(
+  riskLevel: string,
+  t: (zh: string, en: string) => string,
+) {
+  if (riskLevel === "HIGH")
+    return { label: t("高", "HIGH"), cls: "ap-badge-high" };
+  if (riskLevel === "MEDIUM")
+    return { label: t("中", "MEDIUM"), cls: "ap-badge-medium" };
   return { label: t("低", "LOW"), cls: "ap-badge-low" };
 }
 
-function getMarkerColor(risk: number): string {
-  if (risk >= 7) return "#dc2626";
-  if (risk >= 3) return "#ea580c";
+function getMarkerColor(riskLevel: string): string {
+  if (riskLevel === "HIGH") return "#dc2626";
+  if (riskLevel === "MEDIUM") return "#ea580c";
   return "#22c55e";
-}
-
-function getRiskDrivers(t: (zh: string, en: string) => string) {
-  return [
-    t("天气延误", "Weather Delays"),
-    t("安全公告", "Security Advisory"),
-    t("拥堵", "Congestion"),
-    t("空管延误", "ATC Delays"),
-    t("维护", "Maintenance"),
-  ];
-}
-
-function getDrivers(seed: number, t: (zh: string, en: string) => string) {
-  const drivers = getRiskDrivers(t);
-  const count = 1 + (seed % 3);
-  const start = seed % drivers.length;
-  const result: string[] = [];
-  for (let i = 0; i < count; i++) {
-    result.push(drivers[(start + i) % drivers.length]);
-  }
-  return result;
 }
 
 const PAGE_SIZE = 12;
@@ -54,8 +53,14 @@ export function AirportListPage() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
-  const riskParam = searchParams.get("risk");
   const page = parseInt(searchParams.get("page") || "1", 10);
+
+  const [airports, setAirports] = useState<AirportItem[]>([]);
+  const [total, setTotal] = useState(0);
+  // 地图用：所有有坐标的机场（不受分页影响）
+  const [mapAirports, setMapAirports] = useState<AirportItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
   const setPage = (pageOrFn: number | ((prev: number) => number)) => {
     const newPage = typeof pageOrFn === "function" ? pageOrFn(page) : pageOrFn;
     const sp = new URLSearchParams(searchParams);
@@ -67,49 +72,70 @@ export function AirportListPage() {
     setSearchParams(sp, { replace: true });
   };
 
-  // Build ranked airport list
-  const rankedAirports = useMemo(() => {
-    // Count high-risk flights per airport
-    const highRiskMap: Record<string, number> = {};
-    FLIGHTS.forEach((f) => {
-      const { riskZone } = calculateRiskFromEnvironmentRisk(f.environmentRisk);
-      if (riskZone === "red" || riskZone === "yellow") {
-        highRiskMap[f.fromAirport] = (highRiskMap[f.fromAirport] || 0) + 1;
-        highRiskMap[f.toAirport] = (highRiskMap[f.toAirport] || 0) + 1;
-      }
-    });
-
-    return AIRPORTS.map((a, i) => {
-      // Mock: high-risk flight percentage around 1%
-      const mockPct = (0.5 + ((i * 7 + 3) % 11) / 10).toFixed(2);
-      const highRisk =
-        a.flightCount > 0
-          ? Math.max(1, Math.round((a.flightCount * parseFloat(mockPct)) / 100))
-          : 0;
-      return { ...a, highRiskFlights: highRisk, highRiskPct: mockPct };
-    })
-      .filter((a) => {
-        if (riskParam === "high" && a.environmentRisk < 7) return false;
-        if (search) {
-          const q = search.toLowerCase();
-          return (
-            a.code.toLowerCase().includes(q) ||
-            (a.code4 || "").toLowerCase().includes(q) ||
-            a.name.toLowerCase().includes(q)
-          );
+  // Fetch airport list from API
+  useEffect(() => {
+    let cancelled = false;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const params: Record<string, unknown> = {
+          page,
+          pageSize: PAGE_SIZE,
+        };
+        if (search.trim()) {
+          params.keyword = search.trim();
         }
-        return true;
-      })
-      .sort((a, b) => b.flightCount - a.flightCount);
-  }, [search]);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const res = (await getAirportList(params)) as Record<string, any>;
+        if (!cancelled) {
+          // 补充经纬度数据
+          const items = (res.items ?? []).map((a: AirportItem) => {
+            const coords = AIRPORT_COORDS[a.code];
+            return coords ? { ...a, lat: coords.lat, lon: coords.lon } : a;
+          });
+          setAirports(items);
+          setTotal(res.total ?? 0);
+        }
+      } catch (err) {
+        console.error("Failed to fetch airport list:", err);
+        if (!cancelled) {
+          setAirports([]);
+          setTotal(0);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => {
+      cancelled = true;
+    };
+  }, [page, search]);
 
-  const totalPages = Math.max(1, Math.ceil(rankedAirports.length / PAGE_SIZE));
-  const pagedAirports = rankedAirports.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  // 加载地图数据：所有有坐标的机场（仅一次）
+  useEffect(() => {
+    const icaoCodes = Object.keys(AIRPORT_COORDS);
+    // 用本地坐标数据构建地图标记，从 API 拿到的分页数据补充风险信息
+    const base = icaoCodes.map((code) => ({
+      id: 0,
+      rank: 0,
+      code,
+      name: code,
+      totalFlightCount: 0,
+      highRiskFlightCount: 0,
+      highRiskFlightRatio: 0,
+      topRisk: "",
+      riskLevel: "LOW" as const,
+      riskDrivers: [],
+      trend: [],
+      lat: AIRPORT_COORDS[code].lat,
+      lon: AIRPORT_COORDS[code].lon,
+    }));
+    setMapAirports(base);
+  }, []);
 
-  const topAirports = rankedAirports.slice(0, 10);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const topAirports = airports.slice(0, 10);
 
   // --- Resizable panels ---
   const mainRef = useRef<HTMLDivElement>(null);
@@ -213,9 +239,6 @@ export function AirportListPage() {
           />
         </div>
         <div className="ap-filter-actions">
-          {/* <button className="ap-btn ap-btn-primary">
-            {t("应用", "Apply")}
-          </button> */}
           <button
             className="ap-btn ap-btn-secondary"
             onClick={() => {
@@ -236,75 +259,86 @@ export function AirportListPage() {
             {t("机场排名", "Airport Ranking")}
           </div>
           <div className="ap-panel-body" style={{ overflowX: "hidden" }}>
-            <table className="ap-table">
-              <thead>
-                <tr>
-                  <th>{t("排名", "Rank")}</th>
-                  <th>{t("机场代码 / 名称", "Airport Code / Name")}</th>
-                  <th>{t("总航班数", "Total Flights")}</th>
-                  <th>{t("高风险航班占比", "High-Risk Flights %")}</th>
-                  <th>{t("首要风险", "Primary Risk")}</th>
-                  <th>{t("综合风险等级", "Composite Risk Level")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagedAirports.map((a, i) => {
-                  const rank = (page - 1) * PAGE_SIZE + i + 1;
-                  // risk badge computed via composite below
-                  const composite = getRiskBadge(
-                    a.environmentRisk >= 5
-                      ? a.environmentRisk
-                      : a.environmentRisk + 1,
-                    t,
-                  );
-                  return (
-                    <tr
-                      key={a.id}
-                      style={{ cursor: "pointer" }}
-                      onClick={() =>
-                        navigate(
-                          `/airport-center/airport-detail?code=${a.code}`,
-                        )
-                      }
-                    >
-                      <td>
-                        <span className="ap-rank">{rank}</span>
-                      </td>
-                      <td>
-                        <div className="ap-airport-code">
-                          {a.code4 || a.code}
-                        </div>
-                        <div className="ap-airport-name">
-                          {a.nameZh || a.name}
-                        </div>
-                      </td>
-                      <td>
-                        <span className="ap-total-flights">
-                          {a.flightCount}
-                        </span>
-                      </td>
-                      <td className="ap-high-risk-flights">
-                        {a.highRiskFlights}
-                        <br />
-                        <span className="ap-risk-percent">
-                          ({a.highRiskPct}%)
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ fontSize: 11, color: "#cbd5e1" }}>
-                          {getDrivers(i + rank, t)[0]}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`ap-risk-badge ${composite.cls}`}>
-                          {composite.label}
-                        </span>
+            {loading ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px 0",
+                  color: "#94a3b8",
+                }}
+              >
+                {t("加载中...", "Loading...")}
+              </div>
+            ) : (
+              <table className="ap-table">
+                <thead>
+                  <tr>
+                    <th>{t("排名", "Rank")}</th>
+                    <th>{t("机场代码 / 名称", "Airport Code / Name")}</th>
+                    <th>{t("总航班数", "Total Flights")}</th>
+                    <th>{t("高风险航班占比", "High-Risk Flights %")}</th>
+                    <th>{t("首要风险", "Primary Risk")}</th>
+                    <th>{t("综合风险等级", "Composite Risk Level")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {airports.map((a) => {
+                    const badge = getRiskBadge(a.riskLevel, t);
+                    return (
+                      <tr
+                        key={a.id}
+                        style={{ cursor: "pointer" }}
+                        onClick={() =>
+                          navigate(
+                            `/airport-center/airport-detail?code=${a.code}`,
+                          )
+                        }
+                      >
+                        <td>
+                          <span className="ap-rank">{a.rank}</span>
+                        </td>
+                        <td>
+                          <div className="ap-airport-code">{a.code}</div>
+                          <div className="ap-airport-name">{a.name}</div>
+                        </td>
+                        <td>
+                          <span className="ap-total-flights">
+                            {a.totalFlightCount}
+                          </span>
+                        </td>
+                        <td className="ap-high-risk-flights">
+                          {a.highRiskFlightCount}
+                          <br />
+                          <span className="ap-risk-percent">
+                            ({(a.highRiskFlightRatio * 100).toFixed(2)}%)
+                          </span>
+                        </td>
+                        <td>
+                          <span style={{ fontSize: 11, color: "#cbd5e1" }}>
+                            {a.topRisk}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`ap-risk-badge ${badge.cls}`}>
+                            {badge.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {airports.length === 0 && (
+                    <tr>
+                      <td
+                        colSpan={6}
+                        style={{ textAlign: "center", color: "#94a3b8" }}
+                      >
+                        {t("暂无数据", "No data")}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
           {/* Pagination */}
           <div className="ap-pagination">
@@ -375,45 +409,49 @@ export function AirportListPage() {
               <TileLayer
                 url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scl=1&style=8&x={x}&y={y}&z={z}"
                 subdomains={["1", "2", "3", "4"]}
-                // attribution='&copy; <a href="https://www.amap.com/">高德地图</a>'
                 className="ap-dark-tiles"
               />
-              {AIRPORTS.filter((a) => a.environmentRisk >= 3).map((a) => {
-                const color = getMarkerColor(a.environmentRisk);
-                const radius = Math.max(4, Math.min(12, a.flightCount / 10));
-                return (
-                  <CircleMarker
-                    key={a.id}
-                    center={[a.lat, a.lon]}
-                    radius={radius}
-                    pathOptions={{
-                      fillColor: color,
-                      fillOpacity: 0.7,
-                      color: color,
-                      weight: 1,
-                      opacity: 0.9,
-                    }}
-                  >
-                    <Tooltip>
-                      <div
-                        style={{
-                          background: "#0f172a",
-                          color: "#e2e8f0",
-                          padding: "4px 8px",
-                          borderRadius: 4,
-                          fontSize: 11,
-                        }}
-                      >
-                        <strong>{a.code4 || a.code}</strong> - {a.name}
-                        <br />
-                        {t("航班数：", "Flights: ")}
-                        {a.flightCount} | {t("风险：", "Risk: ")}
-                        {a.environmentRisk.toFixed(1)}
-                      </div>
-                    </Tooltip>
-                  </CircleMarker>
-                );
-              })}
+              {mapAirports
+                .filter((a) => a.lat && a.lon)
+                .map((a) => {
+                  const color = getMarkerColor(a.riskLevel);
+                  const radius = Math.max(
+                    4,
+                    Math.min(12, a.totalFlightCount / 10),
+                  );
+                  return (
+                    <CircleMarker
+                      key={a.id}
+                      center={[a.lat!, a.lon!]}
+                      radius={radius}
+                      pathOptions={{
+                        fillColor: color,
+                        fillOpacity: 0.7,
+                        color: color,
+                        weight: 1,
+                        opacity: 0.9,
+                      }}
+                    >
+                      <Tooltip>
+                        <div
+                          style={{
+                            background: "#0f172a",
+                            color: "#e2e8f0",
+                            padding: "4px 8px",
+                            borderRadius: 4,
+                            fontSize: 11,
+                          }}
+                        >
+                          <strong>{a.code}</strong> - {a.name}
+                          <br />
+                          {t("航班数：", "Flights: ")}
+                          {a.totalFlightCount} | {t("风险：", "Risk: ")}
+                          {a.riskLevel}
+                        </div>
+                      </Tooltip>
+                    </CircleMarker>
+                  );
+                })}
             </MapContainer>
             {/* Legend */}
             <div className="ap-map-legend">
@@ -451,13 +489,24 @@ export function AirportListPage() {
             {t("机场摘要卡片", "Airport Summary Cards")}
           </div>
           <div className="ap-cards-body">
-            {topAirports.map((a, i) => {
-              const badge = getRiskBadge(a.environmentRisk, t);
-              const drivers = getDrivers(i, t);
-              const riskFlightsPct = (
-                (a.highRiskFlights / Math.max(1, a.flightCount)) *
-                100
-              ).toFixed(2);
+            {topAirports.map((a) => {
+              const badge = getRiskBadge(a.riskLevel, t);
+              const riskFlightsPct = (a.highRiskFlightRatio * 100).toFixed(2);
+              // Build sparkline from trend data
+              const trendPoints =
+                a.trend && a.trend.length > 0
+                  ? a.trend
+                      .map((pt, idx) => {
+                        const x = (idx / Math.max(1, a.trend.length - 1)) * 60;
+                        const maxVal = Math.max(
+                          ...a.trend.map((p) => p.value),
+                          1,
+                        );
+                        const y = 18 - (pt.value / maxVal) * 16;
+                        return `${x},${y}`;
+                      })
+                      .join(" ")
+                  : `0,10 20,12 40,8 60,10`;
               return (
                 <div key={a.id} className="ap-summary-card">
                   <div className="ap-summary-card-header">
@@ -465,21 +514,19 @@ export function AirportListPage() {
                       <span
                         className="ap-summary-rank-dot"
                         style={{
-                          background: getMarkerColor(a.environmentRisk),
+                          background: getMarkerColor(a.riskLevel),
                         }}
                       >
-                        {i + 1}
+                        {a.rank}
                       </span>
-                      <span className="ap-summary-code">
-                        {a.code4 || a.code}
-                      </span>
+                      <span className="ap-summary-code">{a.code}</span>
                     </div>
-                    {/* Mini sparkline placeholder */}
+                    {/* Mini sparkline from trend data */}
                     <svg className="ap-summary-sparkline" viewBox="0 0 60 20">
                       <polyline
-                        points={`0,${15 - (i % 3) * 4} 10,${10 + (i % 2) * 5} 20,${8 - (i % 4)} 30,${12 + (i % 3) * 2} 40,${6 + (i % 5)} 50,${14 - (i % 2) * 3} 60,${10 + (i % 3)}`}
+                        points={trendPoints}
                         fill="none"
-                        stroke={getMarkerColor(a.environmentRisk)}
+                        stroke={getMarkerColor(a.riskLevel)}
                         strokeWidth="1.5"
                       />
                     </svg>
@@ -490,7 +537,7 @@ export function AirportListPage() {
                         {t("统计", "Stats")}
                       </div>
                       <div className="ap-summary-stat-value">
-                        {a.flightCount.toLocaleString()}
+                        {a.totalFlightCount.toLocaleString()}
                       </div>
                     </div>
                     <div className="ap-summary-stat">
@@ -503,16 +550,16 @@ export function AirportListPage() {
                     </div>
                     <div className="ap-summary-stat">
                       <div className="ap-summary-stat-label">
-                        {t("补助", "Grants")}
+                        {t("高风险数", "High Risk")}
                       </div>
                       <div className="ap-summary-stat-value">
-                        {(13.5 + i * 1.3).toFixed(1)}m
+                        {a.highRiskFlightCount}
                       </div>
                     </div>
                     <div className="ap-summary-stat">
                       <div className="ap-summary-stat-label">{badge.label}</div>
                       <div className="ap-summary-stat-value">
-                        {(29.9 - i * 2.1).toFixed(1)}m
+                        {a.totalFlightCount}
                       </div>
                     </div>
                   </div>
@@ -520,7 +567,7 @@ export function AirportListPage() {
                     {t("风险驱动因素", "Risk Drivers")}
                   </div>
                   <div className="ap-summary-drivers">
-                    {drivers.map((d, di) => (
+                    {a.riskDrivers.map((d, di) => (
                       <span key={di} className="ap-driver-tag">
                         <span className="ap-driver-icon">&#9650;</span>
                         {d}

@@ -1,117 +1,46 @@
 // @ts-nocheck
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
-import { downloadCSV } from "../utils/exportUtils";
+import {
+  getFlightPersonList,
+  getFlightPersonFilterOptions,
+  exportFlightPersons,
+} from "../api/flightPerson";
 import "./PersonnelListPage.css";
 
-// ---------- Mock Data ----------
+// ---------- Types ----------
 
-type RiskLevel = "High" | "Medium" | "Low";
+type RiskLevel = "HIGH" | "MEDIUM" | "LOW";
 
 interface Personnel {
-  id: string;
-  employeeId: string;
+  id: number;
+  empNo: string;
   name: string;
-  operatingUnit: string;
+  unit: string | null;
+  flightUnit: string | null;
+  aircraftType: string | null;
+  team: string | null;
+  squadron: string | null;
+  techGrade: string | null;
   riskLevel: RiskLevel;
-  humanFactorTags: string;
-  relatedHighRiskFlights: number;
+  humanFactorTags: string | null;
+  highRiskFlightCount: number;
 }
 
-import { FLEET_HIERARCHY, FLEET_UNITS } from "../data/fleetList";
-
-const AIRCRAFT_TYPES = ["B737", "B777", "A320", "A350"];
-const TECH_LEVELS = ["教员", "机长", "巡航机长", "第一副驾驶", "第二副驾驶"];
-
-const NAMES = [
-  "A. Brown",
-  "James Smith",
-  "J*** S**",
-  "Jamie Smith",
-  "R. Chen",
-  "M*** L**",
-  "David Wang",
-  "K. Johnson",
-  "L*** Z**",
-  "Sarah Lee",
-  "T. Wilson",
-  "P*** K**",
-  "Michael Zhang",
-  "H. Garcia",
-  "W*** T**",
-  "Robert Liu",
-  "E. Martinez",
-  "N*** W**",
-  "Jessica Huang",
-  "C. Taylor",
-  "F*** R**",
-  "Daniel Park",
-  "G. Anderson",
-  "B*** M**",
-  "Emily Zhou",
-  "S. Thomas",
-  "Q*** Y**",
-  "Andrew Kim",
-  "I. Jackson",
-  "V*** H**",
-  "Nathan Xu",
-  "O. White",
-  "Z*** D**",
-  "Christopher Li",
-  "U. Harris",
-  "X*** B**",
-  "Jennifer Wu",
-  "Y. Clark",
-  "A*** N**",
-  "Kevin Zhao",
-  "P. Lewis",
-  "D*** F**",
-  "Michelle Sun",
-  "J. Robinson",
-  "L*** G**",
-  "Ryan Ma",
-  "T. Walker",
-  "C*** E**",
-  "Amanda Qian",
-  "B. Young",
-];
-
-const MOCK_UNITS = [
-  "North Division - SQ101",
-  "North Division - SQ102",
-  "South Division - SQ203",
-  "East Division - SQ305",
-  "West Division - SQ101",
-  "Central Division - SQ102",
-];
-
-const RISK_LEVELS: RiskLevel[] = ["High", "Medium", "Low"];
-const TAGS = [
-  "Fatigue, Stress, Task Overload",
-  "Communication, Procedure Deviations",
-  "None",
-];
-
-function generateMockData(): Personnel[] {
-  const data: Personnel[] = [];
-  for (let i = 0; i < 50; i++) {
-    const riskIdx = i < 15 ? 0 : i < 35 ? 1 : 2;
-    data.push({
-      id: `p-${i}`,
-      employeeId: `EMP0${421 + i}`,
-      name: NAMES[i % NAMES.length],
-      operatingUnit: MOCK_UNITS[i % MOCK_UNITS.length],
-      riskLevel: RISK_LEVELS[riskIdx],
-      humanFactorTags: riskIdx === 3 ? "None" : TAGS[i % 3],
-      relatedHighRiskFlights:
-        riskIdx === 3 ? 0 : Math.min(4, Math.floor(Math.random() * 5)),
-    });
-  }
-  return data;
+interface Summary {
+  totalCount: number;
+  highRiskCount: number;
+  avgRiskScore: number;
 }
 
-const MOCK_PERSONNEL = generateMockData();
+interface FilterOptions {
+  flightUnits: string[];
+  aircraftTypes: string[];
+  teams: string[];
+  squadrons: string[];
+  techGrades: string[];
+}
 
 // ---------- Component ----------
 
@@ -121,26 +50,37 @@ export function PersonnelListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [filterCollapsed, setFilterCollapsed] = useState(true);
+  const [loading, setLoading] = useState(false);
+
+  // Data
+  const [data, setData] = useState<Personnel[]>([]);
+  const [total, setTotal] = useState(0);
+  const [summary, setSummary] = useState<Summary>({
+    totalCount: 0,
+    highRiskCount: 0,
+    avgRiskScore: 0,
+  });
+
+  // Filter options from API
+  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
+    flightUnits: [],
+    aircraftTypes: [],
+    teams: [],
+    squadrons: [],
+    techGrades: [],
+  });
 
   // Filters
-  const [unit, setUnit] = useState(FLEET_UNITS[0] || "");
-  const [aircraftType, setAircraftType] = useState("B737");
+  const [unit, setUnit] = useState("");
+  const [aircraftType, setAircraftType] = useState("");
   const [brigade, setBrigade] = useState("");
   const [squadron, setSquadron] = useState("");
-  const [techLevel, setTechLevel] = useState("机长");
+  const [techLevel, setTechLevel] = useState("");
+  const [riskLevel, setRiskLevel] = useState("");
 
-  // 根据选中的飞行单位获取大队列表
-  const brigadeOptions =
-    unit && FLEET_HIERARCHY[unit] ? Object.keys(FLEET_HIERARCHY[unit]) : [];
-
-  // 根据选中的大队获取中队列表
-  const squadronOptions =
-    unit && brigade && FLEET_HIERARCHY[unit]?.[brigade]
-      ? FLEET_HIERARCHY[unit][brigade]
-      : [];
   const [searchText, setSearchText] = useState("");
-  const [dateFrom, setDateFrom] = useState("2024-02-15");
-  const [dateTo, setDateTo] = useState("2024-05-15");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Pagination
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -156,43 +96,78 @@ export function PersonnelListPage() {
   };
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
-  const riskParam = searchParams.get("risk");
-  const filteredData = useMemo(() => {
-    let data = MOCK_PERSONNEL;
-    if (riskParam === "high") {
-      data = data.filter((p) => p.riskLevel === "高");
-    }
-    if (searchText) {
-      const q = searchText.toLowerCase();
-      data = data.filter(
-        (p) =>
-          p.employeeId.toLowerCase().includes(q) ||
-          p.name.toLowerCase().includes(q) ||
-          p.operatingUnit.toLowerCase().includes(q),
-      );
-    }
-    return data;
-  }, [searchText, riskParam]);
+  // Load filter options on mount
+  useEffect(() => {
+    getFlightPersonFilterOptions()
+      .then((res) => {
+        setFilterOptions(res);
+      })
+      .catch(() => {});
+  }, []);
 
-  const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-  const pageData = filteredData.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage,
-  );
+  // Fetch data
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const riskParam = searchParams.get("risk");
+      const params: Record<string, any> = {
+        page,
+        pageSize: rowsPerPage,
+      };
+      if (searchText) params.keyword = searchText;
+      if (unit) params.flightUnit = unit;
+      if (aircraftType) params.aircraftType = aircraftType;
+      if (brigade) params.team = brigade;
+      if (squadron) params.squadron = squadron;
+      if (techLevel) params.techGrade = techLevel;
+      if (riskLevel) params.riskLevel = riskLevel;
+      if (riskParam === "high") params.riskLevel = "HIGH";
+      if (dateFrom) params.startDate = dateFrom;
+      if (dateTo) params.endDate = dateTo;
 
-  const totalPersonnel = MOCK_PERSONNEL.length;
-  const highRiskCount = MOCK_PERSONNEL.filter(
-    (p) => p.riskLevel === "High",
-  ).length;
-  const avgRiskScore = 4.25;
+      const res = await getFlightPersonList(params);
+      const result = res;
+      setData(result.items || []);
+      setTotal(result.total || 0);
+      if (result.summary) {
+        setSummary(result.summary);
+      }
+    } catch (err) {
+      console.error("Failed to fetch personnel list:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    page,
+    rowsPerPage,
+    searchText,
+    unit,
+    aircraftType,
+    brigade,
+    squadron,
+    techLevel,
+    riskLevel,
+    dateFrom,
+    dateTo,
+    searchParams,
+  ]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const totalPages = Math.ceil(total / rowsPerPage);
 
   const handleReset = () => {
-    setUnit(FLEET_UNITS[0] || "");
-    setAircraftType("B737");
+    setUnit("");
+    setAircraftType("");
     setBrigade("");
     setSquadron("");
-    setTechLevel("机长");
+    setTechLevel("");
+    setRiskLevel("");
     setSearchText("");
+    setDateFrom("");
+    setDateTo("");
     setPage(1);
   };
 
@@ -202,33 +177,58 @@ export function PersonnelListPage() {
 
   function riskBadgeClass(level: RiskLevel): string {
     switch (level) {
-      case "High":
+      case "HIGH":
         return "pl-risk-high";
-      case "Medium":
+      case "MEDIUM":
         return "pl-risk-medium";
-      case "Low":
+      case "LOW":
         return "pl-risk-low";
+      default:
+        return "";
     }
   }
 
   function riskLabel(level: RiskLevel): string {
     switch (level) {
-      case "High":
+      case "HIGH":
         return t("高", "High");
-      case "Medium":
+      case "MEDIUM":
         return t("中", "Medium");
-      case "Low":
+      case "LOW":
         return t("低", "Low");
+      default:
+        return level || "";
     }
   }
 
-  function translateTags(tags: string): string {
-    if (tags === "Fatigue, Stress, Task Overload")
-      return t("疲劳、压力、任务过载", "Fatigue, Stress, Task Overload");
-    if (tags === "Communication, Procedure Deviations")
-      return t("通信、程序偏差", "Communication, Procedure Deviations");
-    return t("无", "None");
-  }
+  // Handle export
+  const handleExport = async () => {
+    try {
+      const params: Record<string, any> = {};
+      if (searchText) params.keyword = searchText;
+      if (unit) params.flightUnit = unit;
+      if (aircraftType) params.aircraftType = aircraftType;
+      if (brigade) params.team = brigade;
+      if (squadron) params.squadron = squadron;
+      if (techLevel) params.techGrade = techLevel;
+      if (riskLevel) params.riskLevel = riskLevel;
+      if (dateFrom) params.startDate = dateFrom;
+      if (dateTo) params.endDate = dateTo;
+
+      const res = await exportFlightPersons(params);
+      const blob = new Blob([res], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = t("人员列表.xlsx", "personnel_list.xlsx");
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Export failed:", err);
+    }
+  };
 
   // Pagination page numbers
   const getPageNumbers = () => {
@@ -323,7 +323,8 @@ export function PersonnelListPage() {
                     setSquadron("");
                   }}
                 >
-                  {FLEET_UNITS.map((u) => (
+                  <option value="">{t("全部", "All")}</option>
+                  {filterOptions.flightUnits.map((u) => (
                     <option key={u} value={u}>
                       {u}
                     </option>
@@ -337,7 +338,8 @@ export function PersonnelListPage() {
                   value={aircraftType}
                   onChange={(e) => setAircraftType(e.target.value)}
                 >
-                  {AIRCRAFT_TYPES.map((a) => (
+                  <option value="">{t("全部", "All")}</option>
+                  {filterOptions.aircraftTypes.map((a) => (
                     <option key={a} value={a}>
                       {a}
                     </option>
@@ -355,7 +357,7 @@ export function PersonnelListPage() {
                   }}
                 >
                   <option value="">{t("全部", "All")}</option>
-                  {brigadeOptions.map((b) => (
+                  {filterOptions.teams.map((b) => (
                     <option key={b} value={b}>
                       {b}
                     </option>
@@ -370,7 +372,7 @@ export function PersonnelListPage() {
                   onChange={(e) => setSquadron(e.target.value)}
                 >
                   <option value="">{t("全部", "All")}</option>
-                  {squadronOptions.map((s) => (
+                  {filterOptions.squadrons.map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
@@ -384,11 +386,25 @@ export function PersonnelListPage() {
                   value={techLevel}
                   onChange={(e) => setTechLevel(e.target.value)}
                 >
-                  {TECH_LEVELS.map((l) => (
+                  <option value="">{t("全部", "All")}</option>
+                  {filterOptions.techGrades.map((l) => (
                     <option key={l} value={l}>
                       {l}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div className="pl-filter-item">
+                <label>{t("风险等级", "Risk Level")}</label>
+                <select
+                  className="pl-select"
+                  value={riskLevel}
+                  onChange={(e) => setRiskLevel(e.target.value)}
+                >
+                  <option value="">{t("全部", "All")}</option>
+                  <option value="HIGH">{t("高", "High")}</option>
+                  <option value="MEDIUM">{t("中", "Medium")}</option>
+                  <option value="LOW">{t("低", "Low")}</option>
                 </select>
               </div>
               <div className="pl-filter-item">
@@ -414,7 +430,7 @@ export function PersonnelListPage() {
             {/* Stats */}
             <div className="pl-stats">
               <div className="pl-stat-box">
-                <span className="pl-stat-value">{totalPersonnel}</span>
+                <span className="pl-stat-value">{summary.totalCount}</span>
                 <span className="pl-stat-label">
                   {t("总人员", "Total Personnel")}
                 </span>
@@ -433,14 +449,14 @@ export function PersonnelListPage() {
                     <line x1="12" y1="9" x2="12" y2="13" />
                     <line x1="12" y1="17" x2="12.01" y2="17" />
                   </svg>
-                  {highRiskCount}
+                  {summary.highRiskCount}
                 </span>
                 <span className="pl-stat-label">
                   {t("高风险", "High-Risk")}
                 </span>
               </div>
               <div className="pl-stat-box">
-                <span className="pl-stat-value">{avgRiskScore}</span>
+                <span className="pl-stat-value">{summary.avgRiskScore}</span>
                 <span className="pl-stat-label">
                   {t("平均风险分", "Avg Risk Score")}
                 </span>
@@ -486,28 +502,7 @@ export function PersonnelListPage() {
           />
         </div>
         <div className="pl-export-btns">
-          <button
-            className="pl-export-btn"
-            onClick={() => {
-              const headers = [
-                t("工号", "Employee No."),
-                t("姓名", "Name"),
-                t("单位", "Unit"),
-                t("综合风险等级", "Composite Risk Level"),
-                t("主要人为因素标签", "Main Human Factor Tags"),
-                t("相关高风险航班", "Related High-Risk Flights"),
-              ];
-              const rows = filteredData.map((p) => [
-                p.employeeId,
-                p.name,
-                p.operatingUnit,
-                riskLabel(p.riskLevel),
-                translateTags(p.humanFactorTags),
-                p.relatedHighRiskFlights,
-              ]);
-              downloadCSV(t("人员列表", "personnel_list"), headers, rows);
-            }}
-          >
+          <button className="pl-export-btn" onClick={handleExport}>
             <svg
               width="14"
               height="14"
@@ -527,49 +522,86 @@ export function PersonnelListPage() {
 
       {/* Table */}
       <div className="pl-table-wrapper">
-        <table className="pl-table">
-          <thead>
-            <tr>
-              <th className="pl-th-check" />
-              <th>{t("工号", "Employee No.")}</th>
-              <th>{t("姓名", "Name")}</th>
-              <th>{t("单位", "Unit")}</th>
-              <th>{t("综合风险等级", "Composite Risk Level")}</th>
-              <th>{t("主要人为因素标签", "Main Human Factor Tags")}</th>
-              <th>{t("相关高风险航班", "Related High-Risk Flights")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageData.map((person) => (
-              <tr
-                key={person.id}
-                className={person.riskLevel === "High" ? "pl-row-high" : ""}
-                style={{ cursor: "pointer" }}
-                onClick={() =>
-                  navigate(`/personnel-center/personnel-detail?id=${person.id}`)
-                }
-              >
-                <td className="pl-td-check" />
-                <td className="pl-td-empid">{person.employeeId}</td>
-                <td>{person.name}</td>
-                <td>{person.operatingUnit}</td>
-                <td>
-                  <span
-                    className={`pl-risk-badge ${riskBadgeClass(person.riskLevel)}`}
-                  >
-                    {riskLabel(person.riskLevel)}
-                  </span>
-                </td>
-                <td>
-                  <span className="pl-tags">
-                    {translateTags(person.humanFactorTags)}
-                  </span>
-                </td>
-                <td>{person.relatedHighRiskFlights}</td>
+        {loading && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 0",
+              color: "#94a3b8",
+            }}
+          >
+            {t("加载中...", "Loading...")}
+          </div>
+        )}
+        {!loading && (
+          <table className="pl-table">
+            <thead>
+              <tr>
+                <th className="pl-th-check" />
+                <th>{t("工号", "Employee No.")}</th>
+                <th>{t("姓名", "Name")}</th>
+                <th>{t("飞行单位", "Flight Unit")}</th>
+                <th>{t("机型", "Aircraft Type")}</th>
+                <th>{t("大队", "Brigade")}</th>
+                <th>{t("中队", "Squadron")}</th>
+                <th>{t("技术等级", "Technical Level")}</th>
+                <th>{t("综合风险等级", "Composite Risk Level")}</th>
+                <th>{t("主要人为因素标签", "Main Human Factor Tags")}</th>
+                <th>{t("相关高风险航班", "Related High-Risk Flights")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.map((person) => (
+                <tr
+                  key={person.id}
+                  className={person.riskLevel === "HIGH" ? "pl-row-high" : ""}
+                  style={{ cursor: "pointer" }}
+                  onClick={() =>
+                    navigate(
+                      `/personnel-center/personnel-detail?id=${person.empNo}`,
+                    )
+                  }
+                >
+                  <td className="pl-td-check" />
+                  <td className="pl-td-empid">{person.empNo}</td>
+                  <td>{person.name}</td>
+                  <td>{person.flightUnit || "-"}</td>
+                  <td>{person.aircraftType || "-"}</td>
+                  <td>{person.team || "-"}</td>
+                  <td>{person.squadron || "-"}</td>
+                  <td>{person.techGrade || "-"}</td>
+                  <td>
+                    <span
+                      className={`pl-risk-badge ${riskBadgeClass(person.riskLevel)}`}
+                    >
+                      {riskLabel(person.riskLevel)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="pl-tags">
+                      {person.humanFactorTags || t("无", "None")}
+                    </span>
+                  </td>
+                  <td>{person.highRiskFlightCount}</td>
+                </tr>
+              ))}
+              {data.length === 0 && !loading && (
+                <tr>
+                  <td
+                    colSpan={11}
+                    style={{
+                      textAlign: "center",
+                      padding: "40px 0",
+                      color: "#94a3b8",
+                    }}
+                  >
+                    {t("暂无数据", "No data")}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
 
       {/* Pagination */}
