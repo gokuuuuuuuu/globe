@@ -69,6 +69,13 @@ const http = {
   ): Promise<T> {
     return request.put(url, data, config) as unknown as Promise<T>;
   },
+  patch<T = any>(
+    url: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<T> {
+    return request.patch(url, data, config) as unknown as Promise<T>;
+  },
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
     return request.delete(url, config) as unknown as Promise<T>;
   },

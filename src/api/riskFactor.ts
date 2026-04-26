@@ -49,7 +49,7 @@ export function createRiskFactor(data: CreateRiskFactorDto) {
 }
 
 export function updateRiskFactor(id: number, data: UpdateRiskFactorDto) {
-  return request.put(`/api/v1/risk-factors/${id}`, data);
+  return request.patch(`/api/v1/risk-factors/${id}`, data);
 }
 
 export function deleteRiskFactor(id: number) {

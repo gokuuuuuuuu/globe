@@ -11,7 +11,7 @@ import "./PersonnelListPage.css";
 
 // ---------- Types ----------
 
-type RiskLevel = "HIGH" | "MEDIUM" | "LOW";
+type RiskLevel = "高" | "中" | "低" | "HIGH" | "MEDIUM" | "LOW";
 
 interface Personnel {
   id: number;
@@ -69,6 +69,7 @@ export function PersonnelListPage() {
     squadrons: [],
     techGrades: [],
   });
+  const [filterOptionsLoading, setFilterOptionsLoading] = useState(false);
 
   // Filters
   const [unit, setUnit] = useState("");
@@ -96,13 +97,25 @@ export function PersonnelListPage() {
   };
   const [rowsPerPage, setRowsPerPage] = useState(25);
 
-  // Load filter options on mount
+  // Load filter options on mount —— 防御式归一化，缺字段或返回 null 时退化为空数组
   useEffect(() => {
+    setFilterOptionsLoading(true);
     getFlightPersonFilterOptions()
-      .then((res) => {
-        setFilterOptions(res);
+      .then((res: any) => {
+        setFilterOptions({
+          flightUnits: Array.isArray(res?.flightUnits) ? res.flightUnits : [],
+          aircraftTypes: Array.isArray(res?.aircraftTypes)
+            ? res.aircraftTypes
+            : [],
+          teams: Array.isArray(res?.teams) ? res.teams : [],
+          squadrons: Array.isArray(res?.squadrons) ? res.squadrons : [],
+          techGrades: Array.isArray(res?.techGrades) ? res.techGrades : [],
+        });
       })
-      .catch(() => {});
+      .catch((err) =>
+        console.error("Failed to load flight-person filter-options:", err),
+      )
+      .finally(() => setFilterOptionsLoading(false));
   }, []);
 
   // Fetch data
@@ -121,7 +134,7 @@ export function PersonnelListPage() {
       if (squadron) params.squadron = squadron;
       if (techLevel) params.techGrade = techLevel;
       if (riskLevel) params.riskLevel = riskLevel;
-      if (riskParam === "high") params.riskLevel = "HIGH";
+      if (riskParam === "high") params.riskLevel = "高";
       if (dateFrom) params.startDate = dateFrom;
       if (dateTo) params.endDate = dateTo;
 
@@ -177,10 +190,13 @@ export function PersonnelListPage() {
 
   function riskBadgeClass(level: RiskLevel): string {
     switch (level) {
+      case "高":
       case "HIGH":
         return "pl-risk-high";
+      case "中":
       case "MEDIUM":
         return "pl-risk-medium";
+      case "低":
       case "LOW":
         return "pl-risk-low";
       default:
@@ -190,10 +206,13 @@ export function PersonnelListPage() {
 
   function riskLabel(level: RiskLevel): string {
     switch (level) {
+      case "高":
       case "HIGH":
         return t("高", "High");
+      case "中":
       case "MEDIUM":
         return t("中", "Medium");
+      case "低":
       case "LOW":
         return t("低", "Low");
       default:
@@ -317,14 +336,19 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={unit}
+                  disabled={filterOptionsLoading}
                   onChange={(e) => {
                     setUnit(e.target.value);
                     setBrigade("");
                     setSquadron("");
                   }}
                 >
-                  <option value="">{t("全部", "All")}</option>
-                  {filterOptions.flightUnits.map((u) => (
+                  <option value="">
+                    {filterOptionsLoading
+                      ? t("加载中...", "Loading...")
+                      : t("全部", "All")}
+                  </option>
+                  {(filterOptions.flightUnits || []).map((u) => (
                     <option key={u} value={u}>
                       {u}
                     </option>
@@ -336,10 +360,15 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={aircraftType}
+                  disabled={filterOptionsLoading}
                   onChange={(e) => setAircraftType(e.target.value)}
                 >
-                  <option value="">{t("全部", "All")}</option>
-                  {filterOptions.aircraftTypes.map((a) => (
+                  <option value="">
+                    {filterOptionsLoading
+                      ? t("加载中...", "Loading...")
+                      : t("全部", "All")}
+                  </option>
+                  {(filterOptions.aircraftTypes || []).map((a) => (
                     <option key={a} value={a}>
                       {a}
                     </option>
@@ -351,13 +380,18 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={brigade}
+                  disabled={filterOptionsLoading}
                   onChange={(e) => {
                     setBrigade(e.target.value);
                     setSquadron("");
                   }}
                 >
-                  <option value="">{t("全部", "All")}</option>
-                  {filterOptions.teams.map((b) => (
+                  <option value="">
+                    {filterOptionsLoading
+                      ? t("加载中...", "Loading...")
+                      : t("全部", "All")}
+                  </option>
+                  {(filterOptions.teams || []).map((b) => (
                     <option key={b} value={b}>
                       {b}
                     </option>
@@ -369,10 +403,15 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={squadron}
+                  disabled={filterOptionsLoading}
                   onChange={(e) => setSquadron(e.target.value)}
                 >
-                  <option value="">{t("全部", "All")}</option>
-                  {filterOptions.squadrons.map((s) => (
+                  <option value="">
+                    {filterOptionsLoading
+                      ? t("加载中...", "Loading...")
+                      : t("全部", "All")}
+                  </option>
+                  {(filterOptions.squadrons || []).map((s) => (
                     <option key={s} value={s}>
                       {s}
                     </option>
@@ -384,10 +423,15 @@ export function PersonnelListPage() {
                 <select
                   className="pl-select"
                   value={techLevel}
+                  disabled={filterOptionsLoading}
                   onChange={(e) => setTechLevel(e.target.value)}
                 >
-                  <option value="">{t("全部", "All")}</option>
-                  {filterOptions.techGrades.map((l) => (
+                  <option value="">
+                    {filterOptionsLoading
+                      ? t("加载中...", "Loading...")
+                      : t("全部", "All")}
+                  </option>
+                  {(filterOptions.techGrades || []).map((l) => (
                     <option key={l} value={l}>
                       {l}
                     </option>
@@ -402,9 +446,9 @@ export function PersonnelListPage() {
                   onChange={(e) => setRiskLevel(e.target.value)}
                 >
                   <option value="">{t("全部", "All")}</option>
-                  <option value="HIGH">{t("高", "High")}</option>
-                  <option value="MEDIUM">{t("中", "Medium")}</option>
-                  <option value="LOW">{t("低", "Low")}</option>
+                  <option value="高">{t("高", "High")}</option>
+                  <option value="中">{t("中", "Medium")}</option>
+                  <option value="低">{t("低", "Low")}</option>
                 </select>
               </div>
               <div className="pl-filter-item">
@@ -554,7 +598,11 @@ export function PersonnelListPage() {
               {data.map((person) => (
                 <tr
                   key={person.id}
-                  className={person.riskLevel === "HIGH" ? "pl-row-high" : ""}
+                  className={
+                    person.riskLevel === "高" || person.riskLevel === "HIGH"
+                      ? "pl-row-high"
+                      : ""
+                  }
                   style={{ cursor: "pointer" }}
                   onClick={() =>
                     navigate(
