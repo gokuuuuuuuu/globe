@@ -423,27 +423,9 @@ export function HistoricalFlightsPage() {
               <tr>
                 <th style={{ width: 40 }} />
                 <th>{t("航班时间", "Flight Time")}</th>
-                <th
-                  className="hf-th-sortable"
-                  onClick={() => handleSort("flightNumber")}
-                >
-                  {t("航班号", "Flight Number")}
-                  {renderSortIcon("flightNumber")}
-                </th>
-                <th
-                  className="hf-th-sortable"
-                  onClick={() => handleSort("riskLevel")}
-                >
-                  {t("风险等级", "Risk Level")}
-                  {renderSortIcon("riskLevel")}
-                </th>
-                <th
-                  className="hf-th-sortable"
-                  onClick={() => handleSort("mainRisk")}
-                >
-                  {t("主要重大风险", "Main Major Risk")}
-                  {renderSortIcon("mainRisk")}
-                </th>
+                <th>{t("航班号", "Flight Number")}</th>
+                <th>{t("风险等级", "Risk Level")}</th>
+                <th>{t("主要重大风险", "Main Major Risk")}</th>
                 <th>{t("当前结论", "Current Conclusion")}</th>
                 <th>{t("操作", "Actions")}</th>
               </tr>

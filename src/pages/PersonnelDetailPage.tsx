@@ -273,7 +273,9 @@ export function PersonnelDetailPage() {
   const [riskRange, setRiskRange] = useState<RiskRange>("6m");
 
   // Tab 3 历史航班筛选
-  const [flightsRiskLevel, setFlightsRiskLevel] = useState<"" | "高" | "中" | "低">("");
+  const [flightsRiskLevel, setFlightsRiskLevel] = useState<
+    "" | "高" | "中" | "低"
+  >("");
   const [flightsStartDate, setFlightsStartDate] = useState("");
   const [flightsEndDate, setFlightsEndDate] = useState("");
 
@@ -323,16 +325,21 @@ export function PersonnelDetailPage() {
   }, [empNo, activeNav, riskRange]);
 
   // Tab 2 个人与机队对比
+  const [fleetError, setFleetError] = useState(false);
   useEffect(() => {
     if (!empNo || activeNav !== "personal-vs-fleet") return;
     let cancelled = false;
     setFleetComparison(null);
+    setFleetError(false);
     setFleetComparisonLoading(true);
     getFlightPersonFleetComparison(empNo, { range: riskRange })
       .then((res) => {
         if (!cancelled) setFleetComparison(res);
       })
-      .catch((err) => console.error("Failed to load fleet-comparison:", err))
+      .catch((err) => {
+        console.error("Failed to load fleet-comparison:", err);
+        if (!cancelled) setFleetError(true);
+      })
       .finally(() => {
         if (!cancelled) setFleetComparisonLoading(false);
       });
@@ -489,7 +496,9 @@ export function PersonnelDetailPage() {
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">{t("飞行单位", "Flight Unit")}</div>
-            <div className="pd-info-value">{personMerged.flightUnit || "—"}</div>
+            <div className="pd-info-value">
+              {personMerged.flightUnit || "—"}
+            </div>
           </div>
           <div className="pd-info-item">
             <div className="pd-info-label">{t("机型", "Aircraft Type")}</div>
@@ -659,418 +668,477 @@ export function PersonnelDetailPage() {
             </div>
           )}
           {activeNav === "personal-vs-fleet" &&
-            (fleetComparisonLoading || !fleetComparison ? (
+            (fleetComparisonLoading ? (
               <TabLoading text={t("加载中...", "Loading...")} />
+            ) : fleetError || !fleetComparison ? (
+              <TabLoading
+                text={
+                  fleetError
+                    ? t("加载失败，请重试", "Failed to load, please retry")
+                    : t("暂无数据", "No data available")
+                }
+              />
             ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* 风险评分对比趋势 */}
-              <div className="pd-card" style={{ padding: 20 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 16,
-                  }}
-                >
-                  <h3 className="pd-card-title">
-                    {t("个人与机队对比", "Personal vs Fleet")}
-                  </h3>
-                  <select
-                    className="pd-dropdown"
-                    value={riskRange}
-                    onChange={(e) =>
-                      setRiskRange(e.target.value as RiskRange)
-                    }
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              >
+                {/* 风险评分对比趋势 */}
+                <div className="pd-card" style={{ padding: 20 }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 16,
+                    }}
                   >
-                    <option value="1m">{t("1个月", "1 month")}</option>
-                    <option value="3m">{t("3个月", "3 months")}</option>
-                    <option value="6m">{t("6个月", "6 months")}</option>
-                  </select>
-                </div>
-                <ResponsiveContainer width="100%" height={280}>
-                  <LineChart data={fleetTrendData ?? peerAnalysisData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-                    <XAxis
-                      dataKey={fleetTrendData ? "label" : "month"}
-                      tick={AXIS_TICK}
-                      stroke={GRID_STROKE}
-                    />
-                    <YAxis
-                      tick={AXIS_TICK}
-                      stroke={GRID_STROKE}
-                      domain={[0, 50]}
-                    />
-                    <Tooltip {...darkTooltipStyle} />
-                    <Line
-                      type="monotone"
-                      dataKey="individual"
-                      stroke="#3b82f6"
-                      strokeWidth={2}
-                      dot={{ fill: "#3b82f6", r: 4 }}
-                      name={t("个人", "Individual")}
-                    />
-                    {!fleetTrendData && (
+                    <h3 className="pd-card-title">
+                      {t("个人与机队对比", "Personal vs Fleet")}
+                    </h3>
+                    <select
+                      className="pd-dropdown"
+                      value={riskRange}
+                      onChange={(e) =>
+                        setRiskRange(e.target.value as RiskRange)
+                      }
+                    >
+                      <option value="1m">{t("1个月", "1 month")}</option>
+                      <option value="3m">{t("3个月", "3 months")}</option>
+                      <option value="6m">{t("6个月", "6 months")}</option>
+                    </select>
+                  </div>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={fleetTrendData ?? peerAnalysisData}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke={GRID_STROKE}
+                      />
+                      <XAxis
+                        dataKey={fleetTrendData ? "label" : "month"}
+                        tick={AXIS_TICK}
+                        stroke={GRID_STROKE}
+                      />
+                      <YAxis
+                        tick={AXIS_TICK}
+                        stroke={GRID_STROKE}
+                        domain={[0, 50]}
+                      />
+                      <Tooltip {...darkTooltipStyle} />
                       <Line
                         type="monotone"
-                        dataKey="squadron"
-                        stroke="#ea580c"
+                        dataKey="individual"
+                        stroke="#3b82f6"
                         strokeWidth={2}
-                        dot={{ fill: "#ea580c", r: 4 }}
-                        name={t("中队平均", "Squadron Avg")}
+                        dot={{ fill: "#3b82f6", r: 4 }}
+                        name={t("个人", "Individual")}
                       />
-                    )}
-                    <Line
-                      type="monotone"
-                      dataKey="fleet"
-                      stroke="#94a3b8"
-                      strokeWidth={2}
-                      strokeDasharray="6 3"
-                      dot={{ fill: "#94a3b8", r: 4 }}
-                      name={t("机队平均", "Fleet Avg")}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+                      {!fleetTrendData && (
+                        <Line
+                          type="monotone"
+                          dataKey="squadron"
+                          stroke="#ea580c"
+                          strokeWidth={2}
+                          dot={{ fill: "#ea580c", r: 4 }}
+                          name={t("中队平均", "Squadron Avg")}
+                        />
+                      )}
+                      <Line
+                        type="monotone"
+                        dataKey="fleet"
+                        stroke="#94a3b8"
+                        strokeWidth={2}
+                        strokeDasharray="6 3"
+                        dot={{ fill: "#94a3b8", r: 4 }}
+                        name={t("机队平均", "Fleet Avg")}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
 
-              {/* 风险指标雷达图对比 */}
-              <div className="pd-card" style={{ padding: 20 }}>
-                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
-                  {t(
-                    "个人与机队风险指标对比",
-                    "Individual vs Fleet Risk Indicators",
-                  )}
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart
-                    data={
-                      fleetRadarData ?? [
-                        {
-                          indicator: t("不稳定进近", "Unstable Approach"),
-                          individual: 7.2,
-                          fleet: 4.5,
-                        },
-                        {
-                          indicator: t("重着陆", "Hard Landing"),
-                          individual: 5.8,
-                          fleet: 3.8,
-                        },
-                        {
-                          indicator: t("超限事件", "Exceedance Events"),
-                          individual: 6.5,
-                          fleet: 4.2,
-                        },
-                        {
-                          indicator: t("偏航率", "Deviation Rate"),
-                          individual: 4.1,
-                          fleet: 3.5,
-                        },
-                        {
-                          indicator: t("进近坡度", "Approach Slope"),
-                          individual: 5.5,
-                          fleet: 4.0,
-                        },
-                        {
-                          indicator: t("着陆速度偏差", "Landing Speed Dev"),
-                          individual: 6.0,
-                          fleet: 3.9,
-                        },
-                      ]
-                    }
-                  >
-                    <PolarGrid stroke="rgba(148,163,184,0.15)" />
-                    <PolarAngleAxis
-                      dataKey="indicator"
-                      tick={{ fill: "#94a3b8", fontSize: 11 }}
-                    />
-                    <PolarRadiusAxis
-                      angle={30}
-                      domain={[0, fleetRadarData ? 100 : 10]}
-                      tick={{ fill: "#64748b", fontSize: 10 }}
-                      axisLine={false}
-                    />
-                    <Radar
-                      name={t("个人", "Individual")}
-                      dataKey="individual"
-                      stroke="#3b82f6"
-                      fill="#3b82f6"
-                      fillOpacity={0.25}
-                      strokeWidth={2}
-                    />
-                    <Radar
-                      name={t("机队平均", "Fleet Avg")}
-                      dataKey="fleet"
-                      stroke="#94a3b8"
-                      fill="#94a3b8"
-                      fillOpacity={0.1}
-                      strokeWidth={2}
-                      strokeDasharray="6 3"
-                    />
-                    <Legend wrapperStyle={{ fontSize: 11, color: "#94a3b8" }} />
-                    <Tooltip
-                      contentStyle={{
-                        background: "rgba(15,23,42,0.95)",
-                        border: "1px solid rgba(148,163,184,0.2)",
-                        borderRadius: 6,
-                        fontSize: 12,
-                        color: "#e2e8f0",
-                      }}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
+                {/* 风险指标雷达图对比 */}
+                <div className="pd-card" style={{ padding: 20 }}>
+                  <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                    {t(
+                      "个人与机队风险指标对比",
+                      "Individual vs Fleet Risk Indicators",
+                    )}
+                  </h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RadarChart
+                      data={
+                        fleetRadarData ?? [
+                          {
+                            indicator: t("不稳定进近", "Unstable Approach"),
+                            individual: 7.2,
+                            fleet: 4.5,
+                          },
+                          {
+                            indicator: t("重着陆", "Hard Landing"),
+                            individual: 5.8,
+                            fleet: 3.8,
+                          },
+                          {
+                            indicator: t("超限事件", "Exceedance Events"),
+                            individual: 6.5,
+                            fleet: 4.2,
+                          },
+                          {
+                            indicator: t("偏航率", "Deviation Rate"),
+                            individual: 4.1,
+                            fleet: 3.5,
+                          },
+                          {
+                            indicator: t("进近坡度", "Approach Slope"),
+                            individual: 5.5,
+                            fleet: 4.0,
+                          },
+                          {
+                            indicator: t("着陆速度偏差", "Landing Speed Dev"),
+                            individual: 6.0,
+                            fleet: 3.9,
+                          },
+                        ]
+                      }
+                    >
+                      <PolarGrid stroke="rgba(148,163,184,0.15)" />
+                      <PolarAngleAxis
+                        dataKey="indicator"
+                        tick={{ fill: "#94a3b8", fontSize: 11 }}
+                      />
+                      <PolarRadiusAxis
+                        angle={30}
+                        domain={[0, fleetRadarData ? 100 : 10]}
+                        tick={{ fill: "#64748b", fontSize: 10 }}
+                        axisLine={false}
+                      />
+                      <Radar
+                        name={t("个人", "Individual")}
+                        dataKey="individual"
+                        stroke="#3b82f6"
+                        fill="#3b82f6"
+                        fillOpacity={0.25}
+                        strokeWidth={2}
+                      />
+                      <Radar
+                        name={t("机队平均", "Fleet Avg")}
+                        dataKey="fleet"
+                        stroke="#94a3b8"
+                        fill="#94a3b8"
+                        fillOpacity={0.1}
+                        strokeWidth={2}
+                        strokeDasharray="6 3"
+                      />
+                      <Legend
+                        wrapperStyle={{ fontSize: 11, color: "#94a3b8" }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgba(15,23,42,0.95)",
+                          border: "1px solid rgba(148,163,184,0.2)",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          color: "#e2e8f0",
+                        }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            </div>
             ))}
           {activeNav === "training-data" &&
             (trainingDataLoading || !trainingData ? (
               <TabLoading text={t("加载中...", "Loading...")} />
             ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* 九维度能力评估 */}
-              <div className="pd-card" style={{ padding: 20 }}>
-                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
-                  {t("九维度能力评估", "Nine-Dimension Competency Assessment")}
-                </h3>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: 12,
-                  }}
-                >
-                  {(() => {
-                    const enLabels: Record<string, string> = {
-                      KNO: "Knowledge",
-                      PRO: "Procedures",
-                      FPA: "Flight Path Automation",
-                      FPM: "Flight Path Manual",
-                      COM: "Communication",
-                      LTW: "Leadership & Teamwork",
-                      WLM: "Workload Management",
-                      SAW: "Situation Awareness",
-                      PSD: "Problem Solving & Decision",
-                    };
-                    const fallback = [
-                      { key: "KNO", zh: "知识", en: "Knowledge", score: 4 },
-                      { key: "PRO", zh: "程序", en: "Procedures", score: 5 },
-                      { key: "FPA", zh: "飞行路径自动化", en: "Flight Path Automation", score: 3 },
-                      { key: "FPM", zh: "飞行路径手动", en: "Flight Path Manual", score: 4 },
-                      { key: "COM", zh: "沟通", en: "Communication", score: 5 },
-                      { key: "LTW", zh: "领导与团队协作", en: "Leadership & Teamwork", score: 4 },
-                      { key: "WLM", zh: "工作负荷管理", en: "Workload Management", score: 3 },
-                      { key: "SAW", zh: "态势感知", en: "Situation Awareness", score: 4 },
-                      { key: "PSD", zh: "问题解决与决策", en: "Problem Solving & Decision", score: 5 },
-                    ];
-                    const items =
-                      competencyItems.length > 0
-                        ? competencyItems.map((c: any) => ({
-                            key: c.code,
-                            zh: c.name,
-                            en: enLabels[c.code] || c.name,
-                            score: c.score,
-                          }))
-                        : fallback;
-                    return items;
-                  })().map((dim: any) => (
-                    <div
-                      key={dim.key}
-                      style={{
-                        background: "rgba(15,23,42,0.5)",
-                        borderRadius: 8,
-                        padding: "12px 16px",
-                        border: "1px solid rgba(148,163,184,0.1)",
-                      }}
-                    >
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              >
+                {/* 九维度能力评估 */}
+                <div className="pd-card" style={{ padding: 20 }}>
+                  <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                    {t(
+                      "九维度能力评估",
+                      "Nine-Dimension Competency Assessment",
+                    )}
+                  </h3>
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, 1fr)",
+                      gap: 12,
+                    }}
+                  >
+                    {(() => {
+                      const enLabels: Record<string, string> = {
+                        KNO: "Knowledge",
+                        PRO: "Procedures",
+                        FPA: "Flight Path Automation",
+                        FPM: "Flight Path Manual",
+                        COM: "Communication",
+                        LTW: "Leadership & Teamwork",
+                        WLM: "Workload Management",
+                        SAW: "Situation Awareness",
+                        PSD: "Problem Solving & Decision",
+                      };
+                      const fallback = [
+                        { key: "KNO", zh: "知识", en: "Knowledge", score: 4 },
+                        { key: "PRO", zh: "程序", en: "Procedures", score: 5 },
+                        {
+                          key: "FPA",
+                          zh: "飞行路径自动化",
+                          en: "Flight Path Automation",
+                          score: 3,
+                        },
+                        {
+                          key: "FPM",
+                          zh: "飞行路径手动",
+                          en: "Flight Path Manual",
+                          score: 4,
+                        },
+                        {
+                          key: "COM",
+                          zh: "沟通",
+                          en: "Communication",
+                          score: 5,
+                        },
+                        {
+                          key: "LTW",
+                          zh: "领导与团队协作",
+                          en: "Leadership & Teamwork",
+                          score: 4,
+                        },
+                        {
+                          key: "WLM",
+                          zh: "工作负荷管理",
+                          en: "Workload Management",
+                          score: 3,
+                        },
+                        {
+                          key: "SAW",
+                          zh: "态势感知",
+                          en: "Situation Awareness",
+                          score: 4,
+                        },
+                        {
+                          key: "PSD",
+                          zh: "问题解决与决策",
+                          en: "Problem Solving & Decision",
+                          score: 5,
+                        },
+                      ];
+                      const items =
+                        competencyItems.length > 0
+                          ? competencyItems.map((c: any) => ({
+                              key: c.code,
+                              zh: c.name,
+                              en: enLabels[c.code] || c.name,
+                              score: c.score,
+                            }))
+                          : fallback;
+                      return items;
+                    })().map((dim: any) => (
                       <div
+                        key={dim.key}
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          marginBottom: 8,
+                          background: "rgba(15,23,42,0.5)",
+                          borderRadius: 8,
+                          padding: "12px 16px",
+                          border: "1px solid rgba(148,163,184,0.1)",
                         }}
                       >
-                        <span style={{ color: "#94a3b8", fontSize: 12 }}>
-                          {dim.key} · {t(dim.zh, dim.en)}
-                        </span>
-                        <span
-                          style={{
-                            color:
-                              dim.score >= 4
-                                ? "#22c55e"
-                                : dim.score >= 3
-                                  ? "#eab308"
-                                  : "#ef4444",
-                            fontWeight: 700,
-                            fontSize: 18,
-                          }}
-                        >
-                          {dim.score}
-                        </span>
-                      </div>
-                      <div style={{ display: "flex", gap: 4 }}>
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <div
-                            key={n}
-                            style={{
-                              flex: 1,
-                              height: 6,
-                              borderRadius: 3,
-                              background:
-                                n <= dim.score
-                                  ? dim.score >= 4
-                                    ? "#22c55e"
-                                    : dim.score >= 3
-                                      ? "#eab308"
-                                      : "#ef4444"
-                                  : "rgba(148,163,184,0.15)",
-                            }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 训练科目推荐 */}
-              <div className="pd-card" style={{ padding: 20 }}>
-                <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
-                  {t("训练科目推荐", "Training Subject Recommendations")}
-                </h3>
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
-                >
-                  {(trainingRecommendations.length > 0
-                    ? trainingRecommendations.map((r: any) => {
-                        const color =
-                          r.priority === "高"
-                            ? "#ef4444"
-                            : r.priority === "中"
-                              ? "#eab308"
-                              : "#22c55e";
-                        return {
-                          subject: r.title,
-                          dim: r.code,
-                          reason: r.description,
-                          priority: r.priority,
-                          color,
-                        };
-                      })
-                    : [
-                        {
-                          subject: t(
-                            "飞行路径自动化管理强化训练",
-                            "Flight Path Automation Management Training",
-                          ),
-                          dim: "FPA",
-                          reason: t(
-                            "当前评分偏低，需强化自动化飞行管理能力",
-                            "Current score is low, need to strengthen automation management",
-                          ),
-                          priority: t("高", "High"),
-                          color: "#ef4444",
-                        },
-                        {
-                          subject: t(
-                            "工作负荷管理场景模拟训练",
-                            "Workload Management Scenario Simulation",
-                          ),
-                          dim: "WLM",
-                          reason: t(
-                            "工作负荷管理得分不足，建议增加高压场景训练",
-                            "Workload management score insufficient, recommend high-pressure scenario training",
-                          ),
-                          priority: t("高", "High"),
-                          color: "#ef4444",
-                        },
-                        {
-                          subject: t(
-                            "CRM团队协作专项训练",
-                            "CRM Team Coordination Training",
-                          ),
-                          dim: "LTW",
-                          reason: t(
-                            "提升领导力与机组资源管理水平",
-                            "Improve leadership and crew resource management",
-                          ),
-                          priority: t("中", "Medium"),
-                          color: "#eab308",
-                        },
-                        {
-                          subject: t(
-                            "态势感知与威胁识别训练",
-                            "Situation Awareness & Threat Recognition Training",
-                          ),
-                          dim: "SAW",
-                          reason: t(
-                            "巩固态势感知能力，预防潜在风险",
-                            "Consolidate situation awareness, prevent potential risks",
-                          ),
-                          priority: t("低", "Low"),
-                          color: "#22c55e",
-                        },
-                      ]
-                  ).map((item: any, i: number) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: "rgba(15,23,42,0.5)",
-                        borderRadius: 8,
-                        padding: "12px 16px",
-                        border: "1px solid rgba(148,163,184,0.1)",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 16,
-                      }}
-                    >
-                      <span
-                        style={{
-                          padding: "2px 8px",
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: item.color,
-                          background: `${item.color}20`,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {item.priority}
-                      </span>
-                      <div style={{ flex: 1 }}>
                         <div
                           style={{
-                            color: "#e2e8f0",
-                            fontSize: 13,
-                            fontWeight: 600,
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 8,
                           }}
                         >
-                          {item.subject}
+                          <span style={{ color: "#94a3b8", fontSize: 12 }}>
+                            {dim.key} · {t(dim.zh, dim.en)}
+                          </span>
                           <span
                             style={{
-                              color: "#64748b",
-                              fontWeight: 400,
-                              marginLeft: 8,
-                              fontSize: 11,
+                              color:
+                                dim.score >= 4
+                                  ? "#22c55e"
+                                  : dim.score >= 3
+                                    ? "#eab308"
+                                    : "#ef4444",
+                              fontWeight: 700,
+                              fontSize: 18,
                             }}
                           >
-                            ({item.dim})
+                            {dim.score}
                           </span>
                         </div>
-                        <div
-                          style={{
-                            color: "#94a3b8",
-                            fontSize: 11,
-                            marginTop: 2,
-                          }}
-                        >
-                          {item.reason}
+                        <div style={{ display: "flex", gap: 4 }}>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <div
+                              key={n}
+                              style={{
+                                flex: 1,
+                                height: 6,
+                                borderRadius: 3,
+                                background:
+                                  n <= dim.score
+                                    ? dim.score >= 4
+                                      ? "#22c55e"
+                                      : dim.score >= 3
+                                        ? "#eab308"
+                                        : "#ef4444"
+                                    : "rgba(148,163,184,0.15)",
+                              }}
+                            />
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+
+                {/* 训练科目推荐 */}
+                <div className="pd-card" style={{ padding: 20 }}>
+                  <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
+                    {t("训练科目推荐", "Training Subject Recommendations")}
+                  </h3>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
+                    {(trainingRecommendations.length > 0
+                      ? trainingRecommendations.map((r: any) => {
+                          const color =
+                            r.priority === "高"
+                              ? "#ef4444"
+                              : r.priority === "中"
+                                ? "#eab308"
+                                : "#22c55e";
+                          return {
+                            subject: r.title,
+                            dim: r.code,
+                            reason: r.description,
+                            priority: r.priority,
+                            color,
+                          };
+                        })
+                      : [
+                          {
+                            subject: t(
+                              "飞行路径自动化管理强化训练",
+                              "Flight Path Automation Management Training",
+                            ),
+                            dim: "FPA",
+                            reason: t(
+                              "当前评分偏低，需强化自动化飞行管理能力",
+                              "Current score is low, need to strengthen automation management",
+                            ),
+                            priority: t("高", "High"),
+                            color: "#ef4444",
+                          },
+                          {
+                            subject: t(
+                              "工作负荷管理场景模拟训练",
+                              "Workload Management Scenario Simulation",
+                            ),
+                            dim: "WLM",
+                            reason: t(
+                              "工作负荷管理得分不足，建议增加高压场景训练",
+                              "Workload management score insufficient, recommend high-pressure scenario training",
+                            ),
+                            priority: t("高", "High"),
+                            color: "#ef4444",
+                          },
+                          {
+                            subject: t(
+                              "CRM团队协作专项训练",
+                              "CRM Team Coordination Training",
+                            ),
+                            dim: "LTW",
+                            reason: t(
+                              "提升领导力与机组资源管理水平",
+                              "Improve leadership and crew resource management",
+                            ),
+                            priority: t("中", "Medium"),
+                            color: "#eab308",
+                          },
+                          {
+                            subject: t(
+                              "态势感知与威胁识别训练",
+                              "Situation Awareness & Threat Recognition Training",
+                            ),
+                            dim: "SAW",
+                            reason: t(
+                              "巩固态势感知能力，预防潜在风险",
+                              "Consolidate situation awareness, prevent potential risks",
+                            ),
+                            priority: t("低", "Low"),
+                            color: "#22c55e",
+                          },
+                        ]
+                    ).map((item: any, i: number) => (
+                      <div
+                        key={i}
+                        style={{
+                          background: "rgba(15,23,42,0.5)",
+                          borderRadius: 8,
+                          padding: "12px 16px",
+                          border: "1px solid rgba(148,163,184,0.1)",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 16,
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding: "2px 8px",
+                            borderRadius: 4,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            color: item.color,
+                            background: `${item.color}20`,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.priority}
+                        </span>
+                        <div style={{ flex: 1 }}>
+                          <div
+                            style={{
+                              color: "#e2e8f0",
+                              fontSize: 13,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {item.subject}
+                            <span
+                              style={{
+                                color: "#64748b",
+                                fontWeight: 400,
+                                marginLeft: 8,
+                                fontSize: 11,
+                              }}
+                            >
+                              ({item.dim})
+                            </span>
+                          </div>
+                          <div
+                            style={{
+                              color: "#94a3b8",
+                              fontSize: 11,
+                              marginTop: 2,
+                            }}
+                          >
+                            {item.reason}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
             ))}
           {activeNav === "training-scenarios" && (
             <TrainingScenariosSection t={t} />
@@ -1166,201 +1234,202 @@ export function PersonnelDetailPage() {
                   {t("加载中...", "Loading...")}
                 </div>
               ) : (
-              <div style={{ fontSize: 13, color: "#94a3b8" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                  <thead>
-                    <tr
-                      style={{
-                        borderBottom: "1px solid rgba(148,163,184,0.15)",
-                      }}
-                    >
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("航班号", "Flight No.")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("日期", "Date")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("出发机场", "Departure")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("到达机场", "Arrival")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("机型", "Aircraft Type")}
-                      </th>
-                      <th
-                        style={{
-                          textAlign: "left",
-                          padding: "8px 12px",
-                          color: "#94a3b8",
-                          fontSize: 12,
-                        }}
-                      >
-                        {t("风险等级", "Risk Level")}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(flightItems.length > 0
-                      ? flightItems.map((f: any) => ({
-                          id: f.id,
-                          fn: f.flightNo,
-                          date: f.departureTime
-                            ? String(f.departureTime).slice(0, 10)
-                            : "—",
-                          dep:
-                            f.departureAirport?.code ||
-                            f.departureAirport?.name ||
-                            "—",
-                          arr:
-                            f.arrivalAirport?.code ||
-                            f.arrivalAirport?.name ||
-                            "—",
-                          type: f.plane?.model || f.plane?.registration || "—",
-                          risk: f.riskLevel || "—",
-                          color:
-                            f.riskLevel === "高"
-                              ? "#ef4444"
-                              : f.riskLevel === "中"
-                                ? "#eab308"
-                                : "#22c55e",
-                        }))
-                      : [
-                          {
-                            id: 0,
-                            fn: "MU5101",
-                            date: "2024-03-15",
-                            dep: "ZSPD",
-                            arr: "ZBAA",
-                            type: "B737-800",
-                            risk: t("高", "High"),
-                            color: "#ef4444",
-                          },
-                          {
-                            id: 0,
-                            fn: "MU5235",
-                            date: "2024-03-10",
-                            dep: "ZBAA",
-                            arr: "ZSPD",
-                            type: "B737-800",
-                            risk: t("中", "Medium"),
-                            color: "#eab308",
-                          },
-                          {
-                            id: 0,
-                            fn: "MU5302",
-                            date: "2024-02-28",
-                            dep: "ZSPD",
-                            arr: "ZGGG",
-                            type: "A320",
-                            risk: t("高", "High"),
-                            color: "#ef4444",
-                          },
-                          {
-                            id: 0,
-                            fn: "MU5418",
-                            date: "2024-02-20",
-                            dep: "ZGGG",
-                            arr: "ZSPD",
-                            type: "A320",
-                            risk: t("低", "Low"),
-                            color: "#22c55e",
-                          },
-                          {
-                            id: 0,
-                            fn: "MU5506",
-                            date: "2024-02-15",
-                            dep: "ZSPD",
-                            arr: "ZSSS",
-                            type: "B737-800",
-                            risk: t("中", "Medium"),
-                            color: "#eab308",
-                          },
-                          {
-                            id: 0,
-                            fn: "MU5612",
-                            date: "2024-02-10",
-                            dep: "ZSSS",
-                            arr: "ZSPD",
-                            type: "B777",
-                            risk: t("低", "Low"),
-                            color: "#22c55e",
-                          },
-                        ]
-                    ).map((f, i) => (
+                <div style={{ fontSize: 13, color: "#94a3b8" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
                       <tr
-                        key={f.id || i}
                         style={{
-                          borderBottom: "1px solid rgba(148,163,184,0.08)",
-                          cursor: "pointer",
+                          borderBottom: "1px solid rgba(148,163,184,0.15)",
                         }}
-                        onClick={() =>
-                          navigate(
-                            f.id
-                              ? `/risk-monitoring/flight-detail?id=${f.id}`
-                              : `/risk-monitoring/flight-detail?fn=${f.fn}`,
-                          )
-                        }
                       >
-                        <td
+                        <th
                           style={{
+                            textAlign: "left",
                             padding: "8px 12px",
-                            color: "#e2e8f0",
-                            fontWeight: 600,
+                            color: "#94a3b8",
+                            fontSize: 12,
                           }}
                         >
-                          {f.fn}
-                        </td>
-                        <td style={{ padding: "8px 12px" }}>{f.date}</td>
-                        <td style={{ padding: "8px 12px" }}>{f.dep}</td>
-                        <td style={{ padding: "8px 12px" }}>{f.arr}</td>
-                        <td style={{ padding: "8px 12px" }}>{f.type}</td>
-                        <td style={{ padding: "8px 12px" }}>
-                          <span style={{ color: f.color, fontWeight: 600 }}>
-                            {f.risk}
-                          </span>
-                        </td>
+                          {t("航班号", "Flight No.")}
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            color: "#94a3b8",
+                            fontSize: 12,
+                          }}
+                        >
+                          {t("日期", "Date")}
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            color: "#94a3b8",
+                            fontSize: 12,
+                          }}
+                        >
+                          {t("出发机场", "Departure")}
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            color: "#94a3b8",
+                            fontSize: 12,
+                          }}
+                        >
+                          {t("到达机场", "Arrival")}
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            color: "#94a3b8",
+                            fontSize: 12,
+                          }}
+                        >
+                          {t("机型", "Aircraft Type")}
+                        </th>
+                        <th
+                          style={{
+                            textAlign: "left",
+                            padding: "8px 12px",
+                            color: "#94a3b8",
+                            fontSize: 12,
+                          }}
+                        >
+                          {t("风险等级", "Risk Level")}
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {(flightItems.length > 0
+                        ? flightItems.map((f: any) => ({
+                            id: f.id,
+                            fn: f.flightNo,
+                            date: f.departureTime
+                              ? String(f.departureTime).slice(0, 10)
+                              : "—",
+                            dep:
+                              f.departureAirport?.code ||
+                              f.departureAirport?.name ||
+                              "—",
+                            arr:
+                              f.arrivalAirport?.code ||
+                              f.arrivalAirport?.name ||
+                              "—",
+                            type:
+                              f.plane?.model || f.plane?.registration || "—",
+                            risk: f.riskLevel || "—",
+                            color:
+                              f.riskLevel === "高"
+                                ? "#ef4444"
+                                : f.riskLevel === "中"
+                                  ? "#eab308"
+                                  : "#22c55e",
+                          }))
+                        : [
+                            {
+                              id: 0,
+                              fn: "MU5101",
+                              date: "2024-03-15",
+                              dep: "ZSPD",
+                              arr: "ZBAA",
+                              type: "B737-800",
+                              risk: t("高", "High"),
+                              color: "#ef4444",
+                            },
+                            {
+                              id: 0,
+                              fn: "MU5235",
+                              date: "2024-03-10",
+                              dep: "ZBAA",
+                              arr: "ZSPD",
+                              type: "B737-800",
+                              risk: t("中", "Medium"),
+                              color: "#eab308",
+                            },
+                            {
+                              id: 0,
+                              fn: "MU5302",
+                              date: "2024-02-28",
+                              dep: "ZSPD",
+                              arr: "ZGGG",
+                              type: "A320",
+                              risk: t("高", "High"),
+                              color: "#ef4444",
+                            },
+                            {
+                              id: 0,
+                              fn: "MU5418",
+                              date: "2024-02-20",
+                              dep: "ZGGG",
+                              arr: "ZSPD",
+                              type: "A320",
+                              risk: t("低", "Low"),
+                              color: "#22c55e",
+                            },
+                            {
+                              id: 0,
+                              fn: "MU5506",
+                              date: "2024-02-15",
+                              dep: "ZSPD",
+                              arr: "ZSSS",
+                              type: "B737-800",
+                              risk: t("中", "Medium"),
+                              color: "#eab308",
+                            },
+                            {
+                              id: 0,
+                              fn: "MU5612",
+                              date: "2024-02-10",
+                              dep: "ZSSS",
+                              arr: "ZSPD",
+                              type: "B777",
+                              risk: t("低", "Low"),
+                              color: "#22c55e",
+                            },
+                          ]
+                      ).map((f, i) => (
+                        <tr
+                          key={f.id || i}
+                          style={{
+                            borderBottom: "1px solid rgba(148,163,184,0.08)",
+                            cursor: "pointer",
+                          }}
+                          onClick={() =>
+                            navigate(
+                              f.id
+                                ? `/risk-monitoring/flight-detail?id=${f.id}`
+                                : `/risk-monitoring/flight-detail?fn=${f.fn}`,
+                            )
+                          }
+                        >
+                          <td
+                            style={{
+                              padding: "8px 12px",
+                              color: "#e2e8f0",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {f.fn}
+                          </td>
+                          <td style={{ padding: "8px 12px" }}>{f.date}</td>
+                          <td style={{ padding: "8px 12px" }}>{f.dep}</td>
+                          <td style={{ padding: "8px 12px" }}>{f.arr}</td>
+                          <td style={{ padding: "8px 12px" }}>{f.type}</td>
+                          <td style={{ padding: "8px 12px" }}>
+                            <span style={{ color: f.color, fontWeight: 600 }}>
+                              {f.risk}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
           )}
@@ -1565,11 +1634,7 @@ function RiskProfileSection({
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={peerData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
-              <XAxis
-                dataKey="month"
-                tick={AXIS_TICK}
-                stroke={GRID_STROKE}
-              />
+              <XAxis dataKey="month" tick={AXIS_TICK} stroke={GRID_STROKE} />
               <YAxis tick={AXIS_TICK} stroke={GRID_STROKE} domain={[0, 50]} />
               <Tooltip {...darkTooltipStyle} />
               <Bar

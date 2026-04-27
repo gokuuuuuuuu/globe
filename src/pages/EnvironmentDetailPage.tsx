@@ -12,79 +12,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useLanguage } from "../i18n/useLanguage";
-import { AIRPORTS } from "../data/flightData";
+import {
+  getEnvironmentAirportDetail,
+  getEnvironmentAirports,
+} from "../api/environment";
 import "./EnvironmentDetailPage.css";
 
-// ===== Mock Data =====
-
-const overallRisk = {
-  score: 68,
-  level: "Medium" as const,
-  factors: [
-    { name: "Air Quality", status: "Moderate", color: "#eab308" },
-    { name: "Precipitation", status: "Low", color: "#22c55e" },
-    { name: "Extreme Events", status: "None", color: "#22c55e" },
-  ],
-};
-
-const keyFactors = {
-  temperature: 18,
-  wind: { speed: 15, direction: "W" },
-  visibility: 12,
-  humidity: 65,
-};
-
-const tempTrendData = [
-  { time: "00h", temp: 12 },
-  { time: "03h", temp: 10 },
-  { time: "06h", temp: 9 },
-  { time: "09h", temp: 14 },
-  { time: "12h", temp: 20 },
-  { time: "15h", temp: 23 },
-  { time: "18h", temp: 19 },
-  { time: "21h", temp: 15 },
-  { time: "24h", temp: 13 },
-];
-
-const tempSparkline = [
-  { v: 12 },
-  { v: 10 },
-  { v: 14 },
-  { v: 20 },
-  { v: 23 },
-  { v: 19 },
-  { v: 15 },
-];
-
-const visSparkline = [
-  { v: 10 },
-  { v: 11 },
-  { v: 12 },
-  { v: 11 },
-  { v: 13 },
-  { v: 12 },
-  { v: 12 },
-];
-
-const humSparkline = [
-  { v: 60 },
-  { v: 62 },
-  { v: 65 },
-  { v: 63 },
-  { v: 67 },
-  { v: 65 },
-  { v: 64 },
-];
-
-const hourlyForecast = [
-  { time: "04 AM", icon: "🌙", temp: "18°" },
-  { time: "06 AM", icon: "🌤", temp: "15°" },
-  { time: "08 AM", icon: "☁️", temp: "12°" },
-  { time: "10 AM", icon: "⛅", temp: "20°" },
-  { time: "12 PM", icon: "🌤", temp: "23°" },
-  { time: "01 PM", icon: "☀️", temp: "25°" },
-  { time: "02 PM", icon: "☀️", temp: "26°" },
-];
+// ===== Mock Data (phase-specific only) =====
 
 // const anomaliesData = [
 //   {
@@ -465,6 +399,44 @@ export function EnvironmentDetailPage() {
     "all" | "red" | "yellow" | "green"
   >("all");
 
+  // ===== 机场列表 API 数据 =====
+  const [airportList, setAirportList] = useState<any[]>([]);
+  const [listLoading, setListLoading] = useState(true);
+
+  useEffect(() => {
+    setListLoading(true);
+    getEnvironmentAirports({ pageSize: 100 })
+      .then((res: any) => {
+        setAirportList(res?.items ?? res ?? []);
+      })
+      .catch(console.error)
+      .finally(() => setListLoading(false));
+  }, []);
+
+  // ===== 环境详情 API 数据 =====
+  const [envData, setEnvData] = useState<any>(null);
+  const [envLoading, setEnvLoading] = useState(false);
+
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (!code) return;
+    setEnvLoading(true);
+    getEnvironmentAirportDetail(code)
+      .then((res: any) => setEnvData(res))
+      .catch(console.error)
+      .finally(() => setEnvLoading(false));
+  }, [searchParams]);
+
+  // API 数据，不再 fallback 到 mock
+  const currentOverallRisk = envData?.overallRisk ?? null;
+  const currentKeyFactors = envData?.keyFactors ?? null;
+  const currentTempTrendData =
+    envData?.tempTrendData ?? envData?.temperatureTrend ?? [];
+  const currentHourlyForecast = envData?.hourlyForecast ?? [];
+  const currentTempSparkline = envData?.tempSparkline ?? [];
+  const currentVisSparkline = envData?.visSparkline ?? [];
+  const currentHumSparkline = envData?.humSparkline ?? [];
+
   // ===== 从 CSV 加载降落 METAR 报文 =====
   interface MetarRecord {
     flightNumber: string;
@@ -597,7 +569,7 @@ export function EnvironmentDetailPage() {
             </span>
             <span className="env-breadcrumb-sep">&gt;</span>
             <span className="env-breadcrumb-active">
-              {AIRPORTS.find((a) => a.code === selectedAirportCode)?.code4 ||
+              {airportList.find((a) => a.code === selectedAirportCode)?.name ??
                 selectedAirportCode}
             </span>
           </>
@@ -616,7 +588,7 @@ export function EnvironmentDetailPage() {
               {t("机场环境总览", "Airport Environment Overview")}
             </h2>
             <span className="env-airport-list-count">
-              {AIRPORTS.length} {t("个机场", "airports")}
+              {airportList.length} {t("个机场", "airports")}
             </span>
           </div>
           {/* Filters */}
@@ -649,87 +621,133 @@ export function EnvironmentDetailPage() {
             </div>
           </div>
           <div className="env-airport-grid">
-            {[...AIRPORTS]
-              .filter((a) => {
-                const q = envSearch.toLowerCase();
-                if (
-                  q &&
-                  !a.nameZh.toLowerCase().includes(q) &&
-                  !a.name.toLowerCase().includes(q) &&
-                  !a.code.toLowerCase().includes(q) &&
-                  !a.code4.toLowerCase().includes(q)
+            {listLoading ? (
+              <div
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: "40px 0",
+                  color: "#94a3b8",
+                  fontSize: 13,
+                }}
+              >
+                {t("加载机场列表中...", "Loading airport list...")}
+              </div>
+            ) : airportList.length === 0 ? (
+              <div
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: "40px 0",
+                  color: "#64748b",
+                  fontSize: 13,
+                }}
+              >
+                {t("暂无机场数据", "No airport data")}
+              </div>
+            ) : (
+              airportList
+                .filter((a) => {
+                  const q = envSearch.toLowerCase();
+                  const nameZh = (a.name ?? a.nameZh ?? "").toLowerCase();
+                  const nameEn = (a.nameEn ?? a.name ?? "").toLowerCase();
+                  const code = (a.code ?? a.icaoCode ?? "").toLowerCase();
+                  const code4 = (a.icaoCode ?? a.code4 ?? "").toLowerCase();
+                  if (
+                    q &&
+                    !nameZh.includes(q) &&
+                    !nameEn.includes(q) &&
+                    !code.includes(q) &&
+                    !code4.includes(q)
+                  )
+                    return false;
+                  const rl = a.riskLevel ?? "";
+                  if (envRiskFilter === "red") return rl === "高";
+                  if (envRiskFilter === "yellow") return rl === "中";
+                  if (envRiskFilter === "green") return rl === "低";
+                  return true;
+                })
+                .sort(
+                  (a, b) =>
+                    (b.riskScore ?? b.environmentRisk ?? 0) -
+                    (a.riskScore ?? a.environmentRisk ?? 0),
                 )
-                  return false;
-                if (envRiskFilter === "red") return a.environmentRisk >= 7;
-                if (envRiskFilter === "yellow")
-                  return a.environmentRisk >= 5 && a.environmentRisk < 7;
-                if (envRiskFilter === "green") return a.environmentRisk < 5;
-                return true;
-              })
-              .sort((a, b) => b.environmentRisk - a.environmentRisk)
-              .map((airport) => {
-                const riskZone =
-                  airport.environmentRisk >= 7
-                    ? "red"
-                    : airport.environmentRisk >= 5
-                      ? "yellow"
-                      : "green";
-                const riskColor =
-                  riskZone === "red"
-                    ? "#ef4444"
-                    : riskZone === "yellow"
-                      ? "#eab308"
-                      : "#22c55e";
-                return (
-                  <div
-                    key={airport.id}
-                    className="env-airport-card"
-                    onClick={() => setSelectedAirportCode(airport.code)}
-                  >
-                    <div className="env-airport-card-top">
-                      <div className="env-airport-card-code">
-                        {airport.code4}
+                .map((airport) => {
+                  const risk =
+                    airport.riskScore ?? airport.environmentRisk ?? 0;
+                  const riskLevelStr = airport.riskLevel ?? "";
+                  const riskZone = riskLevelStr
+                    ? riskLevelStr === "高"
+                      ? "red"
+                      : riskLevelStr === "中"
+                        ? "yellow"
+                        : "green"
+                    : risk >= 70
+                      ? "red"
+                      : risk >= 40
+                        ? "yellow"
+                        : "green";
+                  const riskColor =
+                    riskZone === "red"
+                      ? "#ef4444"
+                      : riskZone === "yellow"
+                        ? "#eab308"
+                        : "#22c55e";
+                  return (
+                    <div
+                      key={airport.id ?? airport.code}
+                      className="env-airport-card"
+                      onClick={() =>
+                        setSelectedAirportCode(airport.code ?? airport.icaoCode)
+                      }
+                    >
+                      <div className="env-airport-card-top">
+                        <div className="env-airport-card-code">
+                          {airport.code}
+                        </div>
+                        <span className={pillClass(riskZone)}>
+                          {riskZone === "red"
+                            ? t("高风险", "High")
+                            : riskZone === "yellow"
+                              ? t("中风险", "Medium")
+                              : t("低风险", "Low")}
+                        </span>
                       </div>
-                      <span className={pillClass(riskZone)}>
-                        {riskZone === "red"
-                          ? t("高风险", "High")
-                          : riskZone === "yellow"
-                            ? t("中风险", "Medium")
-                            : t("低风险", "Low")}
-                      </span>
-                    </div>
-                    <div className="env-airport-card-name">
-                      {airport.nameZh || airport.name}
-                    </div>
-                    <div className="env-airport-card-meta">
-                      <span>{airport.countryCode}</span>
-                      <span>
-                        {airport.flightCount} {t("航班", "flights")}
-                      </span>
-                      <span>
-                        {airport.operatorCount} {t("人员", "staff")}
-                      </span>
-                    </div>
-                    <div className="env-airport-card-risk">
-                      <div className="env-airport-card-risk-bar">
-                        <div
-                          className="env-airport-card-risk-fill"
-                          style={{
-                            width: `${airport.environmentRisk * 10}%`,
-                            background: riskColor,
-                          }}
-                        />
+                      <div className="env-airport-card-name">
+                        {airport.name ?? airport.nameZh}
                       </div>
-                      <span
-                        className="env-airport-card-risk-score"
-                        style={{ color: riskColor }}
-                      >
-                        {airport.environmentRisk.toFixed(1)}
-                      </span>
+                      <div className="env-airport-card-meta">
+                        <span>{airport.city ?? airport.country ?? ""}</span>
+                        <span>
+                          {airport.totalFlightCount ?? airport.flightCount ?? 0}{" "}
+                          {t("航班", "flights")}
+                        </span>
+                        <span>
+                          {airport.personCount ?? airport.operatorCount ?? 0}{" "}
+                          {t("人员", "staff")}
+                        </span>
+                      </div>
+                      <div className="env-airport-card-risk">
+                        <div className="env-airport-card-risk-bar">
+                          <div
+                            className="env-airport-card-risk-fill"
+                            style={{
+                              width: `${risk * 10}%`,
+                              background: riskColor,
+                            }}
+                          />
+                        </div>
+                        <span
+                          className="env-airport-card-risk-score"
+                          style={{ color: riskColor }}
+                        >
+                          {risk.toFixed(1)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+            )}
           </div>
         </div>
       ) : (
@@ -757,6 +775,19 @@ export function EnvironmentDetailPage() {
             </button>
             {/* 机场信息按钮已移除（不与环关联） */}
           </div>
+          {envLoading && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "12px 24px",
+                color: "#94a3b8",
+                fontSize: 13,
+              }}
+            >
+              {t("加载环境数据中...", "Loading environment data...")}
+            </div>
+          )}
+
           {/* Phase Environment Card */}
           {(() => {
             const pd = phaseEnvData[envPhase];
@@ -1009,15 +1040,39 @@ export function EnvironmentDetailPage() {
           })()}
 
           <div className="env-body">
-            {/* ===== Row 1: Overall Risk + Key Factors ===== */}
-            <div className="env-row">
-              {/* LEFT: Overall Environmental Risk */}
-              <div className="env-card">
-                <div className="env-card-header">
-                  <div className="env-card-title">
-                    {t("整体环境风险", "Overall Environmental Risk")}
-                  </div>
-                  {/* <div className="env-card-actions">
+            {envLoading ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "60px 0",
+                  color: "#94a3b8",
+                  fontSize: 14,
+                }}
+              >
+                {t("加载环境数据中...", "Loading environment data...")}
+              </div>
+            ) : !envData ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "60px 0",
+                  color: "#64748b",
+                  fontSize: 14,
+                }}
+              >
+                {t("暂无环境数据", "No environment data available")}
+              </div>
+            ) : (
+              <>
+                {/* ===== Row 1: Overall Risk + Key Factors ===== */}
+                <div className="env-row">
+                  {/* LEFT: Overall Environmental Risk */}
+                  <div className="env-card">
+                    <div className="env-card-header">
+                      <div className="env-card-title">
+                        {t("整体环境风险", "Overall Environmental Risk")}
+                      </div>
+                      {/* <div className="env-card-actions">
                     <span className="env-card-link">
                       <svg
                         width="12"
@@ -1033,291 +1088,302 @@ export function EnvironmentDetailPage() {
                     </span>
                     <span className="env-card-menu">...</span>
                   </div> */}
-                </div>
+                    </div>
 
-                <div className="env-gauge-layout">
-                  <div className="env-gauge-wrapper">
-                    <GaugeSVG score={overallRisk.score} />
-                    <span className="env-risk-badge env-risk-badge-yellow">
-                      ▲ {t("中等风险", "MEDIUM RISK")}
-                    </span>
+                    <div className="env-gauge-layout">
+                      <div className="env-gauge-wrapper">
+                        <GaugeSVG score={currentOverallRisk?.score ?? 0} />
+                        <span className="env-risk-badge env-risk-badge-yellow">
+                          ▲ {t("中等风险", "MEDIUM RISK")}
+                        </span>
+                      </div>
+
+                      <div className="env-factor-list">
+                        {(currentOverallRisk?.factors ?? []).map(
+                          (f: any, i: number) => (
+                            <div className="env-factor-item" key={i}>
+                              <span
+                                className="env-factor-dot"
+                                style={{ background: f.color }}
+                              />
+                              <span className="env-factor-name">
+                                {t(
+                                  f.name === "Air Quality"
+                                    ? "空气质量"
+                                    : f.name === "Precipitation"
+                                      ? "降水"
+                                      : "极端事件",
+                                  f.name,
+                                )}
+                                :
+                              </span>
+                              <span
+                                className="env-factor-value"
+                                style={{ color: f.color }}
+                              >
+                                {t(
+                                  f.status === "Moderate"
+                                    ? "中等"
+                                    : f.status === "Low"
+                                      ? "低"
+                                      : "无",
+                                  f.status,
+                                )}{" "}
+                                (
+                                {f.status === "Moderate"
+                                  ? t("黄色", "Yellow")
+                                  : t("绿色", "Green")}
+                                )
+                              </span>
+                            </div>
+                          ),
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="env-factor-list">
-                    {overallRisk.factors.map((f, i) => (
-                      <div className="env-factor-item" key={i}>
-                        <span
-                          className="env-factor-dot"
-                          style={{ background: f.color }}
+                  {/* RIGHT: Key Factor Status */}
+                  <div className="env-card">
+                    <div className="env-card-header">
+                      <div className="env-card-title">
+                        {t("关键因素状态", "Key Factor Status")}
+                      </div>
+                      {/* <div className="env-card-actions">
+                    <span className="env-card-link">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                      </svg>
+                      {t("趋势", "Trend")}
+                    </span>
+                    <span className="env-card-menu">...</span>
+                  </div> */}
+                    </div>
+
+                    <div className="env-kf-grid">
+                      {/* Temperature */}
+                      <div className="env-kf-box">
+                        <div className="env-kf-top">
+                          <div className="env-kf-icon env-kf-icon-temp">🌡</div>
+                          <div>
+                            <div className="env-kf-label">
+                              {t("温度", "Temperature")}
+                            </div>
+                            <div className="env-kf-value">
+                              {currentKeyFactors?.temperature ?? "--"}°C
+                            </div>
+                          </div>
+                        </div>
+                        <Sparkline
+                          data={currentTempSparkline}
+                          color="#f97316"
                         />
-                        <span className="env-factor-name">
+                      </div>
+
+                      {/* Wind */}
+                      <div className="env-kf-box">
+                        <div className="env-kf-top">
+                          <div className="env-kf-icon env-kf-icon-wind">W</div>
+                          <div>
+                            <div className="env-kf-label">
+                              {t("风速", "Wind")}
+                            </div>
+                            <div className="env-kf-value">
+                              {currentKeyFactors?.wind?.speed ?? "--"} km/h
+                              <span className="env-kf-sub">
+                                , {currentKeyFactors?.wind?.direction ?? "--"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <svg width="80" height="28" viewBox="0 0 80 28">
+                          <line
+                            x1="10"
+                            y1="14"
+                            x2="70"
+                            y2="14"
+                            stroke="#60a5fa"
+                            strokeWidth="1.5"
+                            opacity="0.6"
+                          />
+                          <polygon
+                            points="10,14 18,10 18,18"
+                            fill="#60a5fa"
+                            opacity="0.7"
+                          />
+                        </svg>
+                      </div>
+
+                      {/* Visibility */}
+                      <div className="env-kf-box">
+                        <div className="env-kf-top">
+                          <div className="env-kf-icon env-kf-icon-vis">👁</div>
+                          <div>
+                            <div className="env-kf-label">
+                              {t("能见度", "Visibility")}
+                            </div>
+                            <div className="env-kf-value">
+                              {currentKeyFactors?.visibility ?? "--"} km
+                            </div>
+                          </div>
+                        </div>
+                        <Sparkline data={currentVisSparkline} color="#8b5cf6" />
+                      </div>
+
+                      {/* Humidity */}
+                      <div className="env-kf-box">
+                        <div className="env-kf-top">
+                          <div className="env-kf-icon env-kf-icon-hum">💧</div>
+                          <div>
+                            <div className="env-kf-label">
+                              {t("湿度", "Humidity")}
+                            </div>
+                            <div className="env-kf-value">
+                              {currentKeyFactors?.humidity ?? "--"}%
+                            </div>
+                          </div>
+                        </div>
+                        <Sparkline data={currentHumSparkline} color="#22c55e" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ===== Row 2: Weather Summary + Alerts ===== */}
+                <div className="env-row">
+                  {/* LEFT: Weather Summary */}
+                  <div className="env-card">
+                    <div className="env-card-header">
+                      <div className="env-card-title">
+                        {t("天气概况", "Weather Summary")}
+                      </div>
+                      {/* <span className="env-card-menu">...</span> */}
+                    </div>
+
+                    <div className="env-weather-layout">
+                      <div className="env-weather-left">
+                        <div className="env-weather-title-row">
+                          <span className="env-weather-icon">⛅</span>
+                          <span className="env-weather-title">
+                            {t("多云", "Partly Cloudy")}
+                          </span>
+                        </div>
+                        <div className="env-weather-info">
                           {t(
-                            f.name === "Air Quality"
-                              ? "空气质量"
-                              : f.name === "Precipitation"
-                                ? "降水"
-                                : "极端事件",
-                            f.name,
+                            "天气: 多云 | 降水概率: 8%",
+                            "Time: Partly cloudy | Precipitation: 8%",
                           )}
-                          :
-                        </span>
-                        <span
-                          className="env-factor-value"
-                          style={{ color: f.color }}
-                        >
-                          {t(
-                            f.status === "Moderate"
-                              ? "中等"
-                              : f.status === "Low"
-                                ? "低"
-                                : "无",
-                            f.status,
-                          )}{" "}
-                          (
-                          {f.status === "Moderate"
-                            ? t("黄色", "Yellow")
-                            : t("绿色", "Green")}
-                          )
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* RIGHT: Key Factor Status */}
-              <div className="env-card">
-                <div className="env-card-header">
-                  <div className="env-card-title">
-                    {t("关键因素状态", "Key Factor Status")}
-                  </div>
-                  {/* <div className="env-card-actions">
-                    <span className="env-card-link">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                      </svg>
-                      {t("趋势", "Trend")}
-                    </span>
-                    <span className="env-card-menu">...</span>
-                  </div> */}
-                </div>
-
-                <div className="env-kf-grid">
-                  {/* Temperature */}
-                  <div className="env-kf-box">
-                    <div className="env-kf-top">
-                      <div className="env-kf-icon env-kf-icon-temp">🌡</div>
-                      <div>
-                        <div className="env-kf-label">
-                          {t("温度", "Temperature")}
                         </div>
-                        <div className="env-kf-value">
-                          {keyFactors.temperature}°C
+
+                        <div className="env-weather-stats">
+                          <div className="env-weather-stat">
+                            <span className="env-weather-stat-label">
+                              {t("当前温度", "Current conditions")}
+                            </span>
+                            <span className="env-weather-stat-value">18°C</span>
+                          </div>
+                          <div className="env-weather-stat">
+                            <span className="env-weather-stat-label">
+                              {t("降水趋势", "Precipitation trend")}
+                            </span>
+                            <span className="env-weather-stat-value">5</span>
+                          </div>
+                          <div className="env-weather-stat">
+                            <span className="env-weather-stat-label">
+                              {t("能见度", "Visibility")}
+                            </span>
+                            <span className="env-weather-stat-value">
+                              12 km
+                            </span>
+                          </div>
+                          <div className="env-weather-stat">
+                            <span className="env-weather-stat-label">
+                              {t("风速", "Wind")}
+                            </span>
+                            <span className="env-weather-stat-value">
+                              15 km/h, W
+                            </span>
+                          </div>
+                          <div className="env-weather-stat">
+                            <span className="env-weather-stat-label">
+                              {t("极端事件", "Extreme Events")}
+                            </span>
+                            <span className="env-weather-stat-value">
+                              {t("无", "None")}
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <Sparkline data={tempSparkline} color="#f97316" />
-                  </div>
 
-                  {/* Wind */}
-                  <div className="env-kf-box">
-                    <div className="env-kf-top">
-                      <div className="env-kf-icon env-kf-icon-wind">W</div>
-                      <div>
-                        <div className="env-kf-label">{t("风速", "Wind")}</div>
-                        <div className="env-kf-value">
-                          {keyFactors.wind.speed} km/h
-                          <span className="env-kf-sub">
-                            , {keyFactors.wind.direction}
-                          </span>
+                      <div className="env-weather-right">
+                        <div className="env-weather-chart-title">
+                          {t("24小时温度趋势", "24 Hour Temperature Trend")}
+                        </div>
+                        <div className="env-weather-chart">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={currentTempTrendData}>
+                              <CartesianGrid
+                                strokeDasharray="3 3"
+                                stroke="rgba(148,163,184,0.08)"
+                              />
+                              <XAxis
+                                dataKey="time"
+                                tick={{ fill: "#64748b", fontSize: 10 }}
+                                axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                                tickLine={false}
+                              />
+                              <YAxis
+                                domain={[5, 30]}
+                                tick={{ fill: "#64748b", fontSize: 10 }}
+                                axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
+                                tickLine={false}
+                                width={28}
+                              />
+                              <Tooltip {...darkTooltipStyle} />
+                              <Line
+                                type="monotone"
+                                dataKey="temp"
+                                stroke="#f97316"
+                                strokeWidth={2}
+                                dot={{ fill: "#f97316", r: 3, strokeWidth: 0 }}
+                                activeDot={{ r: 5, fill: "#f97316" }}
+                                name={t("温度", "Temperature")}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+
+                        {/* Hourly forecast strip */}
+                        <div className="env-hourly-strip">
+                          {currentHourlyForecast.map((h: any, i: number) => (
+                            <div className="env-hourly-item" key={i}>
+                              <span className="env-hourly-time">
+                                {t(
+                                  h.time
+                                    .replace(" AM", " 上午")
+                                    .replace(" PM", " 下午"),
+                                  h.time,
+                                )}
+                              </span>
+                              <span className="env-hourly-icon">{h.icon}</span>
+                              <span className="env-hourly-temp">{h.temp}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                    <svg width="80" height="28" viewBox="0 0 80 28">
-                      <line
-                        x1="10"
-                        y1="14"
-                        x2="70"
-                        y2="14"
-                        stroke="#60a5fa"
-                        strokeWidth="1.5"
-                        opacity="0.6"
-                      />
-                      <polygon
-                        points="10,14 18,10 18,18"
-                        fill="#60a5fa"
-                        opacity="0.7"
-                      />
-                    </svg>
-                  </div>
-
-                  {/* Visibility */}
-                  <div className="env-kf-box">
-                    <div className="env-kf-top">
-                      <div className="env-kf-icon env-kf-icon-vis">👁</div>
-                      <div>
-                        <div className="env-kf-label">
-                          {t("能见度", "Visibility")}
-                        </div>
-                        <div className="env-kf-value">
-                          {keyFactors.visibility} km
-                        </div>
-                      </div>
-                    </div>
-                    <Sparkline data={visSparkline} color="#8b5cf6" />
-                  </div>
-
-                  {/* Humidity */}
-                  <div className="env-kf-box">
-                    <div className="env-kf-top">
-                      <div className="env-kf-icon env-kf-icon-hum">💧</div>
-                      <div>
-                        <div className="env-kf-label">
-                          {t("湿度", "Humidity")}
-                        </div>
-                        <div className="env-kf-value">
-                          {keyFactors.humidity}%
-                        </div>
-                      </div>
-                    </div>
-                    <Sparkline data={humSparkline} color="#22c55e" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ===== Row 2: Weather Summary + Alerts ===== */}
-            <div className="env-row">
-              {/* LEFT: Weather Summary */}
-              <div className="env-card">
-                <div className="env-card-header">
-                  <div className="env-card-title">
-                    {t("天气概况", "Weather Summary")}
-                  </div>
-                  {/* <span className="env-card-menu">...</span> */}
-                </div>
-
-                <div className="env-weather-layout">
-                  <div className="env-weather-left">
-                    <div className="env-weather-title-row">
-                      <span className="env-weather-icon">⛅</span>
-                      <span className="env-weather-title">
-                        {t("多云", "Partly Cloudy")}
-                      </span>
-                    </div>
-                    <div className="env-weather-info">
-                      {t(
-                        "天气: 多云 | 降水概率: 8%",
-                        "Time: Partly cloudy | Precipitation: 8%",
-                      )}
-                    </div>
-
-                    <div className="env-weather-stats">
-                      <div className="env-weather-stat">
-                        <span className="env-weather-stat-label">
-                          {t("当前温度", "Current conditions")}
-                        </span>
-                        <span className="env-weather-stat-value">18°C</span>
-                      </div>
-                      <div className="env-weather-stat">
-                        <span className="env-weather-stat-label">
-                          {t("降水趋势", "Precipitation trend")}
-                        </span>
-                        <span className="env-weather-stat-value">5</span>
-                      </div>
-                      <div className="env-weather-stat">
-                        <span className="env-weather-stat-label">
-                          {t("能见度", "Visibility")}
-                        </span>
-                        <span className="env-weather-stat-value">12 km</span>
-                      </div>
-                      <div className="env-weather-stat">
-                        <span className="env-weather-stat-label">
-                          {t("风速", "Wind")}
-                        </span>
-                        <span className="env-weather-stat-value">
-                          15 km/h, W
-                        </span>
-                      </div>
-                      <div className="env-weather-stat">
-                        <span className="env-weather-stat-label">
-                          {t("极端事件", "Extreme Events")}
-                        </span>
-                        <span className="env-weather-stat-value">
-                          {t("无", "None")}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="env-weather-right">
-                    <div className="env-weather-chart-title">
-                      {t("24小时温度趋势", "24 Hour Temperature Trend")}
-                    </div>
-                    <div className="env-weather-chart">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={tempTrendData}>
-                          <CartesianGrid
-                            strokeDasharray="3 3"
-                            stroke="rgba(148,163,184,0.08)"
-                          />
-                          <XAxis
-                            dataKey="time"
-                            tick={{ fill: "#64748b", fontSize: 10 }}
-                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                            tickLine={false}
-                          />
-                          <YAxis
-                            domain={[5, 30]}
-                            tick={{ fill: "#64748b", fontSize: 10 }}
-                            axisLine={{ stroke: "rgba(148,163,184,0.1)" }}
-                            tickLine={false}
-                            width={28}
-                          />
-                          <Tooltip {...darkTooltipStyle} />
-                          <Line
-                            type="monotone"
-                            dataKey="temp"
-                            stroke="#f97316"
-                            strokeWidth={2}
-                            dot={{ fill: "#f97316", r: 3, strokeWidth: 0 }}
-                            activeDot={{ r: 5, fill: "#f97316" }}
-                            name={t("温度", "Temperature")}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    {/* Hourly forecast strip */}
-                    <div className="env-hourly-strip">
-                      {hourlyForecast.map((h, i) => (
-                        <div className="env-hourly-item" key={i}>
-                          <span className="env-hourly-time">
-                            {t(
-                              h.time
-                                .replace(" AM", " 上午")
-                                .replace(" PM", " 下午"),
-                              h.time,
-                            )}
-                          </span>
-                          <span className="env-hourly-icon">{h.icon}</span>
-                          <span className="env-hourly-temp">{h.temp}</span>
-                        </div>
-                      ))}
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Row 3: 重大环境异常 + 时间窗口变化 已移除 */}
+                {/* Row 3: 重大环境异常 + 时间窗口变化 已移除 */}
+              </>
+            )}
           </div>
 
           {/* Messages & Notices (merged from MessageDetailPage & NoticeDetailPage) */}

@@ -33,3 +33,8 @@ export function exportFlights(params?: FlightListParams) {
     responseType: "blob",
   });
 }
+
+/** 航班报告页（航班事实 + 综合结论 + 七阶段 + 重大风险 + 人机环分析 + 因子解释 + 证据链） */
+export function getFlightReport(id: number) {
+  return request.get(`/api/v1/flights/${id}/report`);
+}

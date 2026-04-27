@@ -5,3 +5,6 @@ export * as flightPersonApi from "./flightPerson";
 export * as planeApi from "./plane";
 export * as airportApi from "./airport";
 export * as riskFactorApi from "./riskFactor";
+export * as analyticsApi from "./analytics";
+export * as dashboardApi from "./dashboard";
+export * as environmentApi from "./environment";

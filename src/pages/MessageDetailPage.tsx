@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getEnvironmentMessage } from "../api/environment";
 import {
   LineChart,
   Line,
@@ -95,11 +96,49 @@ const riskChartData = [
 export function MessageDetailPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const msgId = searchParams.get("id");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"parsed" | "metadata">("parsed");
   const [detectionOpen, setDetectionOpen] = useState(false);
   const [analysisNotesOpen, setAnalysisNotesOpen] = useState(false);
   const [addedBySystemOpen, setAddedBySystemOpen] = useState(true);
   const [analystNotesOpen, setAnalystNotesOpen] = useState(true);
+
+  useEffect(() => {
+    if (!msgId) return;
+    setLoading(true);
+    getEnvironmentMessage(Number(msgId))
+      .then((res: any) => setData(res))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [msgId]);
+
+  const currentSummary = data?.summary ?? messageSummary;
+  const currentRawText = data?.rawText ?? rawMessageText;
+  const currentTimeline = data?.timeline ?? timelineEvents;
+  const currentParsedFields = data?.parsedFields ?? parsedFields;
+  const currentSeverityRows = data?.severityRows ?? severityRows;
+  const currentRiskChartData = data?.riskChartData ?? riskChartData;
+
+  if (loading) {
+    return (
+      <div
+        className="msg-root"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 300,
+        }}
+      >
+        <span style={{ color: "#94a3b8", fontSize: 15 }}>
+          {t("加载中...", "Loading...")}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="msg-root">
@@ -141,7 +180,7 @@ export function MessageDetailPage() {
         {/* ── Message Summary Card ── */}
         <div className="msg-summary-card">
           <div className="msg-summary-top">
-            <span className="msg-summary-id">{messageSummary.id}</span>
+            <span className="msg-summary-id">{currentSummary.id}</span>
             <div className="msg-summary-actions">
               <button className="msg-btn msg-btn-primary">
                 &#10003;&nbsp;{t("解决风险", "Resolve Risk")}
@@ -158,19 +197,19 @@ export function MessageDetailPage() {
           <div className="msg-summary-fields">
             <div className="msg-field">
               <span className="msg-field-label">ID</span>
-              <span className="msg-field-value">{messageSummary.id}</span>
+              <span className="msg-field-value">{currentSummary.id}</span>
             </div>
             <div className="msg-field">
               <span className="msg-field-label">
                 {t("风险等级", "Risk Level")}
               </span>
               <span className="msg-badge msg-badge-red">
-                {t("高", "High")} / {messageSummary.riskColor}
+                {t("高", "High")} / {currentSummary.riskColor}
               </span>
             </div>
             <div className="msg-field">
               <span className="msg-field-label">{t("来源", "Source")}</span>
-              <span className="msg-field-value">{messageSummary.source}</span>
+              <span className="msg-field-value">{currentSummary.source}</span>
             </div>
             <div className="msg-field">
               <span className="msg-field-label">
@@ -185,7 +224,7 @@ export function MessageDetailPage() {
                 {t("接收时间", "Received Time")}
               </span>
               <span className="msg-field-value">
-                {messageSummary.receivedTime}
+                {currentSummary.receivedTime}
               </span>
             </div>
           </div>
@@ -223,7 +262,7 @@ export function MessageDetailPage() {
                   &#9776;&nbsp;{t("筛选", "Filters")}
                 </button>
               </div>
-              <div className="msg-code-block">{rawMessageText}</div>
+              <div className="msg-code-block">{currentRawText}</div>
             </div>
 
             {/* Timeline */}
@@ -234,13 +273,13 @@ export function MessageDetailPage() {
                 </span>
               </div>
               <div className="msg-timeline">
-                {timelineEvents.map((evt, i) => (
+                {currentTimeline.map((evt: any, i: number) => (
                   <div className="msg-timeline-item" key={i}>
                     <div className="msg-timeline-dot-col">
                       <div
                         className={`msg-timeline-dot${evt.active ? " active" : ""}`}
                       />
-                      {i < timelineEvents.length - 1 && (
+                      {i < currentTimeline.length - 1 && (
                         <div className="msg-timeline-line" />
                       )}
                     </div>
@@ -294,7 +333,7 @@ export function MessageDetailPage() {
                   </div>
                   <table className="msg-kv-table">
                     <tbody>
-                      {parsedFields.map((f, i) => {
+                      {currentParsedFields.map((f: any, i: number) => {
                         const keyMap: Record<string, string> = {
                           "Originating Agency": "发起机构",
                           "Affected Airspace/Location": "受影响空域/位置",
@@ -334,7 +373,7 @@ export function MessageDetailPage() {
                 </div>
                 <div className="msg-severity-body">
                   <div className="msg-severity-kv">
-                    {severityRows.map((r, i) => {
+                    {currentSeverityRows.map((r: any, i: number) => {
                       const labelMap: Record<string, string> = {
                         "Severity Score": "严重程度评分",
                         "Risk Level": "风险等级",
@@ -354,7 +393,7 @@ export function MessageDetailPage() {
                   </div>
                   <div className="msg-severity-chart">
                     <ResponsiveContainer width="100%" height={130}>
-                      <LineChart data={riskChartData}>
+                      <LineChart data={currentRiskChartData}>
                         <CartesianGrid
                           strokeDasharray="3 3"
                           stroke="rgba(148,163,184,0.1)"

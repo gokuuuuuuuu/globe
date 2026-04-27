@@ -16,6 +16,7 @@ import {
 } from "../data/flightData";
 import { ALL_PERSONS } from "../data/personData";
 import { AnalysisPage } from "./AnalysisPage";
+import { getDashboardOverview } from "../api/dashboard";
 import { useLanguage } from "../i18n/useLanguage";
 import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
 import { Timeline } from "../components/Timeline";
@@ -150,6 +151,7 @@ export function HomePage() {
     setSearchParams(sp, { replace: true });
   };
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [dashboard, setDashboard] = useState(null);
   const { setRiskZones, setHomeObjectTab } = useAppStore();
   // Per-tab red/yellow filter state
   const [redYellowByTab, setRedYellowByTab] = useState<
@@ -264,6 +266,11 @@ export function HomePage() {
     };
   }, []);
 
+  // ===== Display stats: prefer API data, fallback to local =====
+  const flightStatsDisplay = dashboard?.flightStats ?? flightStats;
+  const airportStatsDisplay = dashboard?.airportStats ?? airportStats;
+  const personnelStatsDisplay = dashboard?.personnelStats ?? personnelStats;
+
   // ===== Risk lists =====
   const highRiskFlights = useMemo(() => {
     return scopedFlights
@@ -363,6 +370,12 @@ export function HomePage() {
   const riskListRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    getDashboardOverview()
+      .then((data) => setDashboard(data))
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
     if (selectedFlightRouteId && riskListRef.current) {
       const card = document.getElementById(
         `risk-card-${selectedFlightRouteId}`,
@@ -389,23 +402,23 @@ export function HomePage() {
   const currentStats =
     objectTab === "flights"
       ? {
-          total: flightStats.total,
-          red: flightStats.red,
-          yellow: flightStats.yellow,
-          green: flightStats.green,
+          total: flightStatsDisplay.total,
+          red: flightStatsDisplay.red,
+          yellow: flightStatsDisplay.yellow,
+          green: flightStatsDisplay.green,
         }
       : objectTab === "airports"
         ? {
-            total: airportStats.total,
-            red: airportStats.red,
-            yellow: airportStats.yellow,
-            green: airportStats.green,
+            total: airportStatsDisplay.total,
+            red: airportStatsDisplay.red,
+            yellow: airportStatsDisplay.yellow,
+            green: airportStatsDisplay.green,
           }
         : {
-            total: personnelStats.total,
-            red: personnelStats.highRisk,
-            yellow: personnelStats.mediumRisk,
-            green: personnelStats.lowRisk,
+            total: personnelStatsDisplay.total,
+            red: personnelStatsDisplay.highRisk,
+            yellow: personnelStatsDisplay.mediumRisk,
+            green: personnelStatsDisplay.lowRisk,
           };
 
   const gaugeScore = topCriticalItem ? parseFloat(topCriticalItem.score) : 0;
@@ -671,21 +684,23 @@ export function HomePage() {
             onClick={() => setObjectTab("flights")}
           >
             <span className="lbl">{t("航班", "FLT")}</span>
-            <span className="v">{flightStats.total.toLocaleString()}</span>
+            <span className="v">
+              {flightStatsDisplay.total.toLocaleString()}
+            </span>
           </div>
           <div
             className={`obj-pill glass-sm ${objectTab === "airports" ? "active" : ""}`}
             onClick={() => setObjectTab("airports")}
           >
             <span className="lbl">{t("机场", "APT")}</span>
-            <span className="v">{airportStats.total}</span>
+            <span className="v">{airportStatsDisplay.total}</span>
           </div>
           <div
             className={`obj-pill glass-sm ${objectTab === "personnel" ? "active" : ""}`}
             onClick={() => setObjectTab("personnel")}
           >
             <span className="lbl">{t("人员", "PSN")}</span>
-            <span className="v">{personnelStats.total}</span>
+            <span className="v">{personnelStatsDisplay.total}</span>
           </div>
         </div>
 
@@ -1127,9 +1142,9 @@ export function HomePage() {
                           >
                             {t("查看机场", "View Airport")}
                           </button>
-                          <button className="primary">
+                          {/* <button className="primary">
                             {t("处理", "Handle")}
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     )}
@@ -1241,9 +1256,9 @@ export function HomePage() {
                           >
                             {t("查看人员", "View Person")}
                           </button>
-                          <button className="primary">
+                          {/* <button className="primary">
                             {t("处理", "Handle")}
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     )}

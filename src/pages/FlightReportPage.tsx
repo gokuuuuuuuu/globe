@@ -1,8 +1,9 @@
 //@ts-nocheck
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import { downloadCSV } from "../utils/exportUtils";
+import { getFlightReport } from "../api/flight";
 import "./FlightReportPage.css";
 
 const NAV_SECTIONS = [
@@ -63,7 +64,7 @@ const NAV_SECTIONS = [
   // 治理记录导航已移除
 ];
 
-const flightInfo = {
+const defaultFlightInfo = {
   flightId: "737-AR123",
   date: "Oct 26, 2023",
   aircraft: "Boeing 737-800",
@@ -160,6 +161,24 @@ export function FlightReportPage() {
   const isClickScrolling = useRef(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const flightId = searchParams.get("id");
+  const [report, setReport] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!flightId) return;
+    setLoading(true);
+    setError(null);
+    getFlightReport(Number(flightId))
+      .then((data: any) => setReport(data))
+      .catch((err: any) => setError(err?.message || "加载失败"))
+      .finally(() => setLoading(false));
+  }, [flightId]);
+
+  const flightInfo = report?.flightInfo || report?.flight || defaultFlightInfo;
+  const reportContent = report || {};
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -193,6 +212,58 @@ export function FlightReportPage() {
     });
     return () => observer.disconnect();
   }, []);
+
+  if (loading) {
+    return (
+      <div
+        className="fr-root"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 400,
+        }}
+      >
+        <div style={{ color: "#94a3b8", fontSize: 16 }}>
+          {t("加载中...", "Loading...")}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className="fr-root"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 400,
+          gap: 16,
+        }}
+      >
+        <div style={{ color: "#ef4444", fontSize: 16 }}>
+          {t("加载失败", "Failed to load")}: {error}
+        </div>
+        <button
+          className="fr-btn"
+          onClick={() => {
+            if (!flightId) return;
+            setLoading(true);
+            setError(null);
+            getFlightReport(Number(flightId))
+              .then((data: any) => setReport(data))
+              .catch((err: any) => setError(err?.message || "加载失败"))
+              .finally(() => setLoading(false));
+          }}
+        >
+          {t("重试", "Retry")}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="fr-root">
@@ -241,16 +312,24 @@ export function FlightReportPage() {
             onClick={() => {
               const headers = [t("字段", "Field"), t("值", "Value")];
               const rows: (string | number)[][] = [
-                [t("航班ID", "Flight ID"), flightInfo.flightId],
-                [t("日期", "Date"), flightInfo.date],
-                [t("飞机", "Aircraft"), flightInfo.aircraft],
-                [t("机长", "Pilot"), flightInfo.pilot],
-                [t("航线", "Route"), flightInfo.route],
-                [t("状态", "Status"), flightInfo.status],
-                [t("摘要", "Summary"), flightInfo.summary],
+                [
+                  t("航班ID", "Flight ID"),
+                  flightInfo?.flightId || flightInfo?.flightNo || "",
+                ],
+                [t("日期", "Date"), flightInfo?.date || ""],
+                [
+                  t("飞机", "Aircraft"),
+                  flightInfo?.aircraft || flightInfo?.aircraftModel || "",
+                ],
+                [t("机长", "Pilot"), flightInfo?.pilot || ""],
+                [t("航线", "Route"), flightInfo?.route || ""],
+                [t("状态", "Status"), flightInfo?.status || ""],
+                [t("摘要", "Summary"), flightInfo?.summary || ""],
               ];
               downloadCSV(
-                t("航班报告", "flight_report") + "_" + flightInfo.flightId,
+                t("航班报告", "flight_report") +
+                  "_" +
+                  (flightInfo?.flightId || flightInfo?.flightNo || ""),
                 headers,
                 rows,
               );
@@ -292,28 +371,34 @@ export function FlightReportPage() {
               <div className="fr-grid-4">
                 <div>
                   <div className="fr-env-label">{t("日期", "Date")}</div>
-                  <div className="fr-env-value">{flightInfo.date}</div>
+                  <div className="fr-env-value">{flightInfo?.date || "-"}</div>
                 </div>
                 <div>
                   <div className="fr-env-label">{t("飞机", "Aircraft")}</div>
-                  <div className="fr-env-value">{flightInfo.aircraft}</div>
+                  <div className="fr-env-value">
+                    {flightInfo?.aircraft || flightInfo?.aircraftModel || "-"}
+                  </div>
                 </div>
                 <div>
                   <div className="fr-env-label">PF</div>
-                  <div className="fr-env-value">{flightInfo.pilot}</div>
+                  <div className="fr-env-value">
+                    {flightInfo?.pilot || flightInfo?.pf || "-"}
+                  </div>
                 </div>
                 <div>
                   <div className="fr-env-label">PM</div>
-                  <div className="fr-env-value">Co-pilot</div>
+                  <div className="fr-env-value">
+                    {flightInfo?.pm || "Co-pilot"}
+                  </div>
                 </div>
                 <div>
                   <div className="fr-env-label">{t("航线", "Route")}</div>
-                  <div className="fr-env-value">{flightInfo.route}</div>
+                  <div className="fr-env-value">{flightInfo?.route || "-"}</div>
                 </div>
                 <div>
                   <div className="fr-env-label">{t("状态", "Status")}</div>
                   <div className="fr-env-value" style={{ color: "#22c55e" }}>
-                    {flightInfo.status}
+                    {flightInfo?.status || "-"}
                   </div>
                 </div>
                 <div>
@@ -321,14 +406,20 @@ export function FlightReportPage() {
                     {t("综合风险", "Composite Risk")}
                   </div>
                   <div className="fr-env-value" style={{ color: "#ef4444" }}>
-                    HIGH (Red) - 78/100
+                    {reportContent?.compositeRisk?.summary ||
+                      reportContent?.riskSummary ||
+                      "HIGH (Red) - 78/100"}
                   </div>
                 </div>
                 <div>
                   <div className="fr-env-label">
                     {t("报告已生成", "Report Generated")}
                   </div>
-                  <div className="fr-env-value">Oct 28, 2024 09:15 AM</div>
+                  <div className="fr-env-value">
+                    {reportContent?.generatedAt ||
+                      reportContent?.reportGeneratedAt ||
+                      "Oct 28, 2024 09:15 AM"}
+                  </div>
                 </div>
               </div>
             </div>
@@ -347,7 +438,9 @@ export function FlightReportPage() {
                       {t("总体风险：", "OVERALL RISK:")}
                     </div>
                     <div className="fr-overall-value fr-overall-value-red">
-                      HIGH (Red)
+                      {reportContent?.compositeRisk?.overallRisk ||
+                        reportContent?.overallRisk ||
+                        "HIGH (Red)"}
                     </div>
                   </div>
                   <div>
@@ -358,7 +451,9 @@ export function FlightReportPage() {
                       className="fr-overall-value"
                       style={{ color: "#f8fafc" }}
                     >
-                      78/100
+                      {reportContent?.compositeRisk?.riskScore ||
+                        reportContent?.riskScore ||
+                        "78/100"}
                     </div>
                   </div>
                 </div>
@@ -439,28 +534,43 @@ export function FlightReportPage() {
                   {t("简介", "Introduction")}
                 </h4>
                 <div className="fr-text">
-                  <p>
-                    The flight recent event consolidation analysis covers
-                    preceding composite risk factors including high-to-runway
-                    threat and maintenance contributing factors.
-                  </p>
-                  <ul>
-                    <li>
-                      <strong>Critical risk:</strong> HIGH risk, a progression
-                      in composite risk with fine economic assessment.
-                    </li>
-                    <li>
-                      <strong>High areas:</strong> In-flight cases of excessive
-                      contributing factors, distribution centers in volume and
-                      risk appendices.
-                    </li>
-                    <li>
-                      <strong>Medium risk:</strong> Routine maintenance exposit
-                      and environmental assessment metrics are maintained,
-                      resulting in factors managing to other engine contributing
-                      factors.
-                    </li>
-                  </ul>
+                  {reportContent?.compositeRisk?.introduction ||
+                  reportContent?.compositeConclusion ? (
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html:
+                          reportContent?.compositeRisk?.introduction ||
+                          reportContent?.compositeConclusion,
+                      }}
+                    />
+                  ) : (
+                    <>
+                      <p>
+                        The flight recent event consolidation analysis covers
+                        preceding composite risk factors including
+                        high-to-runway threat and maintenance contributing
+                        factors.
+                      </p>
+                      <ul>
+                        <li>
+                          <strong>Critical risk:</strong> HIGH risk, a
+                          progression in composite risk with fine economic
+                          assessment.
+                        </li>
+                        <li>
+                          <strong>High areas:</strong> In-flight cases of
+                          excessive contributing factors, distribution centers
+                          in volume and risk appendices.
+                        </li>
+                        <li>
+                          <strong>Medium risk:</strong> Routine maintenance
+                          exposit and environmental assessment metrics are
+                          maintained, resulting in factors managing to other
+                          engine contributing factors.
+                        </li>
+                      </ul>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -599,36 +709,49 @@ export function FlightReportPage() {
             </h2>
             <div className="fr-card">
               <div className="fr-text">
-                <p>
-                  {t(
-                    "本节包含重大风险事件的详细分析，包括原因链和影响评估。",
-                    "This section contains detailed analysis of major risk events, including causal chains and impact assessments.",
-                  )}
-                </p>
-                <ul>
-                  <li>
-                    <strong>Severe Turbulence (Critical - Red):</strong>{" "}
-                    Thunderstorms forecasted along the flight path. Recommended
-                    action: alter altitude or route to avoid convective activity
-                    zones.
-                  </li>
-                  <li>
-                    <strong>Communication Loss (High):</strong> Radio
-                    interference detected in cruise phase. Backup communication
-                    channels should be activated according to standard
-                    procedures.
-                  </li>
-                  <li>
-                    <strong>Engine Issue (Critical - High):</strong> Maintenance
-                    indicators suggest monitoring engine performance closely.
-                    Thunderstorm ingestion risk elevated.
-                  </li>
-                  <li>
-                    <strong>Crosswind Landing (Medium):</strong> Destination
-                    airport reporting strong crosswinds. Crew should prepare for
-                    potential go-around scenario.
-                  </li>
-                </ul>
+                {reportContent?.majorRiskDetail || reportContent?.majorRisk ? (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        reportContent?.majorRiskDetail ||
+                        reportContent?.majorRisk,
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p>
+                      {t(
+                        "本节包含重大风险事件的详细分析，包括原因链和影响评估。",
+                        "This section contains detailed analysis of major risk events, including causal chains and impact assessments.",
+                      )}
+                    </p>
+                    <ul>
+                      <li>
+                        <strong>Severe Turbulence (Critical - Red):</strong>{" "}
+                        Thunderstorms forecasted along the flight path.
+                        Recommended action: alter altitude or route to avoid
+                        convective activity zones.
+                      </li>
+                      <li>
+                        <strong>Communication Loss (High):</strong> Radio
+                        interference detected in cruise phase. Backup
+                        communication channels should be activated according to
+                        standard procedures.
+                      </li>
+                      <li>
+                        <strong>Engine Issue (Critical - High):</strong>{" "}
+                        Maintenance indicators suggest monitoring engine
+                        performance closely. Thunderstorm ingestion risk
+                        elevated.
+                      </li>
+                      <li>
+                        <strong>Crosswind Landing (Medium):</strong> Destination
+                        airport reporting strong crosswinds. Crew should prepare
+                        for potential go-around scenario.
+                      </li>
+                    </ul>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -638,79 +761,97 @@ export function FlightReportPage() {
             <h2 className="fr-section-title">
               {t("人为因素分析", "Human Factor Analysis")}
             </h2>
-            <div className="fr-grid-2">
+            {reportContent?.humanFactor ||
+            reportContent?.humanFactorAnalysis ? (
               <div className="fr-card">
-                <div className="fr-card-title">Metric Cards</div>
-                <div className="fr-grid-2" style={{ marginBottom: 16 }}>
-                  {[
-                    {
-                      labelZh: "机组疲劳",
-                      labelEn: "Crew Fatigue",
-                      badge: "Moderate - Yellow",
-                      cls: "fr-badge-moderate",
-                    },
-                    {
-                      labelZh: "通信",
-                      labelEn: "Communication",
-                      badge: "Good",
-                      cls: "fr-badge-good",
-                    },
-                    {
-                      labelZh: "任务负荷",
-                      labelEn: "Task Load",
-                      badge: "Moderate -",
-                      cls: "fr-badge-moderate",
-                    },
-                    {
-                      labelZh: "任务负荷",
-                      labelEn: "Task Load",
-                      badge: "Good",
-                      cls: "fr-badge-good",
-                    },
-                    {
-                      labelZh: "通信",
-                      labelEn: "Communication",
-                      badge: "Moderate -",
-                      cls: "fr-badge-moderate",
-                    },
-                    {
-                      labelZh: "任务负荷",
-                      labelEn: "Task Load",
-                      badge: "Guessed",
-                      cls: "fr-badge-guessed",
-                    },
-                  ].map((m, i) => (
-                    <div className="fr-metric-card" key={i}>
-                      <div className="fr-metric-label">
-                        {t(m.labelZh, m.labelEn)}
-                      </div>
-                      <span className={`fr-status-badge ${m.cls}`}>
-                        {m.badge}
-                      </span>
-                    </div>
-                  ))}
-                </div>
                 <div className="fr-text">
-                  <p>Three cards converge in four term maintenance factors:</p>
-                  <ul>
-                    <li>
-                      <strong>{t("机组疲劳", "Crew Fatigue")}</strong> -
-                      Allimoration, crew own ensure and communication actual
-                      problems.
-                    </li>
-                    <li>
-                      <strong>{t("通信", "Communication")}</strong> - Railings
-                      and small ercerset eaten aent to more load.
-                    </li>
-                    <li>
-                      <strong>{t("任务负荷", "Task Load")}</strong> - Analytical
-                      accolers cont in seeting communicate contributing factors
-                      for maintenance aspects and contributing factors.
-                    </li>
-                  </ul>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        reportContent?.humanFactor ||
+                        reportContent?.humanFactorAnalysis,
+                    }}
+                  />
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="fr-grid-2">
+                <div className="fr-card">
+                  <div className="fr-card-title">Metric Cards</div>
+                  <div className="fr-grid-2" style={{ marginBottom: 16 }}>
+                    {[
+                      {
+                        labelZh: "机组疲劳",
+                        labelEn: "Crew Fatigue",
+                        badge: "Moderate - Yellow",
+                        cls: "fr-badge-moderate",
+                      },
+                      {
+                        labelZh: "通信",
+                        labelEn: "Communication",
+                        badge: "Good",
+                        cls: "fr-badge-good",
+                      },
+                      {
+                        labelZh: "任务负荷",
+                        labelEn: "Task Load",
+                        badge: "Moderate -",
+                        cls: "fr-badge-moderate",
+                      },
+                      {
+                        labelZh: "任务负荷",
+                        labelEn: "Task Load",
+                        badge: "Good",
+                        cls: "fr-badge-good",
+                      },
+                      {
+                        labelZh: "通信",
+                        labelEn: "Communication",
+                        badge: "Moderate -",
+                        cls: "fr-badge-moderate",
+                      },
+                      {
+                        labelZh: "任务负荷",
+                        labelEn: "Task Load",
+                        badge: "Guessed",
+                        cls: "fr-badge-guessed",
+                      },
+                    ].map((m, i) => (
+                      <div className="fr-metric-card" key={i}>
+                        <div className="fr-metric-label">
+                          {t(m.labelZh, m.labelEn)}
+                        </div>
+                        <span className={`fr-status-badge ${m.cls}`}>
+                          {m.badge}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="fr-text">
+                    <p>
+                      Three cards converge in four term maintenance factors:
+                    </p>
+                    <ul>
+                      <li>
+                        <strong>{t("机组疲劳", "Crew Fatigue")}</strong> -
+                        Allimoration, crew own ensure and communication actual
+                        problems.
+                      </li>
+                      <li>
+                        <strong>{t("通信", "Communication")}</strong> - Railings
+                        and small ercerset eaten aent to more load.
+                      </li>
+                      <li>
+                        <strong>{t("任务负荷", "Task Load")}</strong> -
+                        Analytical accolers cont in seeting communicate
+                        contributing factors for maintenance aspects and
+                        contributing factors.
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 3. Aircraft Factor Analysis */}
@@ -718,134 +859,182 @@ export function FlightReportPage() {
             <h2 className="fr-section-title">
               {t("飞机因素分析", "Aircraft Factor Analysis")}
             </h2>
-            <div className="fr-grid-2">
+            {reportContent?.aircraftFactor ||
+            reportContent?.aircraftFactorAnalysis ? (
               <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("部件系统状态", "Component System Status")}
+                <div className="fr-text">
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        reportContent?.aircraftFactor ||
+                        reportContent?.aircraftFactorAnalysis,
+                    }}
+                  />
                 </div>
-                <div className="fr-component-grid">
-                  {[
-                    { nameZh: "发动机", nameEn: "Engines", color: "#ef4444" },
-                    { nameZh: "航电", nameEn: "Avionics", color: "#f97316" },
-                    { nameZh: "液压", nameEn: "Hydraulics", color: "#22c55e" },
-                    { nameZh: "发动机", nameEn: "Engines", color: "#22c55e" },
-                    { nameZh: "航电", nameEn: "Avionics", color: "#22c55e" },
-                    { nameZh: "液压", nameEn: "Hydraulics", color: "#22c55e" },
-                  ].map((c, i) => (
-                    <div className="fr-component-item" key={i}>
-                      <span className="fr-component-name">
-                        {t(c.nameZh, c.nameEn)}
+              </div>
+            ) : (
+              <div className="fr-grid-2">
+                <div className="fr-card">
+                  <div className="fr-card-title">
+                    {t("部件系统状态", "Component System Status")}
+                  </div>
+                  <div className="fr-component-grid">
+                    {[
+                      { nameZh: "发动机", nameEn: "Engines", color: "#ef4444" },
+                      { nameZh: "航电", nameEn: "Avionics", color: "#f97316" },
+                      {
+                        nameZh: "液压",
+                        nameEn: "Hydraulics",
+                        color: "#22c55e",
+                      },
+                      { nameZh: "发动机", nameEn: "Engines", color: "#22c55e" },
+                      { nameZh: "航电", nameEn: "Avionics", color: "#22c55e" },
+                      {
+                        nameZh: "液压",
+                        nameEn: "Hydraulics",
+                        color: "#22c55e",
+                      },
+                    ].map((c, i) => (
+                      <div className="fr-component-item" key={i}>
+                        <span className="fr-component-name">
+                          {t(c.nameZh, c.nameEn)}
+                        </span>
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <span
+                            className="fr-status-dot"
+                            style={{ background: c.color }}
+                          />
+                          <span
+                            className="fr-component-status"
+                            style={{ color: c.color }}
+                          >
+                            {t("状态", "Status")}
+                          </span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 16 }}>
+                    <div className="fr-status-row">
+                      <span className="fr-status-label">
+                        {t("维修日志", "Maintenance logs")}
                       </span>
-                      <span
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
+                      <span className="fr-status-badge fr-badge-moderate">
+                        {t("摘要", "Summary")}
+                      </span>
+                    </div>
+                    <div className="fr-status-row">
+                      <span className="fr-status-label">
+                        {t("维修日志摘要", "Maintenance logs summary")}
+                      </span>
+                      <span className="fr-status-badge fr-badge-moderate">
+                        {t("摘要", "Summary")}
+                      </span>
+                    </div>
+                    <div className="fr-status-row">
+                      <span className="fr-status-label">
+                        {t("维修状态标签", "Maintenance status tag")}
+                      </span>
+                      <span className="fr-status-badge fr-badge-complete">
+                        Complete
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="fr-card">
+                  <div className="fr-card-title">
+                    {t("风险阶段分析", "Risk Phase Analysis")}
+                  </div>
+                  <div className="fr-bar-chart" style={{ height: 120 }}>
+                    {[
+                      {
+                        labelZh: "起飞",
+                        labelEn: "Takeoff",
+                        vals: [3, 4, 5, 2],
+                      },
+                      { labelZh: "爬升", labelEn: "Climb", vals: [2, 3, 4, 1] },
+                      {
+                        labelZh: "巡航",
+                        labelEn: "Cruise",
+                        vals: [4, 5, 6, 3],
+                      },
+                      {
+                        labelZh: "下降",
+                        labelEn: "Descent",
+                        vals: [2, 3, 3, 2],
+                      },
+                      {
+                        labelZh: "着陆",
+                        labelEn: "Landing",
+                        vals: [3, 4, 5, 2],
+                      },
+                    ].map((phase) => {
+                      const total = phase.vals.reduce((a, b) => a + b, 0);
+                      const colors = [
+                        "#ef4444",
+                        "#f97316",
+                        "#3b82f6",
+                        "#22c55e",
+                      ];
+                      return (
+                        <div className="fr-bar-group" key={phase.labelEn}>
+                          <div
+                            className="fr-bar-stack"
+                            style={{ height: `${(total / 20) * 100}%` }}
+                          >
+                            {phase.vals.map((v, i) => (
+                              <div
+                                key={i}
+                                className="fr-bar-segment"
+                                style={{
+                                  height: `${(v / total) * 100}%`,
+                                  background: colors[i],
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div className="fr-bar-label">
+                            {t(phase.labelZh, phase.labelEn)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="fr-chart-legend">
+                    {[
+                      { label: "Maintenance", color: "#ef4444" },
+                      {
+                        labelZh: "航电",
+                        labelEn: "Avionics",
+                        color: "#f97316",
+                      },
+                      {
+                        labelZh: "液压",
+                        labelEn: "Hydraulics",
+                        color: "#3b82f6",
+                      },
+                    ].map((l) => (
+                      <div
+                        className="fr-chart-legend-item"
+                        key={"labelEn" in l ? l.labelEn : l.label}
                       >
                         <span
-                          className="fr-status-dot"
-                          style={{ background: c.color }}
+                          className="fr-chart-legend-dot"
+                          style={{ background: l.color }}
                         />
-                        <span
-                          className="fr-component-status"
-                          style={{ color: c.color }}
-                        >
-                          {t("状态", "Status")}
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div style={{ marginTop: 16 }}>
-                  <div className="fr-status-row">
-                    <span className="fr-status-label">
-                      {t("维修日志", "Maintenance logs")}
-                    </span>
-                    <span className="fr-status-badge fr-badge-moderate">
-                      {t("摘要", "Summary")}
-                    </span>
-                  </div>
-                  <div className="fr-status-row">
-                    <span className="fr-status-label">
-                      {t("维修日志摘要", "Maintenance logs summary")}
-                    </span>
-                    <span className="fr-status-badge fr-badge-moderate">
-                      {t("摘要", "Summary")}
-                    </span>
-                  </div>
-                  <div className="fr-status-row">
-                    <span className="fr-status-label">
-                      {t("维修状态标签", "Maintenance status tag")}
-                    </span>
-                    <span className="fr-status-badge fr-badge-complete">
-                      Complete
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("风险阶段分析", "Risk Phase Analysis")}
-                </div>
-                <div className="fr-bar-chart" style={{ height: 120 }}>
-                  {[
-                    { labelZh: "起飞", labelEn: "Takeoff", vals: [3, 4, 5, 2] },
-                    { labelZh: "爬升", labelEn: "Climb", vals: [2, 3, 4, 1] },
-                    { labelZh: "巡航", labelEn: "Cruise", vals: [4, 5, 6, 3] },
-                    { labelZh: "下降", labelEn: "Descent", vals: [2, 3, 3, 2] },
-                    { labelZh: "着陆", labelEn: "Landing", vals: [3, 4, 5, 2] },
-                  ].map((phase) => {
-                    const total = phase.vals.reduce((a, b) => a + b, 0);
-                    const colors = ["#ef4444", "#f97316", "#3b82f6", "#22c55e"];
-                    return (
-                      <div className="fr-bar-group" key={phase.labelEn}>
-                        <div
-                          className="fr-bar-stack"
-                          style={{ height: `${(total / 20) * 100}%` }}
-                        >
-                          {phase.vals.map((v, i) => (
-                            <div
-                              key={i}
-                              className="fr-bar-segment"
-                              style={{
-                                height: `${(v / total) * 100}%`,
-                                background: colors[i],
-                              }}
-                            />
-                          ))}
-                        </div>
-                        <div className="fr-bar-label">
-                          {t(phase.labelZh, phase.labelEn)}
-                        </div>
+                        {"labelZh" in l ? t(l.labelZh, l.labelEn) : l.label}
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="fr-chart-legend">
-                  {[
-                    { label: "Maintenance", color: "#ef4444" },
-                    { labelZh: "航电", labelEn: "Avionics", color: "#f97316" },
-                    {
-                      labelZh: "液压",
-                      labelEn: "Hydraulics",
-                      color: "#3b82f6",
-                    },
-                  ].map((l) => (
-                    <div
-                      className="fr-chart-legend-item"
-                      key={"labelEn" in l ? l.labelEn : l.label}
-                    >
-                      <span
-                        className="fr-chart-legend-dot"
-                        style={{ background: l.color }}
-                      />
-                      {"labelZh" in l ? t(l.labelZh, l.labelEn) : l.label}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* 4. Environmental Factor Analysis */}
@@ -853,97 +1042,115 @@ export function FlightReportPage() {
             <h2 className="fr-section-title">
               {t("环境因素分析", "Environmental Factor Analysis")}
             </h2>
-            <div className="fr-grid-2">
+            {reportContent?.envFactor ||
+            reportContent?.environmentalFactorAnalysis ? (
               <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("天气与环境", "Weather & Environment")}
-                </div>
-                <div className="fr-text" style={{ marginBottom: 12 }}>
-                  Environmental factor analysis covers the main environmental
-                  risk categories affecting this flight.
-                </div>
                 <div className="fr-text">
-                  <ul>
-                    <li>
-                      <strong>{t("天气状况", "Weather conditions")}:</strong>{" "}
-                      {t("到达附近雷暴", "Thunderstorms near arrival")}.
-                    </li>
-                    <li>
-                      <strong>Weather density:</strong> Moderate wind and
-                      crosswind from air traffic conditions.
-                    </li>
-                    <li>
-                      <strong>
-                        {t("空中交通密度", "Air traffic density")}:
-                      </strong>{" "}
-                      Maintenance awaiting metrics contributing to contributing
-                      factor analysis.
-                    </li>
-                  </ul>
-                </div>
-                <h4
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "#f8fafc",
-                    margin: "12px 0 8px",
-                  }}
-                >
-                  {t("关键分析：", "Key Analysis:")}
-                </h4>
-                <div className="fr-text">
-                  <ul>
-                    <li>
-                      <strong>{t("发动机", "Engines")}:</strong> Increase manner
-                      factors and flight
-                    </li>
-                    <li>
-                      <strong>{t("通信", "Communication")}:</strong> In-flight
-                      chaels and actanics convention and communication systems.
-                    </li>
-                  </ul>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        reportContent?.envFactor ||
+                        reportContent?.environmentalFactorAnalysis,
+                    }}
+                  />
                 </div>
               </div>
-              <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("环境条件", "Environmental Conditions")}
+            ) : (
+              <div className="fr-grid-2">
+                <div className="fr-card">
+                  <div className="fr-card-title">
+                    {t("天气与环境", "Weather & Environment")}
+                  </div>
+                  <div className="fr-text" style={{ marginBottom: 12 }}>
+                    Environmental factor analysis covers the main environmental
+                    risk categories affecting this flight.
+                  </div>
+                  <div className="fr-text">
+                    <ul>
+                      <li>
+                        <strong>{t("天气状况", "Weather conditions")}:</strong>{" "}
+                        {t("到达附近雷暴", "Thunderstorms near arrival")}.
+                      </li>
+                      <li>
+                        <strong>Weather density:</strong> Moderate wind and
+                        crosswind from air traffic conditions.
+                      </li>
+                      <li>
+                        <strong>
+                          {t("空中交通密度", "Air traffic density")}:
+                        </strong>{" "}
+                        Maintenance awaiting metrics contributing to
+                        contributing factor analysis.
+                      </li>
+                    </ul>
+                  </div>
+                  <h4
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#f8fafc",
+                      margin: "12px 0 8px",
+                    }}
+                  >
+                    {t("关键分析：", "Key Analysis:")}
+                  </h4>
+                  <div className="fr-text">
+                    <ul>
+                      <li>
+                        <strong>{t("发动机", "Engines")}:</strong> Increase
+                        manner factors and flight
+                      </li>
+                      <li>
+                        <strong>{t("通信", "Communication")}:</strong> In-flight
+                        chaels and actanics convention and communication
+                        systems.
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-                <div className="fr-grid-2">
-                  <div>
-                    <div className="fr-env-item">
-                      <div className="fr-env-label">
-                        {t("天气状况", "Weather conditions")}
+                <div className="fr-card">
+                  <div className="fr-card-title">
+                    {t("环境条件", "Environmental Conditions")}
+                  </div>
+                  <div className="fr-grid-2">
+                    <div>
+                      <div className="fr-env-item">
+                        <div className="fr-env-label">
+                          {t("天气状况", "Weather conditions")}
+                        </div>
+                        <div className="fr-env-value">
+                          {t("到达附近雷暴", "Thunderstorms near arrival")}
+                        </div>
                       </div>
-                      <div className="fr-env-value">
-                        {t("到达附近雷暴", "Thunderstorms near arrival")}
+                      <div className="fr-env-item">
+                        <div className="fr-env-label">
+                          {t("空中交通密度", "Air traffic density")}
+                        </div>
+                        <div className="fr-env-value">
+                          {t("场地交通", "Site traffic")}
+                        </div>
+                      </div>
+                      <div className="fr-env-item">
+                        <div className="fr-env-label">
+                          {t("天气", "Weather")}
+                        </div>
+                        <div className="fr-env-value">
+                          {t("适中", "Moderate")}
+                        </div>
                       </div>
                     </div>
-                    <div className="fr-env-item">
-                      <div className="fr-env-label">
-                        {t("空中交通密度", "Air traffic density")}
-                      </div>
-                      <div className="fr-env-value">
-                        {t("场地交通", "Site traffic")}
-                      </div>
-                    </div>
-                    <div className="fr-env-item">
-                      <div className="fr-env-label">{t("天气", "Weather")}</div>
-                      <div className="fr-env-value">
-                        {t("适中", "Moderate")}
+                    <div>
+                      <div className="fr-env-item">
+                        <div className="fr-env-label">Airmanity</div>
+                        <div className="fr-env-value">
+                          {t("正常范围", "Normal range")}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <div className="fr-env-item">
-                      <div className="fr-env-label">Airmanity</div>
-                      <div className="fr-env-value">
-                        {t("正常范围", "Normal range")}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* 7. Factor Explanation */}
@@ -953,35 +1160,48 @@ export function FlightReportPage() {
             </h2>
             <div className="fr-card">
               <div className="fr-text">
-                <p>
-                  {t(
-                    "本节详细解释了各风险因子的含义、权重和计算方法。",
-                    "This section explains the meaning, weight, and calculation methods of each risk factor.",
-                  )}
-                </p>
-                <ul>
-                  <li>
-                    <strong>{t("人为因素", "Human Factors")}:</strong>{" "}
-                    {t(
-                      "包含机组疲劳、通信、任务负荷等维度的评估。",
-                      "Assessment of crew fatigue, communication, task load, etc.",
-                    )}
-                  </li>
-                  <li>
-                    <strong>{t("飞机因素", "Aircraft Factors")}:</strong>{" "}
-                    {t(
-                      "包含发动机状态、液压系统、航电设备等维度的评估。",
-                      "Assessment of engine status, hydraulic systems, avionics, etc.",
-                    )}
-                  </li>
-                  <li>
-                    <strong>{t("环境因素", "Environmental Factors")}:</strong>{" "}
-                    {t(
-                      "包含天气、空中交通、机场条件等维度的评估。",
-                      "Assessment of weather, air traffic, airport conditions, etc.",
-                    )}
-                  </li>
-                </ul>
+                {reportContent?.factorExplanation ||
+                reportContent?.factorExplanation ? (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: reportContent?.factorExplanation,
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p>
+                      {t(
+                        "本节详细解释了各风险因子的含义、权重和计算方法。",
+                        "This section explains the meaning, weight, and calculation methods of each risk factor.",
+                      )}
+                    </p>
+                    <ul>
+                      <li>
+                        <strong>{t("人为因素", "Human Factors")}:</strong>{" "}
+                        {t(
+                          "包含机组疲劳、通信、任务负荷等维度的评估。",
+                          "Assessment of crew fatigue, communication, task load, etc.",
+                        )}
+                      </li>
+                      <li>
+                        <strong>{t("飞机因素", "Aircraft Factors")}:</strong>{" "}
+                        {t(
+                          "包含发动机状态、液压系统、航电设备等维度的评估。",
+                          "Assessment of engine status, hydraulic systems, avionics, etc.",
+                        )}
+                      </li>
+                      <li>
+                        <strong>
+                          {t("环境因素", "Environmental Factors")}:
+                        </strong>{" "}
+                        {t(
+                          "包含天气、空中交通、机场条件等维度的评估。",
+                          "Assessment of weather, air traffic, airport conditions, etc.",
+                        )}
+                      </li>
+                    </ul>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -993,47 +1213,63 @@ export function FlightReportPage() {
             </h2>
             <div className="fr-card">
               <div className="fr-text">
-                <p>
-                  {t(
-                    "以下为支持风险评估的数据来源：",
-                    "The following data sources support the risk assessment:",
-                  )}
-                </p>
-                <ul>
-                  <li>
-                    <strong>{t("飞行数据", "Flight Data")}:</strong> QAR/FDR{" "}
-                    {t("记录的飞行参数数据", "recorded flight parameter data")}
-                  </li>
-                  <li>
-                    <strong>{t("训练数据", "Training Data")}:</strong>{" "}
-                    {t(
-                      "机组人员训练记录和考核结果",
-                      "Crew training records and assessment results",
-                    )}
-                  </li>
-                  <li>
-                    <strong>{t("维修数据", "Maintenance Data")}:</strong>{" "}
-                    {t(
-                      "飞机维修保养记录和故障报告",
-                      "Aircraft maintenance records and fault reports",
-                    )}
-                  </li>
-                  <li>
-                    <strong>{t("通告", "Notices")}:</strong> NOTAM{" "}
-                    {t("和航行通告信息", "and flight advisory information")}
-                  </li>
-                  <li>
-                    <strong>{t("报文", "Messages")}:</strong> METAR/TAF{" "}
-                    {t("气象报文信息", "meteorological message information")}
-                  </li>
-                  <li>
-                    <strong>{t("规则和手册", "Rules & Manuals")}:</strong>{" "}
-                    {t(
-                      "适用的法规、标准和操作手册",
-                      "Applicable regulations, standards, and operating manuals",
-                    )}
-                  </li>
-                </ul>
+                {reportContent?.evidenceChain ? (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: reportContent?.evidenceChain,
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p>
+                      {t(
+                        "以下为支持风险评估的数据来源：",
+                        "The following data sources support the risk assessment:",
+                      )}
+                    </p>
+                    <ul>
+                      <li>
+                        <strong>{t("飞行数据", "Flight Data")}:</strong> QAR/FDR{" "}
+                        {t(
+                          "记录的飞行参数数据",
+                          "recorded flight parameter data",
+                        )}
+                      </li>
+                      <li>
+                        <strong>{t("训练数据", "Training Data")}:</strong>{" "}
+                        {t(
+                          "机组人员训练记录和考核结果",
+                          "Crew training records and assessment results",
+                        )}
+                      </li>
+                      <li>
+                        <strong>{t("维修数据", "Maintenance Data")}:</strong>{" "}
+                        {t(
+                          "飞机维修保养记录和故障报告",
+                          "Aircraft maintenance records and fault reports",
+                        )}
+                      </li>
+                      <li>
+                        <strong>{t("通告", "Notices")}:</strong> NOTAM{" "}
+                        {t("和航行通告信息", "and flight advisory information")}
+                      </li>
+                      <li>
+                        <strong>{t("报文", "Messages")}:</strong> METAR/TAF{" "}
+                        {t(
+                          "气象报文信息",
+                          "meteorological message information",
+                        )}
+                      </li>
+                      <li>
+                        <strong>{t("规则和手册", "Rules & Manuals")}:</strong>{" "}
+                        {t(
+                          "适用的法规、标准和操作手册",
+                          "Applicable regulations, standards, and operating manuals",
+                        )}
+                      </li>
+                    </ul>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -1043,40 +1279,54 @@ export function FlightReportPage() {
             <h2 className="fr-section-title">
               {t("证据附录", "Evidence Appendix")}
             </h2>
-            <div className="fr-grid-2">
+            {reportContent?.evidenceAppendix || reportContent?.evidence ? (
               <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("证据摘要", "Evidence Summary")}
-                </div>
-                <div className="fr-evidence-block">
-                  <p>
-                    The paragraphs and text blocks provide the most analysis
-                    specific data. Utilization metrics and state the precods by
-                    urgante analysis, metadata and multiattribs, side within
-                    data converter.
-                  </p>
-                  <p style={{ marginTop: 8 }}>
-                    Questions of metric environmental system, interspend
-                    contributing factors risk analysis, following
-                    semi-point-lets data also communication position.
-                  </p>
+                <div className="fr-text">
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        reportContent?.evidenceAppendix ||
+                        reportContent?.evidence,
+                    }}
+                  />
                 </div>
               </div>
-              <div className="fr-card">
-                <div className="fr-card-title">
-                  {t("环境因素分析", "Environmental Factor Analysis")}
+            ) : (
+              <div className="fr-grid-2">
+                <div className="fr-card">
+                  <div className="fr-card-title">
+                    {t("证据摘要", "Evidence Summary")}
+                  </div>
+                  <div className="fr-evidence-block">
+                    <p>
+                      The paragraphs and text blocks provide the most analysis
+                      specific data. Utilization metrics and state the precods
+                      by urgante analysis, metadata and multiattribs, side
+                      within data converter.
+                    </p>
+                    <p style={{ marginTop: 8 }}>
+                      Questions of metric environmental system, interspend
+                      contributing factors risk analysis, following
+                      semi-point-lets data also communication position.
+                    </p>
+                  </div>
                 </div>
-                <div className="fr-evidence-block">
-                  <p>
-                    The paragraphing analysis creates contributing and tons and
-                    generating environmental algorithms contrib/utility of the
-                    separator charts data cuties considered by five environment
-                    materials and density of environmental materials and
-                    accessibility of transformation station.
-                  </p>
+                <div className="fr-card">
+                  <div className="fr-card-title">
+                    {t("环境因素分析", "Environmental Factor Analysis")}
+                  </div>
+                  <div className="fr-evidence-block">
+                    <p>
+                      The paragraphing analysis creates contributing and tons
+                      and generating environmental algorithms contrib/utility of
+                      the separator charts data cuties considered by five
+                      environment materials and density of environmental
+                      materials and accessibility of transformation station.
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* 治理记录部分已移除 */}

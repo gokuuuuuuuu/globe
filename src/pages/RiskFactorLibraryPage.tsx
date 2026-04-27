@@ -107,7 +107,14 @@ export function RiskFactorLibraryPage() {
       const data = res?.data ?? res;
       setFactors(data.items ?? []);
       setTotal(data.total ?? 0);
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch risk factors:", err);
+      toast(
+        err instanceof Error
+          ? err.message
+          : t("加载风险因子失败", "Failed to load risk factors"),
+        "error",
+      );
       setFactors([]);
       setTotal(0);
     } finally {
@@ -378,26 +385,11 @@ export function RiskFactorLibraryPage() {
             <thead>
               <tr>
                 <th style={{ width: 40 }} />
-                <th className="sortable">
-                  {t("因子编号", "Factor ID")}
-                  <span className="rfl-sort-icon">⇅</span>
-                </th>
-                <th className="sortable">
-                  {t("因子名称", "Factor Name")}
-                  <span className="rfl-sort-icon">⇅</span>
-                </th>
-                <th className="sortable">
-                  {t("风险类型", "Risk Type")}
-                  <span className="rfl-sort-icon">⇅</span>
-                </th>
-                <th className="sortable">
-                  {t("重要度", "Importance")}
-                  <span className="rfl-sort-icon">⇅</span>
-                </th>
-                <th className="sortable">
-                  {t("规则数", "Rules Count")}
-                  <span className="rfl-sort-icon">⇅</span>
-                </th>
+                <th>{t("因子编号", "Factor ID")}</th>
+                <th>{t("因子名称", "Factor Name")}</th>
+                <th>{t("风险类型", "Risk Type")}</th>
+                <th>{t("重要度", "Importance")}</th>
+                <th>{t("规则数", "Rules Count")}</th>
                 <th>{t("规则来源", "Rule Source")}</th>
                 <th>{t("最后更新", "Last Update")}</th>
                 <th>{t("得分", "Score")}</th>

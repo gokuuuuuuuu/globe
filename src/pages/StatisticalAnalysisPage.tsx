@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  getFlightAnalytics,
+  getPersonnelAnalytics,
+  getPlaneAnalytics,
+  getAirportAnalytics,
+} from "../api/analytics";
 import {
   LineChart,
   Line,
@@ -42,164 +48,11 @@ const darkTooltipStyle = {
   itemStyle: { color: "#cbd5e1" },
 };
 
-// ===== Airport Statistics Data =====
-
-const otpTrendData = [
-  { month: "Jan", JKF: 82, LAX: 75, ACR: 68, NDY: 72, ABR: 65, ALL: 71 },
-  { month: "Feb", JKF: 78, LAX: 70, ACR: 72, NDY: 68, ABR: 62, ALL: 68 },
-  { month: "Mar", JKF: 85, LAX: 78, ACR: 74, NDY: 70, ABR: 66, ALL: 73 },
-  { month: "Apr", JKF: 80, LAX: 73, ACR: 70, NDY: 75, ABR: 68, ALL: 72 },
-  { month: "May", JKF: 88, LAX: 80, ACR: 76, NDY: 78, ABR: 70, ALL: 77 },
-  { month: "Jun", JKF: 84, LAX: 77, ACR: 72, NDY: 74, ABR: 67, ALL: 74 },
-];
-
-const passengerVolumeData = [
-  { airport: "JKF", volume: 9.2 },
-  { airport: "LAX", volume: 8.1 },
-  { airport: "DER", volume: 6.5 },
-  { airport: "ABA", volume: 5.8 },
-  { airport: "NDN", volume: 4.9 },
-  { airport: "ADR", volume: 4.2 },
-  { airport: "UHR", volume: 3.5 },
-];
-
-const delayAirports = [
-  { rank: 1, code: "JKF", city: "Bheeman City", count: 16 },
-  { rank: 2, code: "LAX", city: "Matarono City", count: 10 },
-  { rank: 3, code: "DLI", city: "Caresen City", count: 8 },
-  { rank: 4, code: "GUX", city: "Matatona City", count: 6 },
-];
-
-const groundServiceData = [
-  { name: "Gate Turnaround", value: 39.8, color: "#3b82f6" },
-  { name: "Refueling", value: 17.2, color: "#ef4444" },
-  { name: "Cleaning", value: 13.8, color: "#22c55e" },
-  { name: "Maintenance", value: 11.5, color: "#a855f7" },
-  { name: "Dectoc", value: 8.5, color: "#f97316" },
-  { name: "Other", value: 4.7, color: "#eab308" },
-  { name: "Ground & Refsonance", value: 4.5, color: "#64748b" },
-];
-
-const drillDownFlights = [
-  {
-    id: "1773016",
-    origin: "JKF",
-    dest: "LAX",
-    scheduled: "12:30 PM",
-    actual: "12:35 PM",
-    delay: 10,
-  },
-];
-
-const OTP_COLORS = [
-  "#3b82f6",
-  "#ef4444",
-  "#22c55e",
-  "#a855f7",
-  "#f97316",
-  "#64748b",
-];
-const OTP_KEYS = ["JKF", "LAX", "ACR", "NDY", "ABR", "ALL"];
-
-// ===== Flight Statistics Data =====
-
-const flightMonthlyData = [
-  { month: "Jan", total: 2180, highRisk: 85, mediumRisk: 210, lowRisk: 1885 },
-  { month: "Feb", total: 1960, highRisk: 72, mediumRisk: 195, lowRisk: 1693 },
-  { month: "Mar", total: 2340, highRisk: 98, mediumRisk: 240, lowRisk: 2002 },
-  { month: "Apr", total: 2520, highRisk: 105, mediumRisk: 260, lowRisk: 2155 },
-  { month: "May", total: 2680, highRisk: 112, mediumRisk: 275, lowRisk: 2293 },
-  { month: "Jun", total: 2450, highRisk: 95, mediumRisk: 250, lowRisk: 2105 },
-];
-
-const flightRiskDistData = [
-  { name: "High", value: 567, color: "#ef4444" },
-  { name: "Medium", value: 1430, color: "#eab308" },
-  { name: "Low", value: 12133, color: "#22c55e" },
-];
-
-const flightStatusData = [
-  { name: "Landed", value: 8920, color: "#22c55e" },
-  { name: "Cruising", value: 3210, color: "#3b82f6" },
-  { name: "Not Departed", value: 2000, color: "#64748b" },
-];
-
-const flightRiskTypeTop5 = [
-  { name: "Severe Weather", count: 186 },
-  { name: "Pilot Fatigue", count: 142 },
-  { name: "Engine Fault", count: 98 },
-  { name: "Communication Error", count: 76 },
-  { name: "Mechanical Issue", count: 65 },
-];
-
-// ===== Personnel Statistics Data =====
-
-const personnelMonthlyRisk = [
-  { month: "Jan", highRisk: 12, mediumRisk: 35, total: 480 },
-  { month: "Feb", highRisk: 15, mediumRisk: 38, total: 485 },
-  { month: "Mar", highRisk: 10, mediumRisk: 32, total: 490 },
-  { month: "Apr", highRisk: 18, mediumRisk: 42, total: 492 },
-  { month: "May", highRisk: 14, mediumRisk: 36, total: 495 },
-  { month: "Jun", highRisk: 16, mediumRisk: 40, total: 498 },
-];
-
-const personnelRiskDistData = [
-  { name: "High", value: 15, color: "#ef4444" },
-  { name: "Medium", value: 35, color: "#eab308" },
-  { name: "Low", value: 448, color: "#22c55e" },
-];
-
-const personnelUnitRisk = [
-  { unit: "East Division", high: 5, medium: 12 },
-  { unit: "North Division", high: 4, medium: 8 },
-  { unit: "South Division", high: 3, medium: 9 },
-  { unit: "West Division", high: 2, medium: 5 },
-  { unit: "Central Division", high: 1, medium: 1 },
-];
-
-const humanFactorTop5 = [
-  { name: "Fatigue", count: 28 },
-  { name: "Communication", count: 22 },
-  { name: "Task Overload", count: 18 },
-  { name: "Procedure Deviation", count: 14 },
-  { name: "Stress", count: 11 },
-];
-
-// ===== Aircraft Statistics Data =====
-
-const aircraftMonthlyRisk = [
-  { month: "Jan", highRisk: 8, mediumRisk: 22, normal: 170 },
-  { month: "Feb", highRisk: 6, mediumRisk: 20, normal: 174 },
-  { month: "Mar", highRisk: 10, mediumRisk: 25, normal: 165 },
-  { month: "Apr", highRisk: 7, mediumRisk: 18, normal: 175 },
-  { month: "May", highRisk: 9, mediumRisk: 24, normal: 167 },
-  { month: "Jun", highRisk: 11, mediumRisk: 26, normal: 163 },
-];
-
-const aircraftTypeDistData = [
-  { name: "B737", count: 68, color: "#3b82f6" },
-  { name: "A320", count: 52, color: "#22c55e" },
-  { name: "B777", count: 35, color: "#a855f7" },
-  { name: "A350", count: 28, color: "#f97316" },
-  { name: "Other", count: 17, color: "#64748b" },
-];
-
-const maintenanceEventData = [
-  { month: "Jan", scheduled: 45, unscheduled: 12 },
-  { month: "Feb", scheduled: 42, unscheduled: 15 },
-  { month: "Mar", scheduled: 50, unscheduled: 18 },
-  { month: "Apr", scheduled: 48, unscheduled: 10 },
-  { month: "May", scheduled: 55, unscheduled: 14 },
-  { month: "Jun", scheduled: 52, unscheduled: 16 },
-];
-
-const faultTop5 = [
-  { name: "Hydraulic System", count: 32 },
-  { name: "Engine Vibration", count: 26 },
-  { name: "Avionics Anomaly", count: 19 },
-  { name: "Flight Control", count: 15 },
-  { name: "Fuel System", count: 11 },
-];
+const NO_DATA_STYLE = {
+  textAlign: "center" as const,
+  padding: 40,
+  color: "#64748b",
+};
 
 // ===== Tabs =====
 
@@ -217,6 +70,27 @@ export function StatisticalAnalysisPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<TabKey>("airport-statistics");
+  const [analyticsData, setAnalyticsData] = useState<any>({});
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  useEffect(() => {
+    setAnalyticsLoading(true);
+    Promise.all([
+      getAirportAnalytics().catch(() => null),
+      getFlightAnalytics().catch(() => null),
+      getPersonnelAnalytics().catch(() => null),
+      getPlaneAnalytics().catch(() => null),
+    ])
+      .then(([airportsRes, flightsRes, personnelRes, planesRes]) => {
+        setAnalyticsData({
+          airports: airportsRes ?? null,
+          flights: flightsRes ?? null,
+          personnel: personnelRes ?? null,
+          planes: planesRes ?? null,
+        });
+      })
+      .finally(() => setAnalyticsLoading(false));
+  }, []);
 
   const tabLabels: Record<TabKey, string> = {
     "flight-statistics": t("航班统计", "Flight Statistics"),
@@ -252,6 +126,11 @@ export function StatisticalAnalysisPage() {
 
   const handleExport = () => {
     if (activeTab === "flight-statistics") {
+      const raw = analyticsData.flights?.monthlyTrend ?? [];
+      if (!raw.length) {
+        alert(t("暂无可导出数据", "No data to export"));
+        return;
+      }
       const headers = [
         t("月份", "Month"),
         t("总航班", "Total"),
@@ -259,60 +138,64 @@ export function StatisticalAnalysisPage() {
         t("中风险", "Medium Risk"),
         t("低风险", "Low Risk"),
       ];
-      const rows = flightMonthlyData.map((d) => [
-        tMonth(d.month),
-        d.total,
-        d.highRisk,
-        d.mediumRisk,
-        d.lowRisk,
+      const rows = raw.map((d: any) => [
+        d.label ?? d.month,
+        d.total ?? 0,
+        d.high ?? 0,
+        d.medium ?? 0,
+        d.low ?? 0,
       ]);
       downloadCSV(t("航班统计", "flight_statistics"), headers, rows);
     } else if (activeTab === "personnel-statistics") {
+      const raw = analyticsData.personnel?.monthlyTrend ?? [];
+      if (!raw.length) {
+        alert(t("暂无可导出数据", "No data to export"));
+        return;
+      }
       const headers = [
         t("月份", "Month"),
         t("高风险", "High Risk"),
         t("中风险", "Medium Risk"),
-        t("总人数", "Total"),
+        t("低风险", "Low Risk"),
       ];
-      const rows = personnelMonthlyRisk.map((d) => [
-        tMonth(d.month),
-        d.highRisk,
-        d.mediumRisk,
-        d.total,
+      const rows = raw.map((d: any) => [
+        d.label ?? d.month,
+        d.high ?? 0,
+        d.medium ?? 0,
+        d.low ?? 0,
       ]);
       downloadCSV(t("人员统计", "personnel_statistics"), headers, rows);
     } else if (activeTab === "aircraft-statistics") {
+      const raw = analyticsData.planes?.monthlyTrend ?? [];
+      if (!raw.length) {
+        alert(t("暂无可导出数据", "No data to export"));
+        return;
+      }
       const headers = [
         t("月份", "Month"),
         t("高风险", "High Risk"),
         t("中风险", "Medium Risk"),
-        t("正常", "Normal"),
+        t("低风险", "Low Risk"),
       ];
-      const rows = aircraftMonthlyRisk.map((d) => [
-        tMonth(d.month),
-        d.highRisk,
-        d.mediumRisk,
-        d.normal,
+      const rows = raw.map((d: any) => [
+        d.label ?? d.month,
+        d.high ?? 0,
+        d.medium ?? 0,
+        d.low ?? 0,
       ]);
       downloadCSV(t("飞机统计", "aircraft_statistics"), headers, rows);
     } else {
-      const headers = [
-        t("月份", "Month"),
-        "JKF",
-        "LAX",
-        "ACR",
-        "NDY",
-        "ABR",
-        "ALL",
-      ];
-      const rows = otpTrendData.map((d) => [
-        tMonth(d.month),
-        d.JKF,
-        d.LAX,
-        d.ACR,
-        d.NDY,
-        d.ABR,
-        d.ALL,
+      const raw = analyticsData.airports?.topAirportsOnTimeTrend ?? [];
+      if (!raw.length) {
+        alert(t("暂无可导出数据", "No data to export"));
+        return;
+      }
+      const airports = raw.map((a: any) => a.airport);
+      const labels = raw[0]?.data?.map((d: any) => d.label) ?? [];
+      const headers = [t("月份", "Month"), ...airports];
+      const rows = labels.map((label: string, idx: number) => [
+        label,
+        ...raw.map((a: any) => a.data?.[idx]?.value ?? 0),
       ]);
       downloadCSV(t("机场统计", "airport_information"), headers, rows);
     }
@@ -366,17 +249,46 @@ export function StatisticalAnalysisPage() {
       </div>
 
       <div className="sta-body">
-        {activeTab === "flight-statistics" && (
-          <FlightStatisticsTab t={t} tMonth={tMonth} />
+        {analyticsLoading && (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 0",
+              color: "#94a3b8",
+              fontSize: 14,
+            }}
+          >
+            {t("数据加载中...", "Loading data...")}
+          </div>
         )}
-        {activeTab === "personnel-statistics" && (
-          <PersonnelStatisticsTab t={t} tMonth={tMonth} />
+        {!analyticsLoading && activeTab === "flight-statistics" && (
+          <FlightStatisticsTab
+            t={t}
+            tMonth={tMonth}
+            apiData={analyticsData.flights}
+          />
         )}
-        {activeTab === "airport-statistics" && (
-          <AirportStatisticsTab t={t} tMonth={tMonth} tService={tService} />
+        {!analyticsLoading && activeTab === "personnel-statistics" && (
+          <PersonnelStatisticsTab
+            t={t}
+            tMonth={tMonth}
+            apiData={analyticsData.personnel}
+          />
         )}
-        {activeTab === "aircraft-statistics" && (
-          <AircraftStatisticsTab t={t} tMonth={tMonth} />
+        {!analyticsLoading && activeTab === "airport-statistics" && (
+          <AirportStatisticsTab
+            t={t}
+            tMonth={tMonth}
+            tService={tService}
+            apiData={analyticsData.airports}
+          />
+        )}
+        {!analyticsLoading && activeTab === "aircraft-statistics" && (
+          <AircraftStatisticsTab
+            t={t}
+            tMonth={tMonth}
+            apiData={analyticsData.planes}
+          />
         )}
       </div>
     </div>
@@ -421,40 +333,80 @@ type TFn = (zh: string, en: string) => string;
 function FlightStatisticsTab({
   t,
   tMonth,
+  apiData,
 }: {
   t: TFn;
   tMonth: (m: string) => string;
+  apiData?: any;
 }) {
+  if (!apiData)
+    return (
+      <div style={NO_DATA_STYLE}>{t("暂无数据", "No data available")}</div>
+    );
+
+  const kpi = apiData.kpis ?? apiData.kpi ?? {};
+  const monthlyData = (apiData.monthlyTrend ?? apiData.monthlyData ?? []).map(
+    (d: any) => ({
+      month: d.label ?? d.month,
+      total: d.total ?? 0,
+      highRisk: d.high ?? d.highRisk ?? 0,
+      mediumRisk: d.medium ?? d.mediumRisk ?? 0,
+      lowRisk: d.low ?? d.lowRisk ?? 0,
+    }),
+  );
+  const rawRiskDist = apiData.riskDistribution ?? {};
+  const riskDistData = Array.isArray(rawRiskDist)
+    ? rawRiskDist
+    : [
+        { name: "High", value: rawRiskDist.high ?? 0, color: "#ef4444" },
+        { name: "Medium", value: rawRiskDist.medium ?? 0, color: "#eab308" },
+        { name: "Low", value: rawRiskDist.low ?? 0, color: "#22c55e" },
+      ];
+  const rawStatus = apiData.statusDistribution ?? {};
+  const statusData = Array.isArray(rawStatus)
+    ? rawStatus
+    : Object.entries(rawStatus).map(([name, value]: [string, any]) => ({
+        name,
+        value,
+        color:
+          name === "Landed" || name === "已降落"
+            ? "#22c55e"
+            : name === "Cruising" || name === "巡航中"
+              ? "#3b82f6"
+              : "#64748b",
+      }));
+  const riskTypeTop5 = apiData.topRiskTypes ?? apiData.riskTypeTop5 ?? [];
+
   return (
     <>
       <div className="sta-kpi-row">
         <KpiCard
           num="1"
           label={t("总航班数", "Total Flights")}
-          value="14,130"
-          change="+2.8%"
-          dir="up"
+          value={kpi.totalFlights?.toString() ?? "—"}
+          change={kpi.totalFlightsChange ?? ""}
+          dir={kpi.totalFlightsDir ?? ""}
         />
         <KpiCard
           num="2"
           label={t("高风险航班", "High Risk Flights")}
-          value="567"
-          change="+1.4%"
-          dir="up"
+          value={kpi.highRiskFlights?.toString() ?? "—"}
+          change={kpi.highRiskFlightsChange ?? ""}
+          dir={kpi.highRiskFlightsDir ?? ""}
         />
         <KpiCard
           num="3"
           label={t("中风险航班", "Medium Risk Flights")}
-          value="1,430"
-          change="-0.8%"
-          dir="down"
+          value={kpi.mediumRiskFlights?.toString() ?? "—"}
+          change={kpi.mediumRiskFlightsChange ?? ""}
+          dir={kpi.mediumRiskFlightsDir ?? ""}
         />
         <KpiCard
           num="4"
           label={t("平均风险评分", "Avg Risk Score")}
-          value="32.5"
-          change="+3.2%"
-          dir="up"
+          value={kpi.avgRiskScore?.toString() ?? "—"}
+          change={kpi.avgRiskScoreChange ?? ""}
+          dir={kpi.avgRiskScoreDir ?? ""}
         />
       </div>
 
@@ -467,7 +419,7 @@ function FlightStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={flightMonthlyData}>
+            <AreaChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="month"
@@ -520,7 +472,7 @@ function FlightStatisticsTab({
             <ResponsiveContainer width="55%" height={200}>
               <PieChart>
                 <Pie
-                  data={flightRiskDistData}
+                  data={riskDistData}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -528,7 +480,7 @@ function FlightStatisticsTab({
                   dataKey="value"
                   stroke="none"
                 >
-                  {flightRiskDistData.map((entry, i) => (
+                  {riskDistData.map((entry: any, i: number) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
@@ -536,7 +488,7 @@ function FlightStatisticsTab({
               </PieChart>
             </ResponsiveContainer>
             <div className="sta-pie-legend">
-              {flightRiskDistData.map((item) => (
+              {riskDistData.map((item: any) => (
                 <span className="sta-pie-legend-item" key={item.name}>
                   <span
                     className="sta-legend-dot"
@@ -567,7 +519,7 @@ function FlightStatisticsTab({
             <ResponsiveContainer width="55%" height={200}>
               <PieChart>
                 <Pie
-                  data={flightStatusData}
+                  data={statusData}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -575,7 +527,7 @@ function FlightStatisticsTab({
                   dataKey="value"
                   stroke="none"
                 >
-                  {flightStatusData.map((entry, i) => (
+                  {statusData.map((entry: any, i: number) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
@@ -583,7 +535,7 @@ function FlightStatisticsTab({
               </PieChart>
             </ResponsiveContainer>
             <div className="sta-pie-legend">
-              {flightStatusData.map((item) => (
+              {statusData.map((item: any) => (
                 <span className="sta-pie-legend-item" key={item.name}>
                   <span
                     className="sta-legend-dot"
@@ -608,7 +560,7 @@ function FlightStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={flightRiskTypeTop5} layout="vertical">
+            <BarChart data={riskTypeTop5} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 type="number"
@@ -654,40 +606,74 @@ function FlightStatisticsTab({
 function PersonnelStatisticsTab({
   t,
   tMonth,
+  apiData,
 }: {
   t: TFn;
   tMonth: (m: string) => string;
+  apiData?: any;
 }) {
+  if (!apiData)
+    return (
+      <div style={NO_DATA_STYLE}>{t("暂无数据", "No data available")}</div>
+    );
+
+  const kpi = apiData.kpis ?? apiData.kpi ?? {};
+  const monthlyRisk = (apiData.monthlyTrend ?? apiData.monthlyRisk ?? []).map(
+    (d: any) => ({
+      month: d.label ?? d.month,
+      highRisk: d.high ?? d.highRisk ?? 0,
+      mediumRisk: d.medium ?? d.mediumRisk ?? 0,
+      total:
+        d.low != null
+          ? (d.high ?? 0) + (d.medium ?? 0) + (d.low ?? 0)
+          : (d.total ?? 0),
+    }),
+  );
+  const rawRiskDist = apiData.riskDistribution ?? {};
+  const riskDistData = Array.isArray(rawRiskDist)
+    ? rawRiskDist
+    : [
+        { name: "High", value: rawRiskDist.high ?? 0, color: "#ef4444" },
+        { name: "Medium", value: rawRiskDist.medium ?? 0, color: "#eab308" },
+        { name: "Low", value: rawRiskDist.low ?? 0, color: "#22c55e" },
+      ];
+  const unitRisk = apiData.byUnit ?? apiData.unitRisk ?? [];
+  const factorTop5 = apiData.topHumanFactors ?? apiData.humanFactorTop5 ?? [];
+
   return (
     <>
       <div className="sta-kpi-row">
         <KpiCard
           num="1"
           label={t("飞行员总数", "Total Pilots")}
-          value="498"
-          change="+1.2%"
-          dir="up"
+          value={kpi.totalPilots?.toString() ?? "—"}
+          change={kpi.totalPilotsChange ?? ""}
+          dir={kpi.totalPilotsDir ?? ""}
         />
         <KpiCard
           num="2"
           label={t("高风险人员", "High Risk Personnel")}
-          value="15"
-          change="+2"
-          dir="up"
+          value={kpi.highRiskPersonnel?.toString() ?? "—"}
+          change={kpi.highRiskPersonnelChange ?? ""}
+          dir={kpi.highRiskPersonnelDir ?? ""}
         />
         <KpiCard
           num="3"
           label={t("中风险人员", "Medium Risk Personnel")}
-          value="35"
-          change="-3"
-          dir="down"
+          value={kpi.mediumRiskPersonnel?.toString() ?? "—"}
+          change={kpi.mediumRiskPersonnelChange ?? ""}
+          dir={kpi.mediumRiskPersonnelDir ?? ""}
         />
         <KpiCard
           num="4"
           label={t("培训完成率", "Training Completion Rate")}
-          value="92.4%"
-          change="+1.5%"
-          dir="up"
+          value={
+            kpi.trainingCompletionRatePct != null
+              ? `${kpi.trainingCompletionRatePct}%`
+              : "—"
+          }
+          change=""
+          dir=""
         />
       </div>
 
@@ -700,7 +686,7 @@ function PersonnelStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={personnelMonthlyRisk}>
+            <LineChart data={monthlyRisk}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="month"
@@ -745,7 +731,7 @@ function PersonnelStatisticsTab({
             <ResponsiveContainer width="55%" height={200}>
               <PieChart>
                 <Pie
-                  data={personnelRiskDistData}
+                  data={riskDistData}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -753,7 +739,7 @@ function PersonnelStatisticsTab({
                   dataKey="value"
                   stroke="none"
                 >
-                  {personnelRiskDistData.map((entry, i) => (
+                  {riskDistData.map((entry: any, i: number) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
@@ -761,7 +747,7 @@ function PersonnelStatisticsTab({
               </PieChart>
             </ResponsiveContainer>
             <div className="sta-pie-legend">
-              {personnelRiskDistData.map((item) => (
+              {riskDistData.map((item: any) => (
                 <span className="sta-pie-legend-item" key={item.name}>
                   <span
                     className="sta-legend-dot"
@@ -789,7 +775,7 @@ function PersonnelStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={personnelUnitRisk}>
+            <BarChart data={unitRisk}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="unit"
@@ -836,7 +822,7 @@ function PersonnelStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={humanFactorTop5} layout="vertical">
+            <BarChart data={factorTop5} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 type="number"
@@ -883,41 +869,127 @@ function AirportStatisticsTab({
   t,
   tMonth,
   tService,
+  apiData,
 }: {
   t: TFn;
   tMonth: (m: string) => string;
   tService: (n: string) => string;
+  apiData?: any;
 }) {
+  if (!apiData)
+    return (
+      <div style={NO_DATA_STYLE}>{t("暂无数据", "No data available")}</div>
+    );
+
+  const kpi = apiData.kpis ?? apiData.kpi ?? {};
+  // 准点率趋势 - topAirportsOnTimeTrend: [{airport, data:[{label, value}]}]
+  const rawOtp = apiData.topAirportsOnTimeTrend ?? apiData.otpTrend ?? [];
+  let otpData: any[] = [];
+  if (rawOtp.length > 0 && rawOtp[0]?.data) {
+    // Transform [{airport, data:[{label,value}]}] → [{month, ZLXY:25.6, ZSPD:30}]
+    const labels = rawOtp[0].data.map((d: any) => d.label);
+    otpData = labels.map((label: string, idx: number) => {
+      const row: any = { month: label };
+      rawOtp.forEach((ap: any) => {
+        row[ap.airport] = ap.data?.[idx]?.value ?? 0;
+      });
+      return row;
+    });
+  } else {
+    otpData = rawOtp;
+  }
+  const passengerData = (
+    apiData.passengerThroughput ??
+    apiData.passengerVolume ??
+    []
+  ).map((d: any) => ({
+    airport: d.airport ?? d.code,
+    volume: d.valueMillion ?? d.volume ?? 0,
+  }));
+  const delayData = (apiData.delayRanking ?? apiData.delayAirports ?? []).map(
+    (d: any) => ({
+      rank: d.rank,
+      code: d.code,
+      city: d.city ?? "",
+      count: d.delayCount ?? d.count ?? 0,
+      avgDelayMin: d.avgDelayMin,
+    }),
+  );
+  const GROUND_COLORS = [
+    "#3b82f6",
+    "#ef4444",
+    "#22c55e",
+    "#a855f7",
+    "#f97316",
+    "#eab308",
+    "#64748b",
+  ];
+  const groundData = (
+    apiData.groundServiceEfficiency ??
+    apiData.groundService ??
+    []
+  ).map((d: any, i: number) => ({
+    name: d.name,
+    value: d.pct ?? d.value ?? 0,
+    color: d.color ?? GROUND_COLORS[i % GROUND_COLORS.length],
+  }));
+  const drillDown = apiData.drillDownFlights ?? [];
+  const rawPerfMatrix =
+    apiData.airportMatrix ?? apiData.performanceMatrix ?? [];
+  const perfMatrix = Array.isArray(rawPerfMatrix)
+    ? (rawPerfMatrix[0] ?? {})
+    : rawPerfMatrix;
+
+  // Dynamically derive OTP keys/colors from data
+  const otpKeys =
+    otpData.length > 0
+      ? Object.keys(otpData[0]).filter((k: string) => k !== "month")
+      : [];
+  const OTP_COLORS_DEFAULT = [
+    "#3b82f6",
+    "#ef4444",
+    "#22c55e",
+    "#a855f7",
+    "#f97316",
+    "#64748b",
+    "#eab308",
+    "#06b6d4",
+  ];
+
   return (
     <>
       <div className="sta-kpi-row">
         <KpiCard
           num="1"
           label={t("国内机场总数", "Total Domestic Airports")}
-          value="245"
-          change="+3.1%"
-          dir="up"
+          value={(kpi.airportTotal ?? kpi.totalAirports)?.toString() ?? "—"}
+          change=""
+          dir=""
         />
         <KpiCard
           num="2"
           label={t("航班总数", "Total Flights")}
-          value="452,109"
-          change="-1.2%"
-          dir="down"
+          value={kpi.totalFlights?.toString() ?? "—"}
+          change=""
+          dir=""
         />
         <KpiCard
           num="3"
           label={t("平均延误", "Average Delay")}
-          value="18.5 min"
-          change="+5.4%"
-          dir="up"
+          value={
+            kpi.avgDelayMin != null
+              ? `${kpi.avgDelayMin}${t("分钟", "min")}`
+              : "—"
+          }
+          change=""
+          dir=""
         />
         <KpiCard
           num="4"
           label={t("准点率 (OTP)", "On-Time Performance (OTP)")}
-          value="78.2%"
-          change="-2.1%"
-          dir="down"
+          value={kpi.onTimeRatePct != null ? `${kpi.onTimeRatePct}%` : "—"}
+          change=""
+          dir=""
         />
       </div>
 
@@ -932,7 +1004,7 @@ function AirportStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={otpTrendData}>
+            <LineChart data={otpData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="month"
@@ -948,12 +1020,12 @@ function AirportStatisticsTab({
                 tickLine={false}
               />
               <Tooltip {...darkTooltipStyle} />
-              {OTP_KEYS.map((key, i) => (
+              {otpKeys.map((key: string, i: number) => (
                 <Line
                   key={key}
                   type="monotone"
                   dataKey={key}
-                  stroke={OTP_COLORS[i]}
+                  stroke={OTP_COLORS_DEFAULT[i % OTP_COLORS_DEFAULT.length]}
                   strokeWidth={2}
                   dot={false}
                 />
@@ -961,11 +1033,14 @@ function AirportStatisticsTab({
             </LineChart>
           </ResponsiveContainer>
           <div className="sta-chart-legend">
-            {OTP_KEYS.map((key, i) => (
+            {otpKeys.map((key: string, i: number) => (
               <span className="sta-legend-item" key={key}>
                 <span
                   className="sta-legend-line"
-                  style={{ background: OTP_COLORS[i] }}
+                  style={{
+                    background:
+                      OTP_COLORS_DEFAULT[i % OTP_COLORS_DEFAULT.length],
+                  }}
                 />
                 {key} {t("机场", "Airport")}
               </span>
@@ -983,7 +1058,7 @@ function AirportStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={passengerVolumeData}>
+            <BarChart data={passengerData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="airport"
@@ -1025,7 +1100,7 @@ function AirportStatisticsTab({
               </tr>
             </thead>
             <tbody>
-              {delayAirports.map((a) => (
+              {delayData.map((a: any) => (
                 <tr key={a.rank}>
                   <td>{a.rank}</td>
                   <td>{a.code}</td>
@@ -1051,7 +1126,7 @@ function AirportStatisticsTab({
             <ResponsiveContainer width="55%" height={200}>
               <PieChart>
                 <Pie
-                  data={groundServiceData}
+                  data={groundData}
                   cx="50%"
                   cy="50%"
                   innerRadius={50}
@@ -1059,7 +1134,7 @@ function AirportStatisticsTab({
                   dataKey="value"
                   stroke="none"
                 >
-                  {groundServiceData.map((entry, i) => (
+                  {groundData.map((entry: any, i: number) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
                 </Pie>
@@ -1067,7 +1142,7 @@ function AirportStatisticsTab({
               </PieChart>
             </ResponsiveContainer>
             <div className="sta-pie-legend">
-              {groundServiceData.map((item) => (
+              {groundData.map((item: any) => (
                 <span className="sta-pie-legend-item" key={item.name}>
                   <span
                     className="sta-legend-dot"
@@ -1123,25 +1198,34 @@ function AirportStatisticsTab({
                 <span className="sta-perf-label">
                   {t("机场代码", "Airport Code")}
                 </span>
-                <span className="sta-perf-value">ZBAA</span>
+                <span className="sta-perf-value">{perfMatrix.code ?? "—"}</span>
               </div>
               <div className="sta-perf-field">
                 <span className="sta-perf-label">
                   {t("航班总数", "Total Flights")}
                 </span>
-                <span className="sta-perf-value">452,105</span>
+                <span className="sta-perf-value">
+                  {perfMatrix.totalFlights?.toString() ?? "—"}
+                </span>
               </div>
               <div className="sta-perf-field">
                 <span className="sta-perf-label">
                   {t("平均延误", "Average Delay")}
                 </span>
-                <span className="sta-perf-value">18.5 min</span>
+                <span className="sta-perf-value">
+                  {(
+                    perfMatrix.avgDelayMin ?? perfMatrix.avgDelay
+                  )?.toString() ?? "—"}
+                </span>
               </div>
               <div className="sta-perf-field">
                 <span className="sta-perf-label">
                   {t("准点率", "On-Time Performance")}
                 </span>
-                <span className="sta-perf-value">78.2%</span>
+                <span className="sta-perf-value">
+                  {(perfMatrix.onTimeRatePct ?? perfMatrix.otp)?.toString() ??
+                    "—"}
+                </span>
               </div>
             </div>
           </div>
@@ -1170,7 +1254,7 @@ function AirportStatisticsTab({
               </tr>
             </thead>
             <tbody>
-              {drillDownFlights.map((f) => (
+              {drillDown.map((f: any) => (
                 <tr key={f.id}>
                   <td>{f.id}</td>
                   <td>{f.origin}</td>
@@ -1195,40 +1279,91 @@ function AirportStatisticsTab({
 function AircraftStatisticsTab({
   t,
   tMonth,
+  apiData,
 }: {
   t: TFn;
   tMonth: (m: string) => string;
+  apiData?: any;
 }) {
+  if (!apiData)
+    return (
+      <div style={NO_DATA_STYLE}>{t("暂无数据", "No data available")}</div>
+    );
+
+  const kpi = apiData.kpis ?? apiData.kpi ?? {};
+  const monthlyRisk = (apiData.monthlyTrend ?? apiData.monthlyRisk ?? []).map(
+    (d: any) => ({
+      month: d.label ?? d.month,
+      highRisk: d.high ?? d.highRisk ?? 0,
+      mediumRisk: d.medium ?? d.mediumRisk ?? 0,
+      normal: d.low ?? d.normal ?? 0,
+    }),
+  );
+  const TYPE_COLORS = [
+    "#3b82f6",
+    "#22c55e",
+    "#a855f7",
+    "#f97316",
+    "#64748b",
+    "#eab308",
+    "#ef4444",
+  ];
+  const rawTypeDist =
+    apiData.modelDistribution ?? apiData.typeDistribution ?? [];
+  const typeDistData = rawTypeDist.map((d: any, i: number) => ({
+    name: d.model ?? d.name,
+    count: d.count ?? d.value ?? 0,
+    color: d.color ?? TYPE_COLORS[i % TYPE_COLORS.length],
+  }));
+  const maintData = (
+    apiData.maintenanceTrend ??
+    apiData.maintenanceEvents ??
+    []
+  ).map((d: any) => ({
+    month: d.label ?? d.month,
+    scheduled: d.scheduled ?? 0,
+    unscheduled: d.unplanned ?? d.unscheduled ?? 0,
+  }));
+  const faultData = apiData.topFailureTypes ?? apiData.faultTop5 ?? [];
+
   return (
     <>
       <div className="sta-kpi-row">
         <KpiCard
           num="1"
           label={t("机队规模", "Fleet Size")}
-          value="200"
-          change="+2"
-          dir="up"
+          value={kpi.fleetSize?.toString() ?? "—"}
+          change={kpi.fleetSizeChange ?? ""}
+          dir={kpi.fleetSizeDir ?? ""}
         />
         <KpiCard
           num="2"
           label={t("高风险飞机", "High Risk Aircraft")}
-          value="11"
-          change="+3"
-          dir="up"
+          value={
+            (kpi.highRiskPlanes ?? kpi.highRiskAircraft)?.toString() ?? "—"
+          }
+          change=""
+          dir=""
         />
         <KpiCard
           num="3"
           label={t("平均机龄", "Avg Aircraft Age")}
-          value="8.6 yr"
-          change="+0.2"
-          dir="up"
+          value={
+            kpi.avgAgeYears != null ? `${kpi.avgAgeYears}${t("年", "y")}` : "—"
+          }
+          change=""
+          dir=""
         />
         <KpiCard
           num="4"
           label={t("维护完成率", "Maintenance Completion")}
-          value="96.8%"
-          change="+0.5%"
-          dir="up"
+          value={
+            kpi.maintenanceCompletionRatePct != null
+              ? `${kpi.maintenanceCompletionRatePct}%`
+              : "—"
+          }
+          change=""
+          dir=""
         />
       </div>
 
@@ -1241,7 +1376,7 @@ function AircraftStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <AreaChart data={aircraftMonthlyRisk}>
+            <AreaChart data={monthlyRisk}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="month"
@@ -1291,7 +1426,7 @@ function AircraftStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={aircraftTypeDistData}>
+            <BarChart data={typeDistData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="name"
@@ -1310,7 +1445,7 @@ function AircraftStatisticsTab({
                 radius={[4, 4, 0, 0]}
                 name={t("数量", "Count")}
               >
-                {aircraftTypeDistData.map((entry, i) => (
+                {typeDistData.map((entry: any, i: number) => (
                   <Cell key={i} fill={entry.color} />
                 ))}
               </Bar>
@@ -1328,7 +1463,7 @@ function AircraftStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={maintenanceEventData}>
+            <BarChart data={maintData}>
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 dataKey="month"
@@ -1366,7 +1501,7 @@ function AircraftStatisticsTab({
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={faultTop5} layout="vertical">
+            <BarChart data={faultData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke={GRID_STROKE} />
               <XAxis
                 type="number"

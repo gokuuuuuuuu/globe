@@ -440,29 +440,12 @@ export function WorkOrderListPage() {
         <table className="wo-table">
           <thead>
             <tr>
-              <th className="sortable" onClick={() => handleSort("id")}>
-                {t("工单编号", "Work Order ID")}
-                <span className="wo-sort-icon">
-                  {sortField === "id" ? (sortDir === "asc" ? "▲" : "▼") : "⇅"}
-                </span>
-              </th>
+              <th>{t("工单编号", "Work Order ID")}</th>
               <th>{t("对象", "Object")}</th>
               <th>{t("风险摘要", "Risk Summary")}</th>
               <th>{t("当前状态", "Current Status")}</th>
               <th>{t("责任部门", "Responsible Department")}</th>
-              <th
-                className="sortable"
-                onClick={() => handleSort("updatedTime")}
-              >
-                {t("更新时间", "Updated Time")}
-                <span className="wo-sort-icon">
-                  {sortField === "updatedTime"
-                    ? sortDir === "asc"
-                      ? "▲"
-                      : "▼"
-                    : "⇅"}
-                </span>
-              </th>
+              <th>{t("更新时间", "Updated Time")}</th>
               <th>{t("操作", "Actions")}</th>
             </tr>
           </thead>

@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useLanguage } from "../i18n/useLanguage";
-import { getPlaneDetail } from "../api/plane";
+import { getPlaneDetail, getPlaneDetailPage } from "../api/plane";
 import "./AircraftDetailPage.css";
 
 // ===== Type =====
@@ -254,6 +254,7 @@ export function AircraftDetailPage() {
   const tailParam = searchParams.get("tail");
 
   const [planeDetail, setPlaneDetail] = useState<PlaneDetail | null>(null);
+  const [detailPage, setDetailPage] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
@@ -261,31 +262,37 @@ export function AircraftDetailPage() {
     if (!tailParam) return;
     setLoading(true);
     setNotFound(false);
-    getPlaneDetail(tailParam)
-      .then((data: any) => {
-        setPlaneDetail(data as PlaneDetail);
+    Promise.all([
+      getPlaneDetail(tailParam),
+      getPlaneDetailPage(tailParam).catch(() => null),
+    ])
+      .then(([basic, detail]: any[]) => {
+        setPlaneDetail(basic as PlaneDetail);
+        if (detail) setDetailPage(detail);
       })
-      .catch(() => {
-        setNotFound(true);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
   }, [tailParam]);
 
   const displayTailNumber = planeDetail?.registration || tailParam || "—";
 
+  const currentFactorScore = detailPage?.factorScore ?? factorScore;
+  const currentTopFactors = detailPage?.topFactors ?? topFactors;
+  const currentRelatedFlights = detailPage?.relatedFlights ?? relatedFlights;
+  const currentTrendData = detailPage?.trendData ?? trendData;
+  const currentAbnormalSummary = detailPage?.abnormalSummary ?? abnormalSummary;
+
   const riskLevelText =
-    factorScore.riskLevel === "High"
+    currentFactorScore.riskLevel === "High"
       ? t("高风险", "High Risk")
-      : factorScore.riskLevel === "Medium"
+      : currentFactorScore.riskLevel === "Medium"
         ? t("中风险", "Medium Risk")
         : t("低风险", "Low Risk");
 
   const riskBadgeClass =
-    factorScore.riskLevel === "High"
+    currentFactorScore.riskLevel === "High"
       ? "acd-risk-badge-high"
-      : factorScore.riskLevel === "Medium"
+      : currentFactorScore.riskLevel === "Medium"
         ? "acd-risk-badge-medium"
         : "acd-risk-badge-low";
 
@@ -545,7 +552,7 @@ export function AircraftDetailPage() {
             {t("飞机因子得分", "AIRCRAFT FACTOR SCORE")}
           </div>
           <div className="acd-gauge-wrapper">
-            <GaugeSVG score={factorScore.score} />
+            <GaugeSVG score={currentFactorScore.score} />
             <span className={`acd-risk-badge ${riskBadgeClass}`}>
               {riskLevelText}
             </span>
@@ -554,7 +561,7 @@ export function AircraftDetailPage() {
             </div>
           </div>
           <div className="acd-factor-ranges">
-            {factorScore.factors.map((f, i) => (
+            {currentFactorScore.factors.map((f, i) => (
               <div className="acd-factor-range-item" key={i}>
                 <div className="acd-factor-range-header">
                   <span className="acd-factor-range-name">
@@ -587,7 +594,7 @@ export function AircraftDetailPage() {
             {t("飞机首要因子", "TOP AIRCRAFT FACTORS")}
           </div>
           <div className="acd-top-factors">
-            {topFactors.map((f, i) => (
+            {currentTopFactors.map((f, i) => (
               <div className="acd-top-factor-item" key={i}>
                 <div className="acd-top-factor-header">
                   <span className="acd-top-factor-name">
@@ -622,31 +629,33 @@ export function AircraftDetailPage() {
             {t("相关高风险航班数量", "NUMBER OF RELATED HIGH-RISK FLIGHTS")}
           </div>
           <div className="acd-flights-header">
-            <div className="acd-flights-big-number">{relatedFlights.total}</div>
+            <div className="acd-flights-big-number">
+              {currentRelatedFlights.total}
+            </div>
             <div className="acd-flights-breakdown">
               <div className="acd-flights-breakdown-item">
                 <span className="acd-dot acd-dot-red" />
                 <span style={{ color: "#ef4444" }}>
-                  {relatedFlights.high} {t("高", "High")}
+                  {currentRelatedFlights.high} {t("高", "High")}
                 </span>
               </div>
               <div className="acd-flights-breakdown-item">
                 <span className="acd-dot acd-dot-yellow" />
                 <span style={{ color: "#eab308" }}>
-                  {relatedFlights.medium} {t("中", "Medium")}
+                  {currentRelatedFlights.medium} {t("中", "Medium")}
                 </span>
               </div>
               <div className="acd-flights-breakdown-item">
                 <span className="acd-dot acd-dot-green" />
                 <span style={{ color: "#22c55e" }}>
-                  {relatedFlights.low} {t("低", "Low")}
+                  {currentRelatedFlights.low} {t("低", "Low")}
                 </span>
               </div>
             </div>
           </div>
           <div className="acd-flights-chart">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
+              <LineChart data={currentTrendData}>
                 <CartesianGrid stroke="rgba(148,163,184,0.1)" />
                 <XAxis
                   dataKey="month"
@@ -708,7 +717,7 @@ export function AircraftDetailPage() {
                 className="acd-legend-dot"
                 style={{ background: "#ef4444" }}
               />
-              {relatedFlights.high} {t("高", "High")}
+              {currentRelatedFlights.high} {t("高", "High")}
             </div>
             <div className="acd-flights-legend-item">
               <span
@@ -722,14 +731,14 @@ export function AircraftDetailPage() {
                 className="acd-legend-dot"
                 style={{ background: "#eab308" }}
               />
-              {relatedFlights.low} {t("低", "Low")}
+              {currentRelatedFlights.low} {t("低", "Low")}
             </div>
             <div className="acd-flights-legend-item">
               <span
                 className="acd-legend-dot"
                 style={{ background: "#22c55e" }}
               />
-              {relatedFlights.low} {t("低", "Low")}
+              {currentRelatedFlights.low} {t("低", "Low")}
             </div>
           </div>
         </div>
@@ -743,7 +752,7 @@ export function AircraftDetailPage() {
             {t("重复异常汇总", "REPEATED ABNORMAL SUMMARY")}
           </div>
           <div className="acd-abnormal-counts">
-            {abnormalSummary.counts.map((c, i) => (
+            {currentAbnormalSummary.counts.map((c, i) => (
               <div className="acd-abnormal-count-item" key={i}>
                 <span className="acd-dot" style={{ background: c.color }} />
                 <span>
@@ -769,7 +778,7 @@ export function AircraftDetailPage() {
             {t("异常事项列表", "ABNORMAL ITEMS")}
           </div>
           <div className="acd-abnormal-list">
-            {abnormalSummary.items.map((item, i) => (
+            {currentAbnormalSummary.items.map((item, i) => (
               <div className="acd-abnormal-item" key={i}>
                 <span className="acd-abnormal-item-text">
                   {item.text ===

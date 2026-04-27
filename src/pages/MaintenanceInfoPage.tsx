@@ -646,43 +646,15 @@ export function MaintenanceInfoPage() {
         <table className="mt-table">
           <thead>
             <tr>
-              <th onClick={() => handleSort("date")}>
-                <span className="mt-th-sortable">
-                  {t("日期", "Date")}
-                  <SortIcon active={sortField === "date"} dir={sortDir} />
-                </span>
-              </th>
+              <th>{t("日期", "Date")}</th>
               <th>{t("记录ID", "Record ID")}</th>
-              <th onClick={() => handleSort("eventType")}>
-                <span className="mt-th-sortable">
-                  {t("事件类型", "Event Type")}
-                  <SortIcon active={sortField === "eventType"} dir={sortDir} />
-                </span>
-              </th>
+              <th>{t("事件类型", "Event Type")}</th>
               <th>{t("描述", "Description")}</th>
               <th>{t("关键系统", "Critical Systems")}</th>
-              <th onClick={() => handleSort("status")}>
-                <span className="mt-th-sortable">
-                  {t("状态", "Status")}
-                  <SortIcon active={sortField === "status"} dir={sortDir} />
-                </span>
-              </th>
+              <th>{t("状态", "Status")}</th>
               <th>{t("重复", "Repeated")}</th>
-              <th onClick={() => handleSort("criticality")}>
-                <span className="mt-th-sortable">
-                  {t("严重程度", "Criticality")}
-                  <SortIcon
-                    active={sortField === "criticality"}
-                    dir={sortDir}
-                  />
-                </span>
-              </th>
-              <th onClick={() => handleSort("phases")}>
-                <span className="mt-th-sortable">
-                  {t("影响飞行阶段", "Affected Flight Phases")}
-                  <SortIcon active={sortField === "phases"} dir={sortDir} />
-                </span>
-              </th>
+              <th>{t("严重程度", "Criticality")}</th>
+              <th>{t("影响飞行阶段", "Affected Flight Phases")}</th>
             </tr>
           </thead>
           <tbody>

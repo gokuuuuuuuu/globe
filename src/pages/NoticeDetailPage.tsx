@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getEnvironmentNotice } from "../api/environment";
 import {
   MapContainer,
   TileLayer,
@@ -87,7 +88,44 @@ const riskConclusion = {
 export function NoticeDetailPage() {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [searchParams] = useSearchParams();
+  const noticeId = searchParams.get("id");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"raw" | "formatted">("raw");
+
+  useEffect(() => {
+    if (!noticeId) return;
+    setLoading(true);
+    getEnvironmentNotice(Number(noticeId))
+      .then((res: any) => setData(res))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [noticeId]);
+
+  const currentNotice = data?.notice ?? noticeData;
+  const currentImpact = data?.impact ?? impactData;
+  const currentStats = data?.stats ?? affectedStats;
+  const currentFlights = data?.flights ?? affectedFlights;
+  const currentRisk = data?.riskConclusion ?? riskConclusion;
+
+  if (loading) {
+    return (
+      <div
+        className="ntc-root"
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: 300,
+        }}
+      >
+        <span style={{ color: "#94a3b8", fontSize: 15 }}>
+          {t("加载中...", "Loading...")}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="ntc-root">
@@ -131,7 +169,7 @@ export function NoticeDetailPage() {
           <div className="ntc-page-header-left">
             <h1 className="ntc-page-title">
               {t("通告详情：", "Notice Detail: ")}
-              {t("北京首都国际机场 (ZBAA) 雷暴预警", noticeData.title)}
+              {t("北京首都国际机场 (ZBAA) 雷暴预警", currentNotice.title)}
             </h1>
             <div className="ntc-page-meta">
               <span>
@@ -139,7 +177,7 @@ export function NoticeDetailPage() {
                   {t("生效时间:", "Effective:")}
                 </span>
                 <span className="ntc-meta-value">
-                  {noticeData.effectiveTime}
+                  {currentNotice.effectiveTime}
                 </span>
               </span>
               <span>
@@ -147,14 +185,16 @@ export function NoticeDetailPage() {
                   {t("过期时间:", "Expiration:")}
                 </span>
                 <span className="ntc-meta-value">
-                  {noticeData.expirationTime}
+                  {currentNotice.expirationTime}
                 </span>
               </span>
               <span>
                 <span className="ntc-meta-label">
                   {t("发布时间:", "Issued:")}
                 </span>
-                <span className="ntc-meta-value">{noticeData.issuedTime}</span>
+                <span className="ntc-meta-value">
+                  {currentNotice.issuedTime}
+                </span>
               </span>
             </div>
           </div>
@@ -187,20 +227,20 @@ export function NoticeDetailPage() {
               </div>
             </div>
 
-            <div className="ntc-code-block">{noticeData.rawText}</div>
+            <div className="ntc-code-block">{currentNotice.rawText}</div>
 
             <div className="ntc-source-section">
               <div className="ntc-source-label">{t("来源", "Source")}</div>
               <div className="ntc-source-value">
-                {t("航空气象中心 (AWC)", noticeData.source)}
+                {t("航空气象中心 (AWC)", currentNotice.source)}
               </div>
               <a
                 className="ntc-source-link"
-                href={noticeData.sourceUrl}
+                href={currentNotice.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {noticeData.sourceUrl}
+                {currentNotice.sourceUrl}
               </a>
 
               <div style={{ marginTop: 16 }}>
@@ -208,7 +248,7 @@ export function NoticeDetailPage() {
                   {t("最后更新", "Last Updated")}
                 </div>
                 <div className="ntc-source-value">
-                  {t("1 小时前", noticeData.lastUpdated)}
+                  {t("1 小时前", currentNotice.lastUpdated)}
                 </div>
               </div>
             </div>
@@ -279,28 +319,30 @@ export function NoticeDetailPage() {
                     {t("受影响机场:", "Affected Airports:")}
                   </span>
                   <span className="ntc-impact-value">
-                    {impactData.affectedAirports}
+                    {currentImpact.affectedAirports}
                   </span>
                 </div>
                 <div className="ntc-impact-row">
                   <span className="ntc-impact-label">
                     {t("半径:", "Radius:")}
                   </span>
-                  <span className="ntc-impact-value">{impactData.radius}</span>
+                  <span className="ntc-impact-value">
+                    {currentImpact.radius}
+                  </span>
                 </div>
                 <div className="ntc-impact-row">
                   <span className="ntc-impact-label">
                     {t("恶劣天气类型:", "Severe Weather Type:")}
                   </span>
                   <span className="ntc-impact-value">
-                    {t("雷暴, 冰雹", impactData.severeWeatherType)}
+                    {t("雷暴, 冰雹", currentImpact.severeWeatherType)}
                   </span>
                 </div>
 
                 <div className="ntc-impact-desc">
                   {t(
                     "预计有重大对流活动，将影响所有进近和离场走廊。",
-                    impactData.description,
+                    currentImpact.description,
                   )}
                 </div>
               </div>
@@ -327,7 +369,7 @@ export function NoticeDetailPage() {
                   {t("总影响:", "Total Affected:")}
                 </div>
                 <div className="ntc-stat-value">
-                  {affectedStats.totalAffected}
+                  {currentStats.totalAffected}
                 </div>
               </div>
               <div className="ntc-stat-item">
@@ -335,7 +377,7 @@ export function NoticeDetailPage() {
                   {t("备降航班:", "Flights Diverted:")}
                 </div>
                 <div className="ntc-stat-value">
-                  {affectedStats.flightsDiverted}
+                  {currentStats.flightsDiverted}
                 </div>
               </div>
               <div className="ntc-stat-item">
@@ -343,7 +385,7 @@ export function NoticeDetailPage() {
                   {t("延误航班:", "Flights Delayed:")}
                 </div>
                 <div className="ntc-stat-value">
-                  {affectedStats.flightsDelayed}
+                  {currentStats.flightsDelayed}
                 </div>
               </div>
               <div className="ntc-stat-item">
@@ -351,7 +393,7 @@ export function NoticeDetailPage() {
                   {t("取消航班:", "Cancellations:")}
                 </div>
                 <div className="ntc-stat-value">
-                  {affectedStats.cancellations}
+                  {currentStats.cancellations}
                 </div>
               </div>
             </div>
@@ -366,7 +408,7 @@ export function NoticeDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {affectedFlights.map((flight) => (
+                {currentFlights.map((flight: any) => (
                   <tr key={flight.id}>
                     <td>{flight.id}</td>
                     <td>{flight.route}</td>
@@ -413,16 +455,16 @@ export function NoticeDetailPage() {
               <div className="ntc-risk-header">
                 <div className="ntc-risk-badge">
                   <div className="ntc-risk-badge-level high">
-                    {t("高", riskConclusion.level)}
+                    {t("高", currentRisk.level)}
                   </div>
                   <span className="ntc-risk-badge-color">
-                    ({t("红色", riskConclusion.color)})
+                    ({t("红色", currentRisk.color)})
                   </span>
                 </div>
                 <div className="ntc-risk-desc">
                   {t(
                     "ZBAA 的雷暴活动构成重大运营风险。预计将导致严重的到达和出发延误、潜在的地面停机和航班改道。",
-                    riskConclusion.description,
+                    currentRisk.description,
                   )}
                 </div>
               </div>
@@ -432,7 +474,7 @@ export function NoticeDetailPage() {
                   {t("贡献因素", "Contributing Factors")}
                 </div>
                 <div className="ntc-factors-tags">
-                  {riskConclusion.factors.map((factor, i) => (
+                  {currentRisk.factors.map((factor, i) => (
                     <span key={i} className="ntc-factor-tag">
                       {t(
                         factor === "Convective Activity"
@@ -463,13 +505,13 @@ export function NoticeDetailPage() {
                 <div className="ntc-confidence-bar">
                   <div
                     className="ntc-confidence-fill"
-                    style={{ width: `${riskConclusion.confidence}%` }}
+                    style={{ width: `${currentRisk.confidence}%` }}
                   />
                 </div>
                 <span className="ntc-confidence-value">
-                  {riskConclusion.confidence >= 70
+                  {currentRisk.confidence >= 70
                     ? t("高", "High")
-                    : riskConclusion.confidence >= 40
+                    : currentRisk.confidence >= 40
                       ? t("中", "Medium")
                       : t("低", "Low")}
                 </span>

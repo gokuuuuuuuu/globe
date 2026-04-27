@@ -1,7 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
-import { getUserList, createUser } from "../api/user";
+import {
+  getUserList,
+  createUser,
+  updateUser,
+  deleteUser,
+  updateUserStatus,
+  getRolePermissions,
+} from "../api/user";
 import type { UserListParams, CreateUserDto } from "../api/user";
 import { useToast } from "../components/Toast";
 import "./SystemManagementPage.css";
@@ -63,6 +70,17 @@ export function SystemManagementPage() {
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<UserStatus | "">("");
   const [roleFilter, setRoleFilter] = useState<Role | "">("");
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [permMatrix, setPermMatrix] = useState<any[]>(PERM_MATRIX);
+
+  useEffect(() => {
+    getRolePermissions()
+      .then((data: any) => {
+        if (Array.isArray(data)) setPermMatrix(data);
+      })
+      .catch(console.error);
+  }, []);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [addLoading, setAddLoading] = useState(false);
@@ -143,6 +161,37 @@ export function SystemManagementPage() {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
     return d.toLocaleDateString("zh-CN");
+  };
+
+  const handleToggleStatus = async (user: User) => {
+    const newStatus = user.status === "ACTIVE" ? "DISABLED" : "ACTIVE";
+    try {
+      await updateUserStatus(user.id, newStatus);
+      toast(t("状态更新成功", "Status updated"), "success");
+      fetchUsers();
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : t("操作失败", "Operation failed");
+      toast(msg, "error");
+    }
+  };
+
+  const handleDeleteUser = async (user: User) => {
+    if (
+      !window.confirm(
+        t(`确定删除用户 ${user.name}？`, `Delete user ${user.name}?`),
+      )
+    )
+      return;
+    try {
+      await deleteUser(user.id);
+      toast(t("删除成功", "User deleted"), "success");
+      fetchUsers();
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : t("删除失败", "Delete failed");
+      toast(msg, "error");
+    }
   };
 
   return (
@@ -231,13 +280,14 @@ export function SystemManagementPage() {
                     <th>{t("分配角色", "Assigned Roles")}</th>
                     <th>{t("状态", "Status")}</th>
                     <th>{t("最后登录", "Last Login")}</th>
+                    <th>{t("操作", "Actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         style={{
                           textAlign: "center",
                           padding: 32,
@@ -250,7 +300,7 @@ export function SystemManagementPage() {
                   ) : users.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={8}
                         style={{
                           textAlign: "center",
                           padding: 32,
@@ -288,6 +338,42 @@ export function SystemManagementPage() {
                           </span>
                         </td>
                         <td>{formatDate(u.lastLoginAt)}</td>
+                        <td>
+                          <div style={{ display: "flex", gap: 4 }}>
+                            <button
+                              className="smp-action-btn"
+                              onClick={() => handleToggleStatus(u)}
+                              style={{
+                                background: "none",
+                                border: "1px solid rgba(148,163,184,0.2)",
+                                color:
+                                  u.status === "ACTIVE" ? "#eab308" : "#22c55e",
+                                borderRadius: 4,
+                                padding: "2px 8px",
+                                cursor: "pointer",
+                                fontSize: 11,
+                              }}
+                            >
+                              {u.status === "ACTIVE"
+                                ? t("禁用", "Disable")
+                                : t("启用", "Enable")}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteUser(u)}
+                              style={{
+                                background: "none",
+                                border: "1px solid rgba(239,68,68,0.3)",
+                                color: "#ef4444",
+                                borderRadius: 4,
+                                padding: "2px 8px",
+                                cursor: "pointer",
+                                fontSize: 11,
+                              }}
+                            >
+                              {t("删除", "Delete")}
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -356,7 +442,7 @@ export function SystemManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {PERM_MATRIX.map((row) => (
+                {permMatrix.map((row) => (
                   <tr key={row.roleKey}>
                     <td>{t(row.role, row.roleEn)}</td>
                     <td>
