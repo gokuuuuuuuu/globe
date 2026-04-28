@@ -49,18 +49,14 @@ function GaugeArc({
   unit: string;
   color: string;
 }) {
-  const pct = Math.min(value / max, 1);
+  const pct = Math.max(0, Math.min(value / max, 1));
   const r = 36;
   const cx = 50;
   const cy = 46;
-  // Arc from 180deg to 0deg (left to right, semicircle)
-  const startAngle = Math.PI;
-  const endAngle = Math.PI * (1 - pct);
-  const x1 = cx + r * Math.cos(startAngle);
-  const y1 = cy - r * Math.sin(startAngle);
-  const x2 = cx + r * Math.cos(endAngle);
-  const y2 = cy - r * Math.sin(endAngle);
-  const largeArc = pct > 0.5 ? 1 : 0;
+  // 半圆弧长
+  const halfCircumference = Math.PI * r;
+  const dashLen = pct * halfCircumference;
+  const gapLen = halfCircumference - dashLen;
 
   return (
     <div className="ad-gauge-item">
@@ -73,14 +69,15 @@ function GaugeArc({
           strokeWidth="7"
           strokeLinecap="round"
         />
-        {/* Value arc */}
+        {/* Value arc — 用 dasharray 控制长度 */}
         {pct > 0 && (
           <path
-            d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
             stroke={color}
             strokeWidth="7"
             strokeLinecap="round"
+            strokeDasharray={`${dashLen} ${gapLen}`}
           />
         )}
         <text
@@ -91,7 +88,11 @@ function GaugeArc({
           fontSize="13"
           fontWeight="700"
         >
-          {value}
+          {typeof value === "number"
+            ? value % 1 === 0
+              ? value
+              : value.toFixed(1)
+            : value}
           <tspan fontSize="9" fill="#94a3b8">
             {unit}
           </tspan>
