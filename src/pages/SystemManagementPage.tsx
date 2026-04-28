@@ -4,7 +4,6 @@ import { useLanguage } from "../i18n/useLanguage";
 import {
   getUserList,
   createUser,
-  updateUser,
   deleteUser,
   updateUserStatus,
   getRolePermissions,
@@ -77,7 +76,8 @@ export function SystemManagementPage() {
   useEffect(() => {
     getRolePermissions()
       .then((data: any) => {
-        if (Array.isArray(data)) setPermMatrix(data);
+        const arr = Array.isArray(data) ? data : data?.permissions;
+        if (Array.isArray(arr)) setPermMatrix(arr);
       })
       .catch(console.error);
   }, []);
@@ -423,47 +423,89 @@ export function SystemManagementPage() {
             <div className="smp-right-title">
               {t("角色权限矩阵", "Role-Permission Matrix")}
             </div>
-            <table className="smp-perm-table">
-              <thead>
-                <tr>
-                  <th>{t("角色", "Role")}</th>
-                  <th>
-                    <span className="smp-perm-header-icon">&#128196;</span>
-                    {t("查看报告", "View Reports")}
-                  </th>
-                  <th>
-                    <span className="smp-perm-header-icon">&#9998;</span>
-                    {t("编辑规则", "Edit Rules")}
-                  </th>
-                  <th>
-                    <span className="smp-perm-header-icon">&#128101;</span>
-                    {t("管理用户", "Manage Users")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {permMatrix.map((row) => (
-                  <tr key={row.roleKey}>
-                    <td>{t(row.role, row.roleEn)}</td>
-                    <td>
-                      <span className={`smp-perm-icon ${row.viewReports}`}>
-                        {row.viewReports === "granted" ? "✅" : "⚪"}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`smp-perm-icon ${row.editRules}`}>
-                        {row.editRules === "granted" ? "✅" : "⚪"}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`smp-perm-icon ${row.manageUsers}`}>
-                        {row.manageUsers === "granted" ? "✅" : "⚪"}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {(() => {
+              // API 格式: [{role, label, permissions: {key: {label, enabled}}}]
+              // 本地格式: [{roleKey, role, roleEn, viewReports, editRules, manageUsers}]
+              const isApiFormat =
+                permMatrix[0]?.permissions &&
+                typeof permMatrix[0].permissions === "object";
+
+              if (isApiFormat) {
+                // 动态提取所有权限key
+                const permKeys = Object.keys(permMatrix[0]?.permissions ?? {});
+                return (
+                  <table className="smp-perm-table">
+                    <thead>
+                      <tr>
+                        <th>{t("角色", "Role")}</th>
+                        {permKeys.map((key) => (
+                          <th key={key}>
+                            {(permMatrix[0]?.permissions as any)?.[key]
+                              ?.label ?? key}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {permMatrix.map((row: any) => (
+                        <tr key={row.role}>
+                          <td>{row.label ?? row.role}</td>
+                          {permKeys.map((key) => {
+                            const enabled = (row.permissions as any)?.[key]
+                              ?.enabled;
+                            return (
+                              <td key={key}>
+                                <span
+                                  className={`smp-perm-icon ${enabled ? "granted" : "denied"}`}
+                                >
+                                  {enabled ? "✅" : "⚪"}
+                                </span>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                );
+              }
+
+              // 本地 fallback 格式
+              return (
+                <table className="smp-perm-table">
+                  <thead>
+                    <tr>
+                      <th>{t("角色", "Role")}</th>
+                      <th>{t("查看报告", "View Reports")}</th>
+                      <th>{t("编辑规则", "Edit Rules")}</th>
+                      <th>{t("管理用户", "Manage Users")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {permMatrix.map((row: any) => (
+                      <tr key={row.roleKey}>
+                        <td>{t(row.role, row.roleEn)}</td>
+                        <td>
+                          <span className={`smp-perm-icon ${row.viewReports}`}>
+                            {row.viewReports === "granted" ? "✅" : "⚪"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`smp-perm-icon ${row.editRules}`}>
+                            {row.editRules === "granted" ? "✅" : "⚪"}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`smp-perm-icon ${row.manageUsers}`}>
+                            {row.manageUsers === "granted" ? "✅" : "⚪"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              );
+            })()}
           </div>
         </div>
       </div>

@@ -1,7 +1,10 @@
-// @ts-nocheck
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
+import type {
+  FlightPersonListParams,
+  FlightPersonFilterOptions,
+} from "../api/flightPerson";
 import {
   getFlightPersonList,
   getFlightPersonFilterOptions,
@@ -10,8 +13,6 @@ import {
 import "./PersonnelListPage.css";
 
 // ---------- Types ----------
-
-type RiskLevel = "高" | "中" | "低" | "HIGH" | "MEDIUM" | "LOW";
 
 interface Personnel {
   id: number;
@@ -23,7 +24,7 @@ interface Personnel {
   team: string | null;
   squadron: string | null;
   techGrade: string | null;
-  riskLevel: RiskLevel;
+  riskLevel: string;
   humanFactorTags: string | null;
   highRiskFlightCount: number;
 }
@@ -101,15 +102,13 @@ export function PersonnelListPage() {
   useEffect(() => {
     setFilterOptionsLoading(true);
     getFlightPersonFilterOptions()
-      .then((res: any) => {
+      .then((res: FlightPersonFilterOptions) => {
         setFilterOptions({
-          flightUnits: Array.isArray(res?.flightUnits) ? res.flightUnits : [],
-          aircraftTypes: Array.isArray(res?.aircraftTypes)
-            ? res.aircraftTypes
-            : [],
-          teams: Array.isArray(res?.teams) ? res.teams : [],
-          squadrons: Array.isArray(res?.squadrons) ? res.squadrons : [],
-          techGrades: Array.isArray(res?.techGrades) ? res.techGrades : [],
+          flightUnits: res?.flightUnits ?? [],
+          aircraftTypes: res?.aircraftTypes ?? [],
+          teams: res?.teams ?? [],
+          squadrons: res?.squadrons ?? [],
+          techGrades: res?.techGrades ?? [],
         });
       })
       .catch((err) =>
@@ -119,55 +118,38 @@ export function PersonnelListPage() {
   }, []);
 
   // Fetch data
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const riskParam = searchParams.get("risk");
-      const params: Record<string, any> = {
-        page,
-        pageSize: rowsPerPage,
-      };
-      if (searchText) params.keyword = searchText;
-      if (unit) params.flightUnit = unit;
-      if (aircraftType) params.aircraftType = aircraftType;
-      if (brigade) params.team = brigade;
-      if (squadron) params.squadron = squadron;
-      if (techLevel) params.techGrade = techLevel;
-      if (riskLevel) params.riskLevel = riskLevel;
-      if (riskParam === "high") params.riskLevel = "高";
-      if (dateFrom) params.startDate = dateFrom;
-      if (dateTo) params.endDate = dateTo;
+  // 搜索版本号，点击搜索/翻页时递增以触发请求
+  const [searchVersion, setSearchVersion] = useState(0);
 
-      const res = await getFlightPersonList(params);
-      const result = res;
-      setData(result.items || []);
-      setTotal(result.total || 0);
-      if (result.summary) {
-        setSummary(result.summary);
-      }
-    } catch (err) {
-      console.error("Failed to fetch personnel list:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [
-    page,
-    rowsPerPage,
-    searchText,
-    unit,
-    aircraftType,
-    brigade,
-    squadron,
-    techLevel,
-    riskLevel,
-    dateFrom,
-    dateTo,
-    searchParams,
-  ]);
+  const buildParams = () => {
+    const riskParam = searchParams.get("risk");
+    const params: FlightPersonListParams = {
+      page,
+      pageSize: rowsPerPage,
+    };
+    if (searchText) params.keyword = searchText;
+    if (unit) params.flightUnit = unit;
+    if (aircraftType) params.aircraftType = aircraftType;
+    if (brigade) params.team = brigade;
+    if (squadron) params.squadron = squadron;
+    if (techLevel) params.techGrade = techLevel;
+    if (riskLevel) params.riskLevel = riskLevel;
+    if (riskParam === "high") params.riskLevel = "高";
+    return params;
+  };
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    setLoading(true);
+    const params = buildParams();
+    getFlightPersonList(params)
+      .then((res) => {
+        setData(res.items || []);
+        setTotal(res.total || 0);
+        if (res.summary) setSummary(res.summary);
+      })
+      .catch((err) => console.error("Failed to fetch personnel list:", err))
+      .finally(() => setLoading(false));
+  }, [searchVersion, page]);
 
   const totalPages = Math.ceil(total / rowsPerPage);
 
@@ -182,13 +164,15 @@ export function PersonnelListPage() {
     setDateFrom("");
     setDateTo("");
     setPage(1);
+    setSearchVersion((v) => v + 1);
   };
 
   const handleApply = () => {
     setPage(1);
+    setSearchVersion((v) => v + 1);
   };
 
-  function riskBadgeClass(level: RiskLevel): string {
+  function riskBadgeClass(level: string): string {
     switch (level) {
       case "高":
       case "HIGH":
@@ -204,7 +188,7 @@ export function PersonnelListPage() {
     }
   }
 
-  function riskLabel(level: RiskLevel): string {
+  function riskLabel(level: string): string {
     switch (level) {
       case "高":
       case "HIGH":
@@ -223,7 +207,7 @@ export function PersonnelListPage() {
   // Handle export
   const handleExport = async () => {
     try {
-      const params: Record<string, any> = {};
+      const params: FlightPersonListParams = {};
       if (searchText) params.keyword = searchText;
       if (unit) params.flightUnit = unit;
       if (aircraftType) params.aircraftType = aircraftType;
@@ -451,34 +435,10 @@ export function PersonnelListPage() {
                   <option value="低">{t("低", "Low")}</option>
                 </select>
               </div>
-              <div className="pl-filter-item">
-                <label>{t("时间", "Time")}</label>
-                <div className="pl-time-range">
-                  <input
-                    type="date"
-                    className="pl-date-input"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
-                  />
-                  <span className="pl-date-sep">—</span>
-                  <input
-                    type="date"
-                    className="pl-date-input"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
-                  />
-                </div>
-              </div>
             </div>
 
             {/* Stats */}
             <div className="pl-stats">
-              <div className="pl-stat-box">
-                <span className="pl-stat-value">{summary.totalCount}</span>
-                <span className="pl-stat-label">
-                  {t("总人员", "Total Personnel")}
-                </span>
-              </div>
               <div className="pl-stat-box">
                 <span className="pl-stat-value pl-stat-warning">
                   <svg
@@ -500,9 +460,13 @@ export function PersonnelListPage() {
                 </span>
               </div>
               <div className="pl-stat-box">
+                <span className="pl-stat-value">{summary.totalCount}</span>
+                <span className="pl-stat-label">{t("总人数", "Total")}</span>
+              </div>
+              <div className="pl-stat-box">
                 <span className="pl-stat-value">{summary.avgRiskScore}</span>
                 <span className="pl-stat-label">
-                  {t("平均风险分", "Avg Risk Score")}
+                  {t("平均风险分", "Avg Score")}
                 </span>
               </div>
             </div>
@@ -590,8 +554,7 @@ export function PersonnelListPage() {
                 <th>{t("中队", "Squadron")}</th>
                 <th>{t("技术等级", "Technical Level")}</th>
                 <th>{t("综合风险等级", "Composite Risk Level")}</th>
-                <th>{t("主要人为因素标签", "Main Human Factor Tags")}</th>
-                <th>{t("相关高风险航班", "Related High-Risk Flights")}</th>
+                <th>{t("高风险航班数", "High-Risk Flights")}</th>
               </tr>
             </thead>
             <tbody>
@@ -625,18 +588,13 @@ export function PersonnelListPage() {
                       {riskLabel(person.riskLevel)}
                     </span>
                   </td>
-                  <td>
-                    <span className="pl-tags">
-                      {person.humanFactorTags || t("无", "None")}
-                    </span>
-                  </td>
                   <td>{person.highRiskFlightCount}</td>
                 </tr>
               ))}
               {data.length === 0 && !loading && (
                 <tr>
                   <td
-                    colSpan={11}
+                    colSpan={10}
                     style={{
                       textAlign: "center",
                       padding: "40px 0",

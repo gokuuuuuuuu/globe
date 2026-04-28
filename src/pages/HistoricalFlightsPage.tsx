@@ -146,8 +146,8 @@ export function HistoricalFlightsPage() {
     }
     setSearchParams(sp, { replace: true });
   };
-  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection] = useState<SortDirection>("asc");
   const handleQuickFilter = (filter: TimeFilter) => {
     setActiveFilter(filter);
     const now = new Date("2024-05-31");
@@ -166,15 +166,6 @@ export function HistoricalFlightsPage() {
       start.setFullYear(start.getFullYear() - 1);
       setStartDate(start.toISOString().slice(0, 10));
       setEndDate(now.toISOString().slice(0, 10));
-    }
-  };
-
-  const handleSort = (col: SortColumn) => {
-    if (sortColumn === col) {
-      setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortColumn(col);
-      setSortDirection("asc");
     }
   };
 
@@ -203,25 +194,6 @@ export function HistoricalFlightsPage() {
   const totalPages = Math.ceil(TOTAL_RECORDS / PAGE_SIZE);
   const pageStart = (currentPage - 1) * PAGE_SIZE + 1;
   const pageEnd = Math.min(currentPage * PAGE_SIZE, TOTAL_RECORDS);
-
-  const renderSortIcon = (col: SortColumn) => (
-    <span className="hf-sort-icon">
-      <span
-        className={
-          sortColumn === col && sortDirection === "asc" ? "active" : ""
-        }
-      >
-        &#9650;
-      </span>
-      <span
-        className={
-          sortColumn === col && sortDirection === "desc" ? "active" : ""
-        }
-      >
-        &#9660;
-      </span>
-    </span>
-  );
 
   const riskBadgeClass = (level: RiskLevel) => {
     const map: Record<RiskLevel, string> = {

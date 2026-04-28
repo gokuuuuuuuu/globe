@@ -162,7 +162,7 @@
 .acd-gauge-score {
   font-size: 28px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.96);
+  fill: rgba(255, 255, 255, 0.96);
   text-anchor: middle;
 }
 

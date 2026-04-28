@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,15 +23,7 @@ import {
   Area,
   ResponsiveContainer,
 } from "recharts";
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  Tooltip as LTooltip,
-} from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import { useLanguage } from "../i18n/useLanguage";
-import { downloadCSV } from "../utils/exportUtils";
 import "./StatisticalAnalysisPage.css";
 
 // ===== Shared Styles =====
@@ -124,83 +117,6 @@ export function StatisticalAnalysisPage() {
     return t(map[name] || name, name);
   };
 
-  const handleExport = () => {
-    if (activeTab === "flight-statistics") {
-      const raw = analyticsData.flights?.monthlyTrend ?? [];
-      if (!raw.length) {
-        alert(t("暂无可导出数据", "No data to export"));
-        return;
-      }
-      const headers = [
-        t("月份", "Month"),
-        t("总航班", "Total"),
-        t("高风险", "High Risk"),
-        t("中风险", "Medium Risk"),
-        t("低风险", "Low Risk"),
-      ];
-      const rows = raw.map((d: any) => [
-        d.label ?? d.month,
-        d.total ?? 0,
-        d.high ?? 0,
-        d.medium ?? 0,
-        d.low ?? 0,
-      ]);
-      downloadCSV(t("航班统计", "flight_statistics"), headers, rows);
-    } else if (activeTab === "personnel-statistics") {
-      const raw = analyticsData.personnel?.monthlyTrend ?? [];
-      if (!raw.length) {
-        alert(t("暂无可导出数据", "No data to export"));
-        return;
-      }
-      const headers = [
-        t("月份", "Month"),
-        t("高风险", "High Risk"),
-        t("中风险", "Medium Risk"),
-        t("低风险", "Low Risk"),
-      ];
-      const rows = raw.map((d: any) => [
-        d.label ?? d.month,
-        d.high ?? 0,
-        d.medium ?? 0,
-        d.low ?? 0,
-      ]);
-      downloadCSV(t("人员统计", "personnel_statistics"), headers, rows);
-    } else if (activeTab === "aircraft-statistics") {
-      const raw = analyticsData.planes?.monthlyTrend ?? [];
-      if (!raw.length) {
-        alert(t("暂无可导出数据", "No data to export"));
-        return;
-      }
-      const headers = [
-        t("月份", "Month"),
-        t("高风险", "High Risk"),
-        t("中风险", "Medium Risk"),
-        t("低风险", "Low Risk"),
-      ];
-      const rows = raw.map((d: any) => [
-        d.label ?? d.month,
-        d.high ?? 0,
-        d.medium ?? 0,
-        d.low ?? 0,
-      ]);
-      downloadCSV(t("飞机统计", "aircraft_statistics"), headers, rows);
-    } else {
-      const raw = analyticsData.airports?.topAirportsOnTimeTrend ?? [];
-      if (!raw.length) {
-        alert(t("暂无可导出数据", "No data to export"));
-        return;
-      }
-      const airports = raw.map((a: any) => a.airport);
-      const labels = raw[0]?.data?.map((d: any) => d.label) ?? [];
-      const headers = [t("月份", "Month"), ...airports];
-      const rows = labels.map((label: string, idx: number) => [
-        label,
-        ...raw.map((a: any) => a.data?.[idx]?.value ?? 0),
-      ]);
-      downloadCSV(t("机场统计", "airport_information"), headers, rows);
-    }
-  };
-
   return (
     <div className="sta-root">
       {/* Breadcrumb */}
@@ -228,11 +144,6 @@ export function StatisticalAnalysisPage() {
         <button className="sta-filter-btn">
           {t("更多筛选", "More Filters")}
         </button> */}
-        <div className="sta-header-actions">
-          <button className="sta-export-btn" onClick={handleExport}>
-            &#128196;&nbsp;{t("导出", "Export")}
-          </button>
-        </div>
       </div>
 
       {/* Tabs */}
@@ -344,38 +255,32 @@ function FlightStatisticsTab({
       <div style={NO_DATA_STYLE}>{t("暂无数据", "No data available")}</div>
     );
 
-  const kpi = apiData.kpis ?? apiData.kpi ?? {};
-  const monthlyData = (apiData.monthlyTrend ?? apiData.monthlyData ?? []).map(
-    (d: any) => ({
-      month: d.label ?? d.month,
-      total: d.total ?? 0,
-      highRisk: d.high ?? d.highRisk ?? 0,
-      mediumRisk: d.medium ?? d.mediumRisk ?? 0,
-      lowRisk: d.low ?? d.lowRisk ?? 0,
+  const kpi = apiData.kpis ?? {};
+  const monthlyData = (apiData.monthlyTrend ?? []).map((d: any) => ({
+    month: d.label,
+    total: d.total ?? 0,
+    highRisk: d.high ?? 0,
+  }));
+  const rawRiskDist = apiData.riskDistribution ?? {};
+  const riskDistData = [
+    { name: "高", value: rawRiskDist.high ?? 0, color: "#ef4444" },
+    { name: "中", value: rawRiskDist.medium ?? 0, color: "#eab308" },
+    { name: "低", value: rawRiskDist.low ?? 0, color: "#22c55e" },
+  ];
+  const rawStatus = apiData.statusDistribution ?? {};
+  const STATUS_COLORS: Record<string, string> = {
+    已落地: "#22c55e",
+    巡航中: "#3b82f6",
+    未起飞: "#64748b",
+  };
+  const statusData = Object.entries(rawStatus).map(
+    ([name, value]: [string, any]) => ({
+      name,
+      value,
+      color: STATUS_COLORS[name] ?? "#64748b",
     }),
   );
-  const rawRiskDist = apiData.riskDistribution ?? {};
-  const riskDistData = Array.isArray(rawRiskDist)
-    ? rawRiskDist
-    : [
-        { name: "High", value: rawRiskDist.high ?? 0, color: "#ef4444" },
-        { name: "Medium", value: rawRiskDist.medium ?? 0, color: "#eab308" },
-        { name: "Low", value: rawRiskDist.low ?? 0, color: "#22c55e" },
-      ];
-  const rawStatus = apiData.statusDistribution ?? {};
-  const statusData = Array.isArray(rawStatus)
-    ? rawStatus
-    : Object.entries(rawStatus).map(([name, value]: [string, any]) => ({
-        name,
-        value,
-        color:
-          name === "Landed" || name === "已降落"
-            ? "#22c55e"
-            : name === "Cruising" || name === "巡航中"
-              ? "#3b82f6"
-              : "#64748b",
-      }));
-  const riskTypeTop5 = apiData.topRiskTypes ?? apiData.riskTypeTop5 ?? [];
+  const riskTypeTop5 = apiData.topRiskTypes ?? [];
 
   return (
     <>
@@ -436,24 +341,14 @@ function FlightStatisticsTab({
               <Tooltip {...darkTooltipStyle} />
               <Area
                 type="monotone"
-                dataKey="lowRisk"
-                stackId="1"
-                stroke="#22c55e"
-                fill="rgba(34,197,94,0.3)"
-                name={t("低风险", "Low Risk")}
-              />
-              <Area
-                type="monotone"
-                dataKey="mediumRisk"
-                stackId="1"
-                stroke="#eab308"
-                fill="rgba(234,179,8,0.3)"
-                name={t("中风险", "Medium Risk")}
+                dataKey="total"
+                stroke="#3b82f6"
+                fill="rgba(59,130,246,0.2)"
+                name={t("总航班", "Total")}
               />
               <Area
                 type="monotone"
                 dataKey="highRisk"
-                stackId="1"
                 stroke="#ef4444"
                 fill="rgba(239,68,68,0.3)"
                 name={t("高风险", "High Risk")}
@@ -494,9 +389,9 @@ function FlightStatisticsTab({
                     className="sta-legend-dot"
                     style={{ background: item.color }}
                   />
-                  {item.name === "High"
+                  {item.name === "高"
                     ? t("高风险", "High")
-                    : item.name === "Medium"
+                    : item.name === "中"
                       ? t("中风险", "Medium")
                       : t("低风险", "Low")}{" "}
                   {item.value}
@@ -541,12 +436,7 @@ function FlightStatisticsTab({
                     className="sta-legend-dot"
                     style={{ background: item.color }}
                   />
-                  {item.name === "Landed"
-                    ? t("已落地", "Landed")
-                    : item.name === "Cruising"
-                      ? t("巡航中", "Cruising")
-                      : t("未起飞", "Not Departed")}{" "}
-                  {item.value.toLocaleString()}
+                  {item.name} {item.value.toLocaleString()}
                 </span>
               ))}
             </div>
@@ -618,27 +508,19 @@ function PersonnelStatisticsTab({
     );
 
   const kpi = apiData.kpis ?? apiData.kpi ?? {};
-  const monthlyRisk = (apiData.monthlyTrend ?? apiData.monthlyRisk ?? []).map(
-    (d: any) => ({
-      month: d.label ?? d.month,
-      highRisk: d.high ?? d.highRisk ?? 0,
-      mediumRisk: d.medium ?? d.mediumRisk ?? 0,
-      total:
-        d.low != null
-          ? (d.high ?? 0) + (d.medium ?? 0) + (d.low ?? 0)
-          : (d.total ?? 0),
-    }),
-  );
+  const monthlyRisk = (apiData.monthlyTrend ?? []).map((d: any) => ({
+    month: d.label,
+    total: (d.high ?? 0) + (d.medium ?? 0) + (d.low ?? 0),
+    highRisk: d.high ?? 0,
+  }));
   const rawRiskDist = apiData.riskDistribution ?? {};
-  const riskDistData = Array.isArray(rawRiskDist)
-    ? rawRiskDist
-    : [
-        { name: "High", value: rawRiskDist.high ?? 0, color: "#ef4444" },
-        { name: "Medium", value: rawRiskDist.medium ?? 0, color: "#eab308" },
-        { name: "Low", value: rawRiskDist.low ?? 0, color: "#22c55e" },
-      ];
-  const unitRisk = apiData.byUnit ?? apiData.unitRisk ?? [];
-  const factorTop5 = apiData.topHumanFactors ?? apiData.humanFactorTop5 ?? [];
+  const riskDistData = [
+    { name: "高", value: rawRiskDist.high ?? 0, color: "#ef4444" },
+    { name: "中", value: rawRiskDist.medium ?? 0, color: "#eab308" },
+    { name: "低", value: rawRiskDist.low ?? 0, color: "#22c55e" },
+  ];
+  const unitRisk = apiData.byUnit ?? [];
+  const factorTop5 = apiData.topHumanFactors ?? [];
 
   return (
     <>
@@ -703,19 +585,19 @@ function PersonnelStatisticsTab({
               <Tooltip {...darkTooltipStyle} />
               <Line
                 type="monotone"
+                dataKey="total"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{ r: 3 }}
+                name={t("总人数", "Total")}
+              />
+              <Line
+                type="monotone"
                 dataKey="highRisk"
                 stroke="#ef4444"
                 strokeWidth={2}
                 dot={{ r: 3 }}
                 name={t("高风险", "High Risk")}
-              />
-              <Line
-                type="monotone"
-                dataKey="mediumRisk"
-                stroke="#eab308"
-                strokeWidth={2}
-                dot={{ r: 3 }}
-                name={t("中风险", "Medium Risk")}
               />
             </LineChart>
           </ResponsiveContainer>
@@ -753,9 +635,9 @@ function PersonnelStatisticsTab({
                     className="sta-legend-dot"
                     style={{ background: item.color }}
                   />
-                  {item.name === "High"
+                  {item.name === "高"
                     ? t("高风险", "High")
-                    : item.name === "Medium"
+                    : item.name === "中"
                       ? t("中风险", "Medium")
                       : t("低风险", "Low")}{" "}
                   {item.value}
@@ -800,16 +682,10 @@ function PersonnelStatisticsTab({
               />
               <Tooltip {...darkTooltipStyle} />
               <Bar
-                dataKey="high"
+                dataKey="highRiskCount"
                 fill="#ef4444"
                 radius={[4, 4, 0, 0]}
-                name={t("高风险", "High")}
-              />
-              <Bar
-                dataKey="medium"
-                fill="#eab308"
-                radius={[4, 4, 0, 0]}
-                name={t("中风险", "Medium")}
+                name={t("高风险人数", "High Risk Count")}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -882,39 +758,27 @@ function AirportStatisticsTab({
     );
 
   const kpi = apiData.kpis ?? apiData.kpi ?? {};
-  // 准点率趋势 - topAirportsOnTimeTrend: [{airport, data:[{label, value}]}]
-  const rawOtp = apiData.topAirportsOnTimeTrend ?? apiData.otpTrend ?? [];
-  let otpData: any[] = [];
-  if (rawOtp.length > 0 && rawOtp[0]?.data) {
-    // Transform [{airport, data:[{label,value}]}] → [{month, ZLXY:25.6, ZSPD:30}]
-    const labels = rawOtp[0].data.map((d: any) => d.label);
-    otpData = labels.map((label: string, idx: number) => {
-      const row: any = { month: label };
-      rawOtp.forEach((ap: any) => {
-        row[ap.airport] = ap.data?.[idx]?.value ?? 0;
-      });
-      return row;
-    });
-  } else {
-    otpData = rawOtp;
-  }
-  const passengerData = (
-    apiData.passengerThroughput ??
-    apiData.passengerVolume ??
-    []
-  ).map((d: any) => ({
-    airport: d.airport ?? d.code,
-    volume: d.valueMillion ?? d.volume ?? 0,
+  // 准点率趋势 - punctualityTrend: [{month, rate}]
+  // 准点率趋势：取第一个机场的series作为主趋势
+  const otpTrendRaw = apiData.topAirportsOnTimeTrend ?? [];
+  const otpData =
+    otpTrendRaw.length > 0
+      ? otpTrendRaw[0].series.map((d: any) => ({
+          month: d.label,
+          rate: d.value ?? 0,
+        }))
+      : [];
+  const passengerData = (apiData.passengerThroughput ?? []).map((d: any) => ({
+    airport: d.airport,
+    value: d.valueMillion ?? 0,
   }));
-  const delayData = (apiData.delayRanking ?? apiData.delayAirports ?? []).map(
-    (d: any) => ({
-      rank: d.rank,
-      code: d.code,
-      city: d.city ?? "",
-      count: d.delayCount ?? d.count ?? 0,
-      avgDelayMin: d.avgDelayMin,
-    }),
-  );
+  const delayData = (apiData.delayRanking ?? []).map((d: any) => ({
+    rank: d.rank,
+    airport: d.code,
+    city: d.city,
+    delayCount: d.delayCount ?? 0,
+    delayMinutes: d.avgDelayMin ?? 0,
+  }));
   const GROUND_COLORS = [
     "#3b82f6",
     "#ef4444",
@@ -924,37 +788,13 @@ function AirportStatisticsTab({
     "#eab308",
     "#64748b",
   ];
-  const groundData = (
-    apiData.groundServiceEfficiency ??
-    apiData.groundService ??
-    []
-  ).map((d: any, i: number) => ({
-    name: d.name,
-    value: d.pct ?? d.value ?? 0,
-    color: d.color ?? GROUND_COLORS[i % GROUND_COLORS.length],
-  }));
-  const drillDown = apiData.drillDownFlights ?? [];
-  const rawPerfMatrix =
-    apiData.airportMatrix ?? apiData.performanceMatrix ?? [];
-  const perfMatrix = Array.isArray(rawPerfMatrix)
-    ? (rawPerfMatrix[0] ?? {})
-    : rawPerfMatrix;
-
-  // Dynamically derive OTP keys/colors from data
-  const otpKeys =
-    otpData.length > 0
-      ? Object.keys(otpData[0]).filter((k: string) => k !== "month")
-      : [];
-  const OTP_COLORS_DEFAULT = [
-    "#3b82f6",
-    "#ef4444",
-    "#22c55e",
-    "#a855f7",
-    "#f97316",
-    "#64748b",
-    "#eab308",
-    "#06b6d4",
-  ];
+  const groundData = (apiData.groundServiceEfficiency ?? []).map(
+    (d: any, i: number) => ({
+      name: d.name,
+      value: d.pct ?? 0,
+      color: GROUND_COLORS[i % GROUND_COLORS.length],
+    }),
+  );
 
   return (
     <>
@@ -997,10 +837,7 @@ function AirportStatisticsTab({
         <div className="sta-card">
           <div className="sta-card-header">
             <span className="sta-card-title">
-              {t(
-                "前5大机场月度准点率趋势",
-                "Monthly OTP Trends by Top 5 Airports",
-              )}
+              {t("月度准点率趋势", "Monthly Punctuality Trend")}
             </span>
           </div>
           <ResponsiveContainer width="100%" height={220}>
@@ -1020,40 +857,24 @@ function AirportStatisticsTab({
                 tickLine={false}
               />
               <Tooltip {...darkTooltipStyle} />
-              {otpKeys.map((key: string, i: number) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={OTP_COLORS_DEFAULT[i % OTP_COLORS_DEFAULT.length]}
-                  strokeWidth={2}
-                  dot={false}
-                />
-              ))}
+              <Line
+                type="monotone"
+                dataKey="rate"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                dot={{ r: 3 }}
+                name={t("准点率", "Punctuality Rate")}
+              />
             </LineChart>
           </ResponsiveContainer>
-          <div className="sta-chart-legend">
-            {otpKeys.map((key: string, i: number) => (
-              <span className="sta-legend-item" key={key}>
-                <span
-                  className="sta-legend-line"
-                  style={{
-                    background:
-                      OTP_COLORS_DEFAULT[i % OTP_COLORS_DEFAULT.length],
-                  }}
-                />
-                {key} {t("机场", "Airport")}
-              </span>
-            ))}
-          </div>
         </div>
 
         <div className="sta-card">
           <div className="sta-card-header">
             <span className="sta-card-title">
               {t(
-                "旅客吞吐量 - 主要机场 (百万)",
-                "Passenger Traffic Volume - Leading Airports (M)",
+                "旅客吞吐量 - 主要机场",
+                "Passenger Traffic Volume - Leading Airports",
               )}
             </span>
           </div>
@@ -1067,13 +888,12 @@ function AirportStatisticsTab({
                 tickLine={false}
               />
               <YAxis
-                domain={[0, 10]}
                 tick={AXIS_TICK}
                 axisLine={{ stroke: GRID_STROKE }}
                 tickLine={false}
               />
               <Tooltip {...darkTooltipStyle} />
-              <Bar dataKey="volume" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -1094,22 +914,15 @@ function AirportStatisticsTab({
               <tr>
                 <th>{t("排名", "Rank")}</th>
                 <th>{t("机场代码", "Airport Code")}</th>
-                <th>{t("城市", "City")}</th>
-                <th>{t("延误事件数", "Delay Incident Count")}</th>
-                <th>{t("平均延误时长", "Avg. Delay Duration")}</th>
+                <th>{t("延误时长(分钟)", "Delay (min)")}</th>
               </tr>
             </thead>
             <tbody>
               {delayData.map((a: any) => (
                 <tr key={a.rank}>
                   <td>{a.rank}</td>
-                  <td>{a.code}</td>
-                  <td>{a.city}</td>
-                  <td>{a.count}</td>
-                  <td>
-                    <span className="sta-risk-dot high" />
-                    {t("高风险", "High risk")}
-                  </td>
+                  <td>{a.airport}</td>
+                  <td>{a.delayMinutes}</td>
                 </tr>
               ))}
             </tbody>
@@ -1119,7 +932,7 @@ function AirportStatisticsTab({
         <div className="sta-card">
           <div className="sta-card-header">
             <span className="sta-card-title">
-              {t("地面服务效率分布", "Ground Services Efficiency Distribution")}
+              {t("服务效率分布", "Service Efficiency Distribution")}
             </span>
           </div>
           <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
@@ -1155,121 +968,6 @@ function AirportStatisticsTab({
           </div>
         </div>
       </div>
-
-      <div className="sta-row">
-        <div className="sta-card">
-          <div className="sta-card-header">
-            <span className="sta-card-title">
-              {t("特定机场表现矩阵", "Specific Airport Performance Matrix")}
-            </span>
-          </div>
-          <div className="sta-perf-content">
-            <div className="sta-perf-map">
-              <MapContainer
-                center={[35, 105]}
-                zoom={3}
-                style={{ width: "100%", height: "100%" }}
-                zoomControl={false}
-                attributionControl={false}
-              >
-                <TileLayer
-                  url="https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scl=1&style=8&x={x}&y={y}&z={z}"
-                  subdomains={["1", "2", "3", "4"]}
-                  className="sta-dark-tiles"
-                />
-                <CircleMarker
-                  center={[40.08, 116.59]}
-                  radius={6}
-                  pathOptions={{
-                    color: "#3b82f6",
-                    fillColor: "#3b82f6",
-                    fillOpacity: 0.8,
-                    weight: 2,
-                  }}
-                >
-                  <LTooltip direction="right" className="sta-map-tooltip">
-                    ZBAA
-                  </LTooltip>
-                </CircleMarker>
-              </MapContainer>
-            </div>
-            <div className="sta-perf-fields">
-              <div className="sta-perf-field">
-                <span className="sta-perf-label">
-                  {t("机场代码", "Airport Code")}
-                </span>
-                <span className="sta-perf-value">{perfMatrix.code ?? "—"}</span>
-              </div>
-              <div className="sta-perf-field">
-                <span className="sta-perf-label">
-                  {t("航班总数", "Total Flights")}
-                </span>
-                <span className="sta-perf-value">
-                  {perfMatrix.totalFlights?.toString() ?? "—"}
-                </span>
-              </div>
-              <div className="sta-perf-field">
-                <span className="sta-perf-label">
-                  {t("平均延误", "Average Delay")}
-                </span>
-                <span className="sta-perf-value">
-                  {(
-                    perfMatrix.avgDelayMin ?? perfMatrix.avgDelay
-                  )?.toString() ?? "—"}
-                </span>
-              </div>
-              <div className="sta-perf-field">
-                <span className="sta-perf-label">
-                  {t("准点率", "On-Time Performance")}
-                </span>
-                <span className="sta-perf-value">
-                  {(perfMatrix.onTimeRatePct ?? perfMatrix.otp)?.toString() ??
-                    "—"}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="sta-card">
-          <div className="sta-card-header">
-            <span className="sta-card-title">
-              {t(
-                "详细航班统计 - 下钻",
-                "Detailed Flight Statistics - Drill-down Entry",
-              )}
-            </span>
-          </div>
-          <table className="sta-table">
-            <thead>
-              <tr>
-                <th>{t("航班号", "Flight ID")}</th>
-                <th>{t("始发", "Origin")}</th>
-                <th>{t("目的地", "Destination")}</th>
-                <th>{t("计划时间", "Scheduled Time")}</th>
-                <th>{t("实际时间", "Actual Time")}</th>
-                <th>{t("延误(分)", "Delay (min)")}</th>
-                <th>{t("延误原因", "Delay Reason")}</th>
-                <th>{t("状态", "Status")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {drillDown.map((f: any) => (
-                <tr key={f.id}>
-                  <td>{f.id}</td>
-                  <td>{f.origin}</td>
-                  <td>{f.dest}</td>
-                  <td>{f.scheduled}</td>
-                  <td>{f.actual}</td>
-                  <td>{f.delay}</td>
-                  <td>{t("天气延误", "Weather Delay")}</td>
-                  <td>{t("在线", "Online")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </>
   );
 }
@@ -1290,15 +988,12 @@ function AircraftStatisticsTab({
       <div style={NO_DATA_STYLE}>{t("暂无数据", "No data available")}</div>
     );
 
-  const kpi = apiData.kpis ?? apiData.kpi ?? {};
-  const monthlyRisk = (apiData.monthlyTrend ?? apiData.monthlyRisk ?? []).map(
-    (d: any) => ({
-      month: d.label ?? d.month,
-      highRisk: d.high ?? d.highRisk ?? 0,
-      mediumRisk: d.medium ?? d.mediumRisk ?? 0,
-      normal: d.low ?? d.normal ?? 0,
-    }),
-  );
+  const kpi = apiData.kpis ?? {};
+  const monthlyRisk = (apiData.monthlyTrend ?? []).map((d: any) => ({
+    month: d.label,
+    total: (d.high ?? 0) + (d.medium ?? 0) + (d.low ?? 0),
+    abnormal: d.high ?? 0,
+  }));
   const TYPE_COLORS = [
     "#3b82f6",
     "#22c55e",
@@ -1308,23 +1003,19 @@ function AircraftStatisticsTab({
     "#eab308",
     "#ef4444",
   ];
-  const rawTypeDist =
-    apiData.modelDistribution ?? apiData.typeDistribution ?? [];
+  const rawTypeDist = apiData.modelDistribution ?? [];
   const typeDistData = rawTypeDist.map((d: any, i: number) => ({
-    name: d.model ?? d.name,
-    count: d.count ?? d.value ?? 0,
-    color: d.color ?? TYPE_COLORS[i % TYPE_COLORS.length],
+    name: d.model,
+    value: d.count ?? 0,
+    color: TYPE_COLORS[i % TYPE_COLORS.length],
   }));
-  const maintData = (
-    apiData.maintenanceTrend ??
-    apiData.maintenanceEvents ??
-    []
-  ).map((d: any) => ({
-    month: d.label ?? d.month,
+  const maintData = (apiData.maintenanceTrend ?? []).map((d: any) => ({
+    month: d.label,
     scheduled: d.scheduled ?? 0,
-    unscheduled: d.unplanned ?? d.unscheduled ?? 0,
+    unplanned: d.unplanned ?? 0,
+    value: (d.scheduled ?? 0) + (d.unplanned ?? 0),
   }));
-  const faultData = apiData.topFailureTypes ?? apiData.faultTop5 ?? [];
+  const faultData = apiData.topFailureTypes ?? [];
 
   return (
     <>
@@ -1393,27 +1084,17 @@ function AircraftStatisticsTab({
               <Tooltip {...darkTooltipStyle} />
               <Area
                 type="monotone"
-                dataKey="normal"
-                stackId="1"
-                stroke="#22c55e"
-                fill="rgba(34,197,94,0.2)"
-                name={t("正常", "Normal")}
+                dataKey="total"
+                stroke="#3b82f6"
+                fill="rgba(59,130,246,0.2)"
+                name={t("总数", "Total")}
               />
               <Area
                 type="monotone"
-                dataKey="mediumRisk"
-                stackId="1"
-                stroke="#eab308"
-                fill="rgba(234,179,8,0.3)"
-                name={t("中风险", "Medium Risk")}
-              />
-              <Area
-                type="monotone"
-                dataKey="highRisk"
-                stackId="1"
+                dataKey="abnormal"
                 stroke="#ef4444"
                 fill="rgba(239,68,68,0.3)"
-                name={t("高风险", "High Risk")}
+                name={t("异常", "Abnormal")}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -1441,7 +1122,7 @@ function AircraftStatisticsTab({
               />
               <Tooltip {...darkTooltipStyle} />
               <Bar
-                dataKey="count"
+                dataKey="value"
                 radius={[4, 4, 0, 0]}
                 name={t("数量", "Count")}
               >
@@ -1479,16 +1160,10 @@ function AircraftStatisticsTab({
               />
               <Tooltip {...darkTooltipStyle} />
               <Bar
-                dataKey="scheduled"
+                dataKey="value"
                 fill="#3b82f6"
                 radius={[4, 4, 0, 0]}
-                name={t("计划维护", "Scheduled")}
-              />
-              <Bar
-                dataKey="unscheduled"
-                fill="#f97316"
-                radius={[4, 4, 0, 0]}
-                name={t("非计划维护", "Unscheduled")}
+                name={t("维护事件", "Maintenance Events")}
               />
             </BarChart>
           </ResponsiveContainer>

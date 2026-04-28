@@ -1,5 +1,7 @@
 import request from "./request";
 
+// ============ 列表 /environment/airports ============
+
 export interface EnvironmentAirportsParams {
   page?: number;
   pageSize?: number;
@@ -7,22 +9,204 @@ export interface EnvironmentAirportsParams {
   riskLevel?: string;
 }
 
-/** 环主题机场环境总览（卡片 + 搜索/风险筛选） */
+export interface EnvironmentKeyMetrics {
+  temperatureC: number;
+  windSpeedKmh: number;
+  windSpeedKt: number;
+  windDirection: string;
+  visibilityKm: number;
+  cloudBaseM: number;
+  humidityPct: number;
+}
+
+export interface EnvironmentAirportItem {
+  id: number;
+  code: string;
+  iataCode: string | null;
+  icaoCode: string;
+  name: string;
+  nameZh: string;
+  city: string | null;
+  country: string | null;
+  totalFlightCount: number;
+  flightCount: number;
+  personCount: number;
+  operatorCount: number;
+  riskScore: number;
+  environmentRisk: number;
+  riskLevel: string;
+  latestObservedAt: string;
+  keyMetrics: EnvironmentKeyMetrics;
+}
+
+export interface EnvironmentAirportListResult {
+  items: EnvironmentAirportItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+// ============ 详情 /environment/airports/{code} ============
+
+export interface EnvironmentSnapshot {
+  observedAt: string;
+  temperatureC: number;
+  windSpeedKmh: number;
+  windSpeedKt: number;
+  windDirection: string;
+  visibilityKm: number;
+  cloudBaseM: number;
+  humidityPct: number;
+  riskScore: number;
+  riskLevel: string;
+  airQualityLevel: string;
+  precipitationLevel: string;
+  extremeEventLevel: string;
+  weatherCondition: string;
+  precipitationProbabilityPct: number;
+  precipitationTrend: number;
+  summary: string;
+  temperatureTrend: {
+    temp: number;
+    time: string;
+    label: string;
+    condition: string;
+    temperatureC: number;
+  }[];
+}
+
+export interface EnvironmentAlert {
+  title: string;
+  riskLevel: string;
+  scope: string;
+  runway: string;
+  occurredAt: string;
+  message: string;
+}
+
+export interface EnvironmentRiskFactor {
+  name: string;
+  status: string;
+  color: string;
+}
+
+export interface EnvironmentMetarMessage {
+  id: number;
+  messageNo: string;
+  messageType: string;
+  observedAt: string;
+  runway: string;
+  rawText: string;
+  translatedText: string;
+}
+
+export interface EnvironmentNoticeItem {
+  id: number;
+  title: string;
+  airportCode: string | null;
+  effectiveAt: string;
+  expiresAt: string;
+  source: string;
+  affectedAirports: string[];
+  radiusKm: number;
+  weatherTypes: string[];
+  content: string;
+}
+
+export interface EnvironmentAirportDetail {
+  airport: {
+    id: number;
+    code: string;
+    iataCode: string | null;
+    name: string;
+    city: string | null;
+    country: string | null;
+  };
+  snapshot: EnvironmentSnapshot;
+  alerts: EnvironmentAlert[];
+  overallRisk: {
+    score: number;
+    level: string;
+    factors: EnvironmentRiskFactor[];
+  };
+  riskSummary: {
+    score: number;
+    riskLevel: string;
+    airQuality: string;
+    precipitation: string;
+    extremeEvent: string;
+  };
+  keyFactors: {
+    temperature: number;
+    temperatureC: number;
+    wind: { speed: number; direction: string };
+    windSpeedKmh: number;
+    windSpeedKt: number;
+    windDirection: string;
+    visibility: number;
+    visibilityKm: number;
+    humidity: number;
+    humidityPct: number;
+    cloudBaseM: number;
+  };
+  weatherSummary: {
+    condition: string;
+    precipitationProbabilityPct: number;
+    precipitationTrend: number;
+    temperatureC: number;
+    visibilityKm: number;
+    cloudBaseM: number;
+    windSpeedKmh: number;
+    windDirection: string;
+    extremeEvent: string;
+  };
+  tempTrendData: {
+    time: string;
+    label: string;
+    temp: number;
+    temperatureC: number;
+    condition: string;
+  }[];
+  temperatureTrend: {
+    time: string;
+    label: string;
+    temp: number;
+    temperatureC: number;
+    condition: string;
+  }[];
+  hourlyForecast: { time: string; icon: string; temp: string }[];
+  tempSparkline: number[];
+  visSparkline: number[];
+  humSparkline: number[];
+  metarMessages: EnvironmentMetarMessage[];
+  notices: EnvironmentNoticeItem[];
+}
+
+// ============ API 函数 ============
+
 export function getEnvironmentAirports(params?: EnvironmentAirportsParams) {
-  return request.get("/api/v1/environment/airports", { params });
+  return request.get<EnvironmentAirportListResult>(
+    "/api/v1/environment/airports",
+    { params },
+  );
 }
 
-/** 环主题机场环境详情（天气摘要 + 告警 + METAR/TAF + 通告；不含地图） */
 export function getEnvironmentAirportDetail(code: string) {
-  return request.get(`/api/v1/environment/airports/${code}`);
+  return request.get<EnvironmentAirportDetail>(
+    `/api/v1/environment/airports/${code}`,
+  );
 }
 
-/** 气象报文详情 */
+/** @deprecated 接口已移除，报文数据在详情的 metarMessages 中 */
 export function getEnvironmentMessage(id: number) {
-  return request.get(`/api/v1/environment/messages/${id}`);
+  return request.get<EnvironmentMetarMessage>(
+    `/api/v1/environment/messages/${id}`,
+  );
 }
 
-/** 天气/运行通告详情 */
+/** @deprecated 接口已移除，通告数据在详情的 notices 中 */
 export function getEnvironmentNotice(id: number) {
-  return request.get(`/api/v1/environment/notices/${id}`);
+  return request.get<EnvironmentNoticeItem>(
+    `/api/v1/environment/notices/${id}`,
+  );
 }

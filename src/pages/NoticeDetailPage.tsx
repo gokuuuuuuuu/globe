@@ -474,7 +474,7 @@ export function NoticeDetailPage() {
                   {t("贡献因素", "Contributing Factors")}
                 </div>
                 <div className="ntc-factors-tags">
-                  {currentRisk.factors.map((factor, i) => (
+                  {currentRisk.factors.map((factor: any, i: number) => (
                     <span key={i} className="ntc-factor-tag">
                       {t(
                         factor === "Convective Activity"

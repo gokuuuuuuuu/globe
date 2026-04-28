@@ -5,21 +5,35 @@ export interface RiskFactorListParams {
   pageSize?: number;
   category?: string;
   name?: string;
-  importance?: "LOW" | "MEDIUM" | "HIGH";
-  source?: "MODEL_OUTPUT" | "MANUAL";
+  importance?: string;
+  source?: string;
 }
 
 export interface RuleItemDto {
+  id?: number;
   condition: string;
   action: string;
+}
+
+/** 风险因子列表每项 */
+export interface RiskFactorListItem {
+  id: number;
+  code: string;
+  name: string;
+  category: string;
+  importance: string;
+  source: string;
+  score: number;
+  ruleCount: number;
+  rules: RuleItemDto[];
 }
 
 export interface CreateRiskFactorDto {
   code?: string;
   name: string;
   category: string;
-  importance?: "LOW" | "MEDIUM" | "HIGH";
-  source?: "MODEL_OUTPUT" | "MANUAL";
+  importance?: string;
+  source?: string;
   score?: number;
   rules?: RuleItemDto[];
 }
@@ -27,8 +41,8 @@ export interface CreateRiskFactorDto {
 export interface UpdateRiskFactorDto {
   name?: string;
   category?: string;
-  importance?: "LOW" | "MEDIUM" | "HIGH";
-  source?: "MODEL_OUTPUT" | "MANUAL";
+  importance?: string;
+  source?: string;
   score?: number;
 }
 

@@ -16,7 +16,7 @@ import {
 } from "../data/flightData";
 import { ALL_PERSONS } from "../data/personData";
 import { AnalysisPage } from "./AnalysisPage";
-import { getDashboardOverview } from "../api/dashboard";
+import { getDashboardOverview, type DashboardOverview } from "../api/dashboard";
 import { useLanguage } from "../i18n/useLanguage";
 import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
 import { Timeline } from "../components/Timeline";
@@ -151,7 +151,7 @@ export function HomePage() {
     setSearchParams(sp, { replace: true });
   };
   const [showAnalysis, setShowAnalysis] = useState(false);
-  const [dashboard, setDashboard] = useState(null);
+  const [dashboard, setDashboard] = useState<DashboardOverview | null>(null);
   const { setRiskZones, setHomeObjectTab } = useAppStore();
   // Per-tab red/yellow filter state
   const [redYellowByTab, setRedYellowByTab] = useState<
@@ -267,9 +267,31 @@ export function HomePage() {
   }, []);
 
   // ===== Display stats: prefer API data, fallback to local =====
-  const flightStatsDisplay = dashboard?.flightStats ?? flightStats;
-  const airportStatsDisplay = dashboard?.airportStats ?? airportStats;
-  const personnelStatsDisplay = dashboard?.personnelStats ?? personnelStats;
+  const flightStatsDisplay = dashboard
+    ? {
+        total: dashboard.summary.flightTotal,
+        red: dashboard.riskDistribution.high,
+        yellow: dashboard.riskDistribution.medium,
+        green: dashboard.riskDistribution.low,
+      }
+    : flightStats;
+  const airportStatsDisplay = dashboard
+    ? {
+        total: dashboard.summary.airportTotal,
+        red: 0,
+        yellow: 0,
+        green: dashboard.summary.airportTotal,
+      }
+    : airportStats;
+  const personnelStatsDisplay = dashboard
+    ? {
+        total: dashboard.summary.personTotal,
+        highRisk: 0,
+        mediumRisk: 0,
+        lowRisk: dashboard.summary.personTotal,
+        techCounts: {} as Record<string, number>,
+      }
+    : personnelStats;
 
   // ===== Risk lists =====
   const highRiskFlights = useMemo(() => {
@@ -314,8 +336,21 @@ export function HomePage() {
       .sort((a, b) => (b.riskValue ?? 0) - (a.riskValue ?? 0));
   }, [riskFilter]);
 
-  // Top critical item for hero card
+  // Top critical item for hero card — prefer API urgentAlert for flights tab
   const topCriticalItem = useMemo(() => {
+    if (objectTab === "flights" && dashboard?.urgentAlert) {
+      const ua = dashboard.urgentAlert;
+      return {
+        code: ua.flightNo,
+        name: ua.route,
+        region: ua.aircraftModel,
+        score: ua.riskScore.toFixed(1),
+        flights: ua.aircraftModel || "-",
+        staff: ua.status,
+        alerts: String(ua.riskTags.length || 1),
+        id: ua.id,
+      };
+    }
     if (objectTab === "flights" && highRiskFlights.length > 0) {
       const f = highRiskFlights[0];
       const score = (
@@ -365,7 +400,14 @@ export function HomePage() {
       };
     }
     return null;
-  }, [objectTab, highRiskFlights, highRiskAirports, highRiskPersonnel, t]);
+  }, [
+    objectTab,
+    dashboard,
+    highRiskFlights,
+    highRiskAirports,
+    highRiskPersonnel,
+    t,
+  ]);
 
   const riskListRef = useRef<HTMLDivElement>(null);
 

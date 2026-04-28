@@ -194,10 +194,10 @@ export function WorkOrderListPage() {
     }
     setSearchParams(sp, { replace: true });
   };
-  const [sortField, setSortField] = useState<"id" | "updatedTime">(
+  const [sortField] = useState<"id" | "updatedTime">(
     "updatedTime",
   );
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [sortDir] = useState<"asc" | "desc">("desc");
 
   // Translation helpers
   const tRiskLevel = (level: RiskLevel) => {
@@ -257,15 +257,15 @@ export function WorkOrderListPage() {
   };
 
   // Sort handler
-  const handleSort = (field: "id" | "updatedTime") => {
-    if (sortField === field) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortField(field);
-      setSortDir("asc");
-    }
-    setPage(1);
-  };
+  // const handleSort = (field: "id" | "updatedTime") => {
+  //   if (sortField === field) {
+  //     setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+  //   } else {
+  //     setSortField(field);
+  //     setSortDir("asc");
+  //   }
+  //   setPage(1);
+  // };
 
   // Filtered & sorted data
   const filtered = useMemo(() => {

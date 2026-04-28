@@ -29,7 +29,7 @@ interface MenuItem {
 
 export function AdminLayout() {
   const location = useLocation();
-  const { lang, setLang, t } = useLanguage();
+  const { t } = useLanguage();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const hasPermission = useAuthStore((s) => s.hasPermission);
@@ -131,27 +131,8 @@ export function AdminLayout() {
         {/* Meta area */}
         <div className="al-nav-meta">
           <div className="al-meta-item">
-            <span className="al-live">
-              <span className="al-live-pulse" />
-              SYNC
-            </span>
-          </div>
-          <div className="al-meta-item">
-            <span className="al-meta-label">LATENCY</span>
-            <span className="al-meta-value">1.2s</span>
-          </div>
-          <div className="al-meta-div" />
-          <div className="al-meta-item">
             <span className="al-meta-value">2026‑03‑23 / 02:20:14</span>
           </div>
-          <div className="al-meta-div" />
-          <button
-            className="al-lang-btn"
-            onClick={() => setLang(lang === "zh" ? "en" : "zh")}
-            title={t("切换为英文", "Switch to Chinese")}
-          >
-            {lang === "zh" ? "中文" : "EN"}
-          </button>
           {user && (
             <>
               <div className="al-meta-div" />

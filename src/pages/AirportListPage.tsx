@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { MapContainer, TileLayer, CircleMarker, Tooltip } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { getAirportList } from "../api/airport";
-import AIRPORT_COORDS from "../data/airportCoords";
 import { useLanguage } from "../i18n/useLanguage";
 import "./AirportListPage.css";
 
@@ -13,14 +12,16 @@ interface AirportItem {
   rank: number;
   id: number;
   code: string;
+  iataCode: string | null;
   name: string;
+  city: string | null;
+  country: string | null;
   totalFlightCount: number;
   highRiskFlightCount: number;
   highRiskFlightRatio: number;
-  topRisk: string;
-  riskLevel: "LOW" | "MEDIUM" | "HIGH";
-  riskDrivers: string[];
-  trend: { date: string; value: number }[];
+  topRisk: string | null;
+  riskLevel: string;
+  riskDrivers: { name: string; count: number }[];
   lat?: number;
   lon?: number;
 }
@@ -31,16 +32,16 @@ function getRiskBadge(
   riskLevel: string,
   t: (zh: string, en: string) => string,
 ) {
-  if (riskLevel === "HIGH")
+  if (riskLevel === "HIGH" || riskLevel === "高")
     return { label: t("高", "HIGH"), cls: "ap-badge-high" };
-  if (riskLevel === "MEDIUM")
+  if (riskLevel === "MEDIUM" || riskLevel === "中")
     return { label: t("中", "MEDIUM"), cls: "ap-badge-medium" };
   return { label: t("低", "LOW"), cls: "ap-badge-low" };
 }
 
 function getMarkerColor(riskLevel: string): string {
-  if (riskLevel === "HIGH") return "#dc2626";
-  if (riskLevel === "MEDIUM") return "#ea580c";
+  if (riskLevel === "HIGH" || riskLevel === "高") return "#dc2626";
+  if (riskLevel === "MEDIUM" || riskLevel === "中") return "#ea580c";
   return "#22c55e";
 }
 
@@ -57,8 +58,6 @@ export function AirportListPage() {
 
   const [airports, setAirports] = useState<AirportItem[]>([]);
   const [total, setTotal] = useState(0);
-  // 地图用：所有有坐标的机场（不受分页影响）
-  const [mapAirports, setMapAirports] = useState<AirportItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const setPage = (pageOrFn: number | ((prev: number) => number)) => {
@@ -85,15 +84,11 @@ export function AirportListPage() {
         if (search.trim()) {
           params.keyword = search.trim();
         }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const res = (await getAirportList(params)) as Record<string, any>;
+        const res = await getAirportList(
+          params as Parameters<typeof getAirportList>[0],
+        );
         if (!cancelled) {
-          // 补充经纬度数据
-          const items = (res.items ?? []).map((a: AirportItem) => {
-            const coords = AIRPORT_COORDS[a.code];
-            return coords ? { ...a, lat: coords.lat, lon: coords.lon } : a;
-          });
-          setAirports(items);
+          setAirports(res.items ?? []);
           setTotal(res.total ?? 0);
         }
       } catch (err) {
@@ -111,28 +106,6 @@ export function AirportListPage() {
       cancelled = true;
     };
   }, [page, search]);
-
-  // 加载地图数据：所有有坐标的机场（仅一次）
-  useEffect(() => {
-    const icaoCodes = Object.keys(AIRPORT_COORDS);
-    // 用本地坐标数据构建地图标记，从 API 拿到的分页数据补充风险信息
-    const base = icaoCodes.map((code) => ({
-      id: 0,
-      rank: 0,
-      code,
-      name: code,
-      totalFlightCount: 0,
-      highRiskFlightCount: 0,
-      highRiskFlightRatio: 0,
-      topRisk: "",
-      riskLevel: "LOW" as const,
-      riskDrivers: [],
-      trend: [],
-      lat: AIRPORT_COORDS[code].lat,
-      lon: AIRPORT_COORDS[code].lon,
-    }));
-    setMapAirports(base);
-  }, []);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const topAirports = airports.slice(0, 10);
@@ -210,21 +183,6 @@ export function AirportListPage() {
       <div className="ap-filters">
         <div className="ap-filter-group">
           <span className="ap-filter-label">
-            {t("时间窗口", "Time Window")}
-          </span>
-          <input
-            className="ap-filter-date"
-            type="text"
-            disabled
-            defaultValue={t(
-              "近7天：2024-05-15 至 2024-05-21",
-              "Last 7 Days: 2024-05-15 to 2024-05-21",
-            )}
-            readOnly
-          />
-        </div>
-        <div className="ap-filter-group">
-          <span className="ap-filter-label">
             {t("机场搜索", "Airport Search")}
           </span>
           <input
@@ -286,7 +244,7 @@ export function AirportListPage() {
                     const badge = getRiskBadge(a.riskLevel, t);
                     return (
                       <tr
-                        key={a.id}
+                        key={a.id || a.code}
                         style={{ cursor: "pointer" }}
                         onClick={() =>
                           navigate(
@@ -307,10 +265,8 @@ export function AirportListPage() {
                           </span>
                         </td>
                         <td className="ap-high-risk-flights">
-                          {a.highRiskFlightCount}
-                          <br />
                           <span className="ap-risk-percent">
-                            ({(a.highRiskFlightRatio * 100).toFixed(2)}%)
+                            {(a.highRiskFlightRatio * 100).toFixed(1)}%
                           </span>
                         </td>
                         <td>
@@ -411,7 +367,7 @@ export function AirportListPage() {
                 subdomains={["1", "2", "3", "4"]}
                 className="ap-dark-tiles"
               />
-              {mapAirports
+              {airports
                 .filter((a) => a.lat && a.lon)
                 .map((a) => {
                   const color = getMarkerColor(a.riskLevel);
@@ -491,24 +447,8 @@ export function AirportListPage() {
           <div className="ap-cards-body">
             {topAirports.map((a) => {
               const badge = getRiskBadge(a.riskLevel, t);
-              const riskFlightsPct = (a.highRiskFlightRatio * 100).toFixed(2);
-              // Build sparkline from trend data
-              const trendPoints =
-                a.trend && a.trend.length > 0
-                  ? a.trend
-                      .map((pt, idx) => {
-                        const x = (idx / Math.max(1, a.trend.length - 1)) * 60;
-                        const maxVal = Math.max(
-                          ...a.trend.map((p) => p.value),
-                          1,
-                        );
-                        const y = 18 - (pt.value / maxVal) * 16;
-                        return `${x},${y}`;
-                      })
-                      .join(" ")
-                  : `0,10 20,12 40,8 60,10`;
               return (
-                <div key={a.id} className="ap-summary-card">
+                <div key={a.id || a.code} className="ap-summary-card">
                   <div className="ap-summary-card-header">
                     <div className="ap-summary-card-title">
                       <span
@@ -521,20 +461,14 @@ export function AirportListPage() {
                       </span>
                       <span className="ap-summary-code">{a.code}</span>
                     </div>
-                    {/* Mini sparkline from trend data */}
-                    <svg className="ap-summary-sparkline" viewBox="0 0 60 20">
-                      <polyline
-                        points={trendPoints}
-                        fill="none"
-                        stroke={getMarkerColor(a.riskLevel)}
-                        strokeWidth="1.5"
-                      />
-                    </svg>
+                    <span className={`ap-risk-badge ${badge.cls}`}>
+                      {badge.label}
+                    </span>
                   </div>
                   <div className="ap-summary-stats">
                     <div className="ap-summary-stat">
                       <div className="ap-summary-stat-label">
-                        {t("统计", "Stats")}
+                        {t("航班数", "Flights")}
                       </div>
                       <div className="ap-summary-stat-value">
                         {a.totalFlightCount.toLocaleString()}
@@ -542,41 +476,21 @@ export function AirportListPage() {
                     </div>
                     <div className="ap-summary-stat">
                       <div className="ap-summary-stat-label">
-                        {t("风险航班", "Risk Flights")}
+                        {t("高风险占比", "High Risk %")}
                       </div>
                       <div className="ap-summary-stat-value">
-                        {riskFlightsPct}%
-                      </div>
-                    </div>
-                    <div className="ap-summary-stat">
-                      <div className="ap-summary-stat-label">
-                        {t("高风险数", "High Risk")}
-                      </div>
-                      <div className="ap-summary-stat-value">
-                        {a.highRiskFlightCount}
-                      </div>
-                    </div>
-                    <div className="ap-summary-stat">
-                      <div className="ap-summary-stat-label">{badge.label}</div>
-                      <div className="ap-summary-stat-value">
-                        {a.totalFlightCount}
+                        {(a.highRiskFlightRatio * 100).toFixed(1)}%
                       </div>
                     </div>
                   </div>
-                  <div className="ap-summary-drivers-label">
-                    {t("风险驱动因素", "Risk Drivers")}
-                  </div>
-                  <div className="ap-summary-drivers">
-                    {a.riskDrivers.map((d, di) => (
-                      <span key={di} className="ap-driver-tag">
+                  {a.topRisk && (
+                    <div className="ap-summary-drivers">
+                      <span className="ap-driver-tag">
                         <span className="ap-driver-icon">&#9650;</span>
-                        {d}
+                        {a.topRisk}
                       </span>
-                    ))}
-                  </div>
-                  <div className="ap-summary-trend-label">
-                    {t("趋势", "Trend")}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}

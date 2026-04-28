@@ -1,14 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { useLanguage } from "../i18n/useLanguage";
 import { getPlaneDetail, getPlaneDetailPage } from "../api/plane";
 import "./AircraftDetailPage.css";
@@ -19,82 +10,11 @@ interface PlaneDetail {
   id: number;
   registration: string;
   model: string;
-  ageYears: number | null;
-  totalFlightHours: number;
-  airworthinessStatus: string;
+  aircraftCategory: string;
+  operatingUnit: string;
   riskLevel: string;
   riskScore: number;
-  highRiskFlightCount: number;
-  createdAt: string;
-  updatedAt: string;
 }
-
-// ===== Mock Data =====
-
-const factorScore = {
-  score: 78,
-  riskLevel: "High" as const,
-  factors: [
-    { name: "Hydraulic Pressure", range: "45-57%", color: "#f97316" },
-    { name: "Flight Control Inputs", range: "30-33%", color: "#eab308" },
-    { name: "Fuel System Efficiency", range: "5-15%", color: "#22c55e" },
-    { name: "Avionics Anomalies", range: "10-40%", color: "#ef4444" },
-  ],
-};
-
-const topFactors = [
-  { name: "Engine Vibrations", pct: 50, color: "#ef4444" },
-  { name: "Hydraulic Pressure", pct: 42, color: "#f97316" },
-  { name: "Flight Control Inputs", pct: 27, color: "#eab308" },
-  { name: "Fuel System Efficiency", pct: 13, color: "#22c55e" },
-  { name: "Avionics Anomalies", pct: 10, color: "#22c55e" },
-];
-
-const relatedFlights = {
-  total: 12,
-  high: 2,
-  medium: 5,
-  low: 5,
-};
-
-const trendData = [
-  { month: "Jan", high: 1, medium: 3, low: 2 },
-  { month: "Nov", high: 2, medium: 4, low: 3 },
-  { month: "Feb", high: 1, medium: 2, low: 4 },
-  { month: "May", high: 3, medium: 5, low: 5 },
-  { month: "Jun", high: 2, medium: 5, low: 5 },
-];
-
-const abnormalSummary = {
-  counts: [
-    { label: "High", color: "#ef4444", count: 2 },
-    { label: "Medium", color: "#f97316", count: 5 },
-    { label: "Medium", color: "#eab308", count: 5 },
-    { label: "Low", color: "#22c55e", count: 5 },
-  ],
-  items: [
-    {
-      text: "Repeated Hydraulic System C warnings (5 instances)",
-      count: 5,
-      status: "critical",
-    },
-    {
-      text: "Frequent Engine Exhaust Temperature spikes (3 flights)",
-      count: 3,
-      status: "elevated",
-    },
-    {
-      text: "Flight control sensor deviations (2 reports)",
-      count: 2,
-      status: "warning",
-    },
-    {
-      text: "Repeated Hydraulic system C warnings stem Engine Exhaust Temperature w spikes",
-      count: 1,
-      status: "occurred",
-    },
-  ],
-};
 
 // ===== Gauge Component =====
 
@@ -104,7 +24,6 @@ function GaugeSVG({ score }: { score: number }) {
   const r = 90;
   const scoreAngle = Math.PI - (score / 100) * Math.PI;
 
-  // Build arc segments: green -> yellow -> red
   const segments = [
     { start: 0, end: 0.25, color: "#22c55e" },
     { start: 0.25, end: 0.5, color: "#eab308" },
@@ -123,7 +42,6 @@ function GaugeSVG({ score }: { score: number }) {
     return `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
   }
 
-  // Needle
   const needleLen = r - 12;
   const nx = cx + needleLen * Math.cos(scoreAngle);
   const ny = cy - needleLen * Math.sin(scoreAngle);
@@ -135,7 +53,6 @@ function GaugeSVG({ score }: { score: number }) {
       height="140"
       viewBox="0 0 240 140"
     >
-      {/* Background track */}
       <path
         d={arcPath(0, 1, r)}
         fill="none"
@@ -143,7 +60,6 @@ function GaugeSVG({ score }: { score: number }) {
         strokeWidth="14"
         strokeLinecap="round"
       />
-      {/* Colored segments */}
       {segments.map((seg, i) => (
         <path
           key={i}
@@ -155,7 +71,6 @@ function GaugeSVG({ score }: { score: number }) {
           opacity={0.85}
         />
       ))}
-      {/* Needle */}
       <line
         x1={cx}
         y1={cy}
@@ -166,11 +81,14 @@ function GaugeSVG({ score }: { score: number }) {
         strokeLinecap="round"
       />
       <circle cx={cx} cy={cy} r="5" fill="#f8fafc" />
-      {/* Score text */}
-      <text x={cx} y={cy - 20} className="acd-gauge-score">
+      <text
+        x={cx}
+        y={cy - 20}
+        className="acd-gauge-score"
+        style={{ fill: scoreColor(score) }}
+      >
         {score}
       </text>
-      {/* Labels */}
       <text x={cx - r + 5} y={cy + 18} className="acd-gauge-label">
         0
       </text>
@@ -231,19 +149,27 @@ function CalendarIcon() {
   );
 }
 
-// ===== Dark Tooltip =====
+// ===== Helper =====
 
-const darkTooltipStyle = {
-  contentStyle: {
-    background: "rgba(15,23,42,0.95)",
-    border: "1px solid rgba(148,163,184,0.2)",
-    borderRadius: 6,
-    padding: "8px 12px",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-  },
-  labelStyle: { color: "#94a3b8", fontSize: 11 },
-  itemStyle: { color: "#e2e8f0", fontSize: 12 },
-};
+function scoreColor(score: number): string {
+  if (score >= 80) return "#ef4444";
+  if (score >= 60) return "#f97316";
+  if (score >= 40) return "#eab308";
+  return "#22c55e";
+}
+
+function formatRiskLevel(level: string, t: (zh: string, en: string) => string) {
+  switch (level) {
+    case "LOW":
+      return t("低", "Low");
+    case "MEDIUM":
+      return t("中", "Medium");
+    case "HIGH":
+      return t("高", "High");
+    default:
+      return level;
+  }
+}
 
 // ===== Main Component =====
 
@@ -275,65 +201,6 @@ export function AircraftDetailPage() {
   }, [tailParam]);
 
   const displayTailNumber = planeDetail?.registration || tailParam || "—";
-
-  const currentFactorScore = detailPage?.factorScore ?? factorScore;
-  const currentTopFactors = detailPage?.topFactors ?? topFactors;
-  const currentRelatedFlights = detailPage?.relatedFlights ?? relatedFlights;
-  const currentTrendData = detailPage?.trendData ?? trendData;
-  const currentAbnormalSummary = detailPage?.abnormalSummary ?? abnormalSummary;
-
-  const riskLevelText =
-    currentFactorScore.riskLevel === "High"
-      ? t("高风险", "High Risk")
-      : currentFactorScore.riskLevel === "Medium"
-        ? t("中风险", "Medium Risk")
-        : t("低风险", "Low Risk");
-
-  const riskBadgeClass =
-    currentFactorScore.riskLevel === "High"
-      ? "acd-risk-badge-high"
-      : currentFactorScore.riskLevel === "Medium"
-        ? "acd-risk-badge-medium"
-        : "acd-risk-badge-low";
-
-  const formatAirworthinessStatus = (status: string) => {
-    switch (status) {
-      case "AIRWORTHY":
-        return t("适航", "Airworthy");
-      case "NOT_AIRWORTHY":
-        return t("不适航", "Not Airworthy");
-      case "CONDITIONAL":
-        return t("有条件适航", "Conditional");
-      default:
-        return status;
-    }
-  };
-
-  const formatRiskLevel = (level: string) => {
-    switch (level) {
-      case "LOW":
-        return t("低", "Low");
-      case "MEDIUM":
-        return t("中", "Medium");
-      case "HIGH":
-        return t("高", "High");
-      default:
-        return level;
-    }
-  };
-
-  const airworthinessColor = (status: string) => {
-    switch (status) {
-      case "AIRWORTHY":
-        return "#22c55e";
-      case "NOT_AIRWORTHY":
-        return "#ef4444";
-      case "CONDITIONAL":
-        return "#eab308";
-      default:
-        return "#94a3b8";
-    }
-  };
 
   if (loading) {
     return (
@@ -386,6 +253,19 @@ export function AircraftDetailPage() {
       </div>
     );
   }
+
+  const factorScores: { name: string; score: number }[] =
+    detailPage?.factorScores ?? [];
+  const primaryFactor: { name: string; score: number } | null =
+    detailPage?.primaryFactor ?? null;
+  const relatedFlights: any[] = detailPage?.relatedFlights ?? [];
+  const relatedRiskFlights = detailPage?.relatedRiskFlights ?? null;
+  const abnormalSummary: { count: number; latest: string } | null =
+    detailPage?.abnormalSummary ?? null;
+  const maintenance: { lastCheckAt: string; nextCheckAt: string } | null =
+    detailPage?.maintenance ?? null;
+  const recentEvents: { date: string; title: string }[] =
+    detailPage?.recentEvents ?? [];
 
   return (
     <div className="acd-root">
@@ -447,7 +327,9 @@ export function AircraftDetailPage() {
           </div>
           <div>
             <div className="acd-info-label">{t("机号", "Registration")}</div>
-            <div className="acd-info-value">{displayTailNumber}</div>
+            <div className="acd-info-value">
+              {planeDetail?.registration || "—"}
+            </div>
           </div>
         </div>
         <div className="acd-info-item">
@@ -461,14 +343,14 @@ export function AircraftDetailPage() {
         </div>
         <div className="acd-info-item">
           <div className="acd-info-icon">
-            <CalendarIcon />
+            <AirplaneIcon />
           </div>
           <div>
-            <div className="acd-info-label">{t("机龄", "Aircraft Age")}</div>
+            <div className="acd-info-label">
+              {t("机型系列", "Aircraft Category")}
+            </div>
             <div className="acd-info-value">
-              {planeDetail?.ageYears != null
-                ? `${planeDetail.ageYears} ${t("年", "Years")}`
-                : "—"}
+              {planeDetail?.aircraftCategory || "—"}
             </div>
           </div>
         </div>
@@ -478,32 +360,10 @@ export function AircraftDetailPage() {
           </div>
           <div>
             <div className="acd-info-label">
-              {t("总飞行小时", "Total Flight Hours")}
+              {t("运营单位", "Operating Unit")}
             </div>
             <div className="acd-info-value">
-              {planeDetail?.totalFlightHours ?? "—"}
-            </div>
-          </div>
-        </div>
-        <div className="acd-info-item">
-          <div className="acd-info-icon">
-            <AirplaneIcon />
-          </div>
-          <div>
-            <div className="acd-info-label">
-              {t("适航状态", "Airworthiness")}
-            </div>
-            <div
-              className="acd-info-value"
-              style={{
-                color: planeDetail
-                  ? airworthinessColor(planeDetail.airworthinessStatus)
-                  : undefined,
-              }}
-            >
-              {planeDetail
-                ? formatAirworthinessStatus(planeDetail.airworthinessStatus)
-                : "—"}
+              {planeDetail?.operatingUnit || "—"}
             </div>
           </div>
         </div>
@@ -514,7 +374,7 @@ export function AircraftDetailPage() {
           <div>
             <div className="acd-info-label">{t("风险等级", "Risk Level")}</div>
             <div className="acd-info-value">
-              {planeDetail ? formatRiskLevel(planeDetail.riskLevel) : "—"}
+              {planeDetail ? formatRiskLevel(planeDetail.riskLevel, t) : "—"}
             </div>
           </div>
         </div>
@@ -529,464 +389,447 @@ export function AircraftDetailPage() {
             </div>
           </div>
         </div>
-        <div className="acd-info-item">
-          <div className="acd-info-icon">
-            <AirplaneIcon />
-          </div>
-          <div>
-            <div className="acd-info-label">
-              {t("高风险航班数", "High Risk Flights")}
-            </div>
-            <div className="acd-info-value">
-              {planeDetail?.highRiskFlightCount ?? "—"}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Row 1 - 3 Cards */}
       <div className="acd-cards-row">
-        {/* Card 1: Aircraft Factor Score */}
+        {/* Card 1: 因子得分 */}
         <div className="acd-card">
           <div className="acd-card-title">
             {t("飞机因子得分", "AIRCRAFT FACTOR SCORE")}
           </div>
           <div className="acd-gauge-wrapper">
-            <GaugeSVG score={currentFactorScore.score} />
-            <span className={`acd-risk-badge ${riskBadgeClass}`}>
-              {riskLevelText}
-            </span>
+            <GaugeSVG score={planeDetail?.riskScore ?? 0} />
             <div className="acd-risk-status">
-              {t("风险状态", "Risk Status")}: {t("升高", "Elevated")}
+              {t("风险评分", "Risk Score")}: {planeDetail?.riskScore ?? "—"}
             </div>
           </div>
-          <div className="acd-factor-ranges">
-            {currentFactorScore.factors.map((f, i) => (
-              <div className="acd-factor-range-item" key={i}>
-                <div className="acd-factor-range-header">
-                  <span className="acd-factor-range-name">
-                    {f.name === "Hydraulic Pressure"
-                      ? t("液压压力", "Hydraulic Pressure")
-                      : f.name === "Flight Control Inputs"
-                        ? t("飞控输入", "Flight Control Inputs")
-                        : f.name === "Fuel System Efficiency"
-                          ? t("燃油系统效率", "Fuel System Efficiency")
-                          : f.name === "Avionics Anomalies"
-                            ? t("航电异常", "Avionics Anomalies")
-                            : f.name === "Engine Vibrations"
-                              ? t("发动机振动", "Engine Vibrations")
-                              : f.name}
-                  </span>
-                  <span className="acd-factor-range-value">{f.range}</span>
+          <div className="acd-top-factors">
+            {factorScores.length > 0 ? (
+              factorScores.map((f, i) => (
+                <div className="acd-top-factor-item" key={i}>
+                  <div className="acd-top-factor-header">
+                    <span className="acd-top-factor-name">{f.name}</span>
+                    <span
+                      className="acd-top-factor-pct"
+                      style={{ color: scoreColor(f.score) }}
+                    >
+                      {f.score}
+                    </span>
+                  </div>
+                  <div className="acd-top-factor-bar-bg">
+                    <div
+                      className="acd-top-factor-bar-fill"
+                      style={{
+                        width: `${f.score}%`,
+                        background: scoreColor(f.score),
+                      }}
+                    />
+                  </div>
                 </div>
-                <div
-                  className="acd-factor-range-bar"
-                  style={{ background: f.color }}
-                />
+              ))
+            ) : (
+              <div style={{ color: "#64748b", fontSize: 13 }}>
+                {t("暂无数据", "No data")}
               </div>
-            ))}
+            )}
           </div>
         </div>
 
-        {/* Card 2: Top Aircraft Factors */}
+        {/* Card 2: 首要因子 */}
         <div className="acd-card">
           <div className="acd-card-title">
             {t("飞机首要因子", "TOP AIRCRAFT FACTORS")}
           </div>
-          <div className="acd-top-factors">
-            {currentTopFactors.map((f, i) => (
-              <div className="acd-top-factor-item" key={i}>
-                <div className="acd-top-factor-header">
-                  <span className="acd-top-factor-name">
-                    {f.name === "Hydraulic Pressure"
-                      ? t("液压压力", "Hydraulic Pressure")
-                      : f.name === "Flight Control Inputs"
-                        ? t("飞控输入", "Flight Control Inputs")
-                        : f.name === "Fuel System Efficiency"
-                          ? t("燃油系统效率", "Fuel System Efficiency")
-                          : f.name === "Avionics Anomalies"
-                            ? t("航电异常", "Avionics Anomalies")
-                            : f.name === "Engine Vibrations"
-                              ? t("发动机振动", "Engine Vibrations")
-                              : f.name}
-                  </span>
-                  <span className="acd-top-factor-pct">{f.pct}%</span>
-                </div>
-                <div className="acd-top-factor-bar-bg">
-                  <div
-                    className="acd-top-factor-bar-fill"
-                    style={{ width: `${f.pct}%`, background: f.color }}
-                  />
-                </div>
+          {primaryFactor ? (
+            <div style={{ marginBottom: 16 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <span
+                  style={{ color: "#e2e8f0", fontSize: 14, fontWeight: 600 }}
+                >
+                  {primaryFactor.name}
+                </span>
+                <span
+                  style={{
+                    color: scoreColor(primaryFactor.score),
+                    fontSize: 20,
+                    fontWeight: 700,
+                  }}
+                >
+                  {primaryFactor.score}
+                </span>
               </div>
-            ))}
-          </div>
+              <div className="acd-top-factor-bar-bg">
+                <div
+                  className="acd-top-factor-bar-fill"
+                  style={{
+                    width: `${primaryFactor.score}%`,
+                    background: scoreColor(primaryFactor.score),
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: "#64748b", fontSize: 13 }}>
+              {t("暂无数据", "No data")}
+            </div>
+          )}
+          {/* 列出前几个因子 */}
+          {factorScores.length > 0 && (
+            <div className="acd-top-factors">
+              {factorScores.slice(0, 5).map((f, i) => (
+                <div className="acd-top-factor-item" key={i}>
+                  <div className="acd-top-factor-header">
+                    <span className="acd-top-factor-name">{f.name}</span>
+                    <span
+                      className="acd-top-factor-pct"
+                      style={{ color: scoreColor(f.score) }}
+                    >
+                      {f.score}
+                    </span>
+                  </div>
+                  <div className="acd-top-factor-bar-bg">
+                    <div
+                      className="acd-top-factor-bar-fill"
+                      style={{
+                        width: `${f.score}%`,
+                        background: scoreColor(f.score),
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Card 3: Number of Related High-Risk Flights */}
+        {/* Card 3: 相关航班 */}
         <div className="acd-card">
           <div className="acd-card-title">
             {t("相关高风险航班数量", "NUMBER OF RELATED HIGH-RISK FLIGHTS")}
           </div>
           <div className="acd-flights-header">
             <div className="acd-flights-big-number">
-              {currentRelatedFlights.total}
-            </div>
-            <div className="acd-flights-breakdown">
-              <div className="acd-flights-breakdown-item">
-                <span className="acd-dot acd-dot-red" />
-                <span style={{ color: "#ef4444" }}>
-                  {currentRelatedFlights.high} {t("高", "High")}
-                </span>
-              </div>
-              <div className="acd-flights-breakdown-item">
-                <span className="acd-dot acd-dot-yellow" />
-                <span style={{ color: "#eab308" }}>
-                  {currentRelatedFlights.medium} {t("中", "Medium")}
-                </span>
-              </div>
-              <div className="acd-flights-breakdown-item">
-                <span className="acd-dot acd-dot-green" />
-                <span style={{ color: "#22c55e" }}>
-                  {currentRelatedFlights.low} {t("低", "Low")}
-                </span>
-              </div>
+              {relatedRiskFlights?.total ?? relatedFlights.length}
             </div>
           </div>
-          <div className="acd-flights-chart">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={currentTrendData}>
-                <CartesianGrid stroke="rgba(148,163,184,0.1)" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                  tickFormatter={(value: string) => {
-                    const monthMap: Record<string, string> = {
-                      Jan: t("1月", "Jan"),
-                      Feb: t("2月", "Feb"),
-                      Mar: t("3月", "Mar"),
-                      Apr: t("4月", "Apr"),
-                      May: t("5月", "May"),
-                      Jun: t("6月", "Jun"),
-                      Jul: t("7月", "Jul"),
-                      Aug: t("8月", "Aug"),
-                      Sep: t("9月", "Sep"),
-                      Oct: t("10月", "Oct"),
-                      Nov: t("11月", "Nov"),
-                      Dec: t("12月", "Dec"),
-                    };
-                    return monthMap[value] || value;
+          {relatedRiskFlights?.byLevel &&
+            (() => {
+              const { high, medium, low } = relatedRiskFlights.byLevel;
+              const total = high + medium + low || 1;
+              return (
+                <>
+                  {/* 风险等级堆叠条 */}
+                  <div
+                    style={{
+                      display: "flex",
+                      height: 8,
+                      borderRadius: 4,
+                      overflow: "hidden",
+                      margin: "12px 0 16px",
+                    }}
+                  >
+                    {high > 0 && (
+                      <div style={{ flex: high, background: "#ef4444" }} />
+                    )}
+                    {medium > 0 && (
+                      <div style={{ flex: medium, background: "#eab308" }} />
+                    )}
+                    {low > 0 && (
+                      <div style={{ flex: low, background: "#22c55e" }} />
+                    )}
+                  </div>
+                  {/* 三列数字 */}
+                  <div style={{ display: "flex", gap: 0 }}>
+                    {[
+                      {
+                        label: t("高风险", "High"),
+                        value: high,
+                        color: "#ef4444",
+                        pct: ((high / total) * 100).toFixed(0),
+                      },
+                      {
+                        label: t("中风险", "Medium"),
+                        value: medium,
+                        color: "#eab308",
+                        pct: ((medium / total) * 100).toFixed(0),
+                      },
+                      {
+                        label: t("低风险", "Low"),
+                        value: low,
+                        color: "#22c55e",
+                        pct: ((low / total) * 100).toFixed(0),
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        style={{
+                          flex: 1,
+                          textAlign: "center",
+                          padding: "8px 0",
+                          borderRight: "1px solid rgba(148,163,184,0.08)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 22,
+                            fontWeight: 700,
+                            color: item.color,
+                          }}
+                        >
+                          {item.value}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            color: "#94a3b8",
+                            marginTop: 2,
+                          }}
+                        >
+                          {item.label}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "#64748b",
+                            marginTop: 2,
+                          }}
+                        >
+                          {item.pct}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              );
+            })()}
+          {/* 月度趋势迷你图 */}
+          {relatedRiskFlights?.monthlyTrend &&
+            relatedRiskFlights.monthlyTrend.length > 0 && (
+              <div
+                style={{
+                  marginTop: 16,
+                  borderTop: "1px solid rgba(148,163,184,0.08)",
+                  paddingTop: 12,
+                }}
+              >
+                <div
+                  style={{ fontSize: 11, color: "#64748b", marginBottom: 8 }}
+                >
+                  {t("月度趋势", "Monthly Trend")}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-end",
+                    gap: 4,
+                    height: 48,
                   }}
-                />
-                <YAxis
-                  tick={{ fill: "#64748b", fontSize: 11 }}
-                  axisLine={false}
-                />
-                <Tooltip {...darkTooltipStyle} />
-                <Line
-                  type="monotone"
-                  dataKey="high"
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#ef4444" }}
-                  name={t("高风险", "High")}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="medium"
-                  stroke="#f97316"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#f97316" }}
-                  name={t("中风险", "Medium")}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="low"
-                  stroke="#22c55e"
-                  strokeWidth={2}
-                  dot={{ r: 3, fill: "#22c55e" }}
-                  name={t("低风险", "Low")}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="acd-flights-legend">
-            <div className="acd-flights-legend-item">
-              <span
-                className="acd-legend-dot"
-                style={{ background: "#ef4444" }}
-              />
-              {currentRelatedFlights.high} {t("高", "High")}
-            </div>
-            <div className="acd-flights-legend-item">
-              <span
-                className="acd-legend-dot"
-                style={{ background: "#f97316" }}
-              />
-              {t("中", "Medium")}
-            </div>
-            <div className="acd-flights-legend-item">
-              <span
-                className="acd-legend-dot"
-                style={{ background: "#eab308" }}
-              />
-              {currentRelatedFlights.low} {t("低", "Low")}
-            </div>
-            <div className="acd-flights-legend-item">
-              <span
-                className="acd-legend-dot"
-                style={{ background: "#22c55e" }}
-              />
-              {currentRelatedFlights.low} {t("低", "Low")}
-            </div>
-          </div>
+                >
+                  {relatedRiskFlights.monthlyTrend.map((m: any, i: number) => {
+                    const total =
+                      (m.high ?? 0) + (m.medium ?? 0) + (m.low ?? 0);
+                    const maxH = Math.max(
+                      ...relatedRiskFlights.monthlyTrend.map(
+                        (x: any) =>
+                          (x.high ?? 0) + (x.medium ?? 0) + (x.low ?? 0),
+                      ),
+                      1,
+                    );
+                    return (
+                      <div
+                        key={i}
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 2,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "80%",
+                              borderRadius: 2,
+                              overflow: "hidden",
+                              display: "flex",
+                              flexDirection: "column-reverse",
+                              height: `${(total / maxH) * 36}px`,
+                            }}
+                          >
+                            {m.low > 0 && (
+                              <div
+                                style={{
+                                  height: `${(m.low / total) * 100}%`,
+                                  background: "#22c55e",
+                                }}
+                              />
+                            )}
+                            {m.medium > 0 && (
+                              <div
+                                style={{
+                                  height: `${(m.medium / total) * 100}%`,
+                                  background: "#eab308",
+                                }}
+                              />
+                            )}
+                            {m.high > 0 && (
+                              <div
+                                style={{
+                                  height: `${(m.high / total) * 100}%`,
+                                  background: "#ef4444",
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <span style={{ fontSize: 9, color: "#64748b" }}>
+                          {m.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
         </div>
       </div>
 
-      {/* Row 2 - Repeated Abnormal Summary */}
+      {/* Row 2 - 异常汇总 */}
       <div className="acd-cards-row-2">
-        {/* Left: Summary counts */}
         <div className="acd-card">
           <div className="acd-card-title">
             {t("重复异常汇总", "REPEATED ABNORMAL SUMMARY")}
           </div>
-          <div className="acd-abnormal-counts">
-            {currentAbnormalSummary.counts.map((c, i) => (
-              <div className="acd-abnormal-count-item" key={i}>
-                <span className="acd-dot" style={{ background: c.color }} />
-                <span>
-                  {c.label === "High"
-                    ? t("高", "High")
-                    : c.label === "Medium"
-                      ? t("中", "Medium")
-                      : c.label === "Low"
-                        ? t("低", "Low")
-                        : c.label === "Critical"
-                          ? t("严重", "Critical")
-                          : c.label}
-                </span>
-                <span className="acd-abnormal-count-value">{c.count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right: Abnormal items list */}
-        <div className="acd-card">
-          <div className="acd-card-title">
-            {t("异常事项列表", "ABNORMAL ITEMS")}
-          </div>
-          <div className="acd-abnormal-list">
-            {currentAbnormalSummary.items.map((item, i) => (
-              <div className="acd-abnormal-item" key={i}>
-                <span className="acd-abnormal-item-text">
-                  {item.text ===
-                  "Repeated Hydraulic System C warnings (5 instances)"
-                    ? t(
-                        "液压系统C重复警告（5次）",
-                        "Repeated Hydraulic System C warnings (5 instances)",
-                      )
-                    : item.text ===
-                        "Frequent Engine Exhaust Temperature spikes (3 flights)"
-                      ? t(
-                          "发动机排气温度频繁飙升（3个航班）",
-                          "Frequent Engine Exhaust Temperature spikes (3 flights)",
-                        )
-                      : item.text ===
-                          "Flight control sensor deviations (2 reports)"
-                        ? t(
-                            "飞控传感器偏差（2份报告）",
-                            "Flight control sensor deviations (2 reports)",
-                          )
-                        : item.text ===
-                            "Repeated Hydraulic system C warnings stem Engine Exhaust Temperature w spikes"
-                          ? t(
-                              "液压系统C重复警告引起发动机排气温度飙升",
-                              "Repeated Hydraulic system C warnings stem Engine Exhaust Temperature w spikes",
-                            )
-                          : item.text}
-                </span>
-                <span className="acd-abnormal-item-count">{item.count}</span>
-                <span className={`acd-status-badge acd-status-${item.status}`}>
-                  {item.status === "critical"
-                    ? t("严重", "Critical")
-                    : item.status === "elevated"
-                      ? t("升高", "Elevated")
-                      : item.status === "warning"
-                        ? t("警告", "Warning")
-                        : t("已发生", "Occurred")}
+          {abnormalSummary ? (
+            <div style={{ fontSize: 13, color: "#94a3b8" }}>
+              <div style={{ marginBottom: 12 }}>
+                <span style={{ color: "#64748b", fontSize: 11 }}>
+                  {t("异常次数", "Count")}:
+                </span>{" "}
+                <span
+                  style={{ color: "#e2e8f0", fontWeight: 600, fontSize: 20 }}
+                >
+                  {abnormalSummary.count}
                 </span>
               </div>
-            ))}
-          </div>
+              <div>
+                <span style={{ color: "#64748b", fontSize: 11 }}>
+                  {t("最新异常", "Latest")}:
+                </span>{" "}
+                <span style={{ color: "#e2e8f0" }}>
+                  {abnormalSummary.latest}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: "#64748b", fontSize: 13 }}>
+              {t("暂无数据", "No data")}
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* Maintenance Info (merged from MaintenanceInfoPage) */}
-      <div className="acd-cards-row-2" style={{ marginTop: 20 }}>
+        {/* 维修信息 */}
         <div className="acd-card">
           <div className="acd-card-title">
             {t("维修信息", "MAINTENANCE INFO")}
           </div>
-          <div style={{ fontSize: 13, color: "#94a3b8" }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 12,
-                marginBottom: 16,
-              }}
-            >
-              <div>
-                <div
-                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
-                >
-                  {t("飞机ID", "Aircraft ID")}
-                </div>
-                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>N123AR</div>
-              </div>
-              <div>
-                <div
-                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
-                >
-                  {t("机型", "Model")}
-                </div>
-                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>
-                  Challenger 350
-                </div>
-              </div>
-              <div>
-                <div
-                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
-                >
-                  {t("当前位置", "Location")}
-                </div>
-                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>KORD</div>
-              </div>
-              <div>
-                <div
-                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
-                >
-                  {t("总飞行小时", "Total Hours")}
-                </div>
-                <div style={{ color: "#e2e8f0", fontWeight: 600 }}>1,388</div>
-              </div>
-              <div>
-                <div
-                  style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
-                >
-                  {t("适航状态", "Status")}
-                </div>
-                <div style={{ color: "#22c55e", fontWeight: 600 }}>
-                  {t("适航", "Serviceable")}
-                </div>
-              </div>
-            </div>
-            <div style={{ marginBottom: 12 }}>
+          {maintenance ? (
+            <div style={{ fontSize: 13, color: "#94a3b8" }}>
               <div
                 style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "#e2e8f0",
-                  marginBottom: 8,
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
                 }}
               >
-                {t("当前限制", "Current Restrictions")}
-              </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <span
-                  style={{
-                    padding: "2px 8px",
-                    background: "rgba(239,68,68,0.15)",
-                    color: "#ef4444",
-                    borderRadius: 4,
-                    fontSize: 11,
-                  }}
-                >
-                  MEL 32-01: Nose Gear Steering
-                </span>
-                <span
-                  style={{
-                    padding: "2px 8px",
-                    background: "rgba(234,179,8,0.15)",
-                    color: "#eab308",
-                    borderRadius: 4,
-                    fontSize: 11,
-                  }}
-                >
-                  DDM 21-05: Packs
-                </span>
+                <div>
+                  <div
+                    style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("上次检查", "Last Check")}
+                  </div>
+                  <div style={{ color: "#e2e8f0", fontWeight: 600 }}>
+                    {maintenance.lastCheckAt}
+                  </div>
+                </div>
+                <div>
+                  <div
+                    style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
+                  >
+                    {t("下次检查", "Next Check")}
+                  </div>
+                  <div style={{ color: "#e2e8f0", fontWeight: 600 }}>
+                    {maintenance.nextCheckAt}
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div style={{ color: "#64748b", fontSize: 13 }}>
+              {t("暂无数据", "No data")}
+            </div>
+          )}
         </div>
+      </div>
+
+      {/* Row 3 - 近期维修事件 */}
+      <div className="acd-cards-row-2" style={{ marginTop: 20 }}>
         <div className="acd-card">
           <div className="acd-card-title">
             {t("近期维修事件", "RECENT MAINTENANCE EVENTS")}
           </div>
-          <div style={{ fontSize: 13, color: "#94a3b8" }}>
-            {[
-              {
-                date: "2024-03-02",
-                type: t("非计划", "Unscheduled"),
-                desc: "Rudder Actuator Fault",
-                color: "#ef4444",
-              },
-              {
-                date: "2024-03-05",
-                type: t("计划", "Scheduled"),
-                desc: "Scheduled Check A",
-                color: "#22c55e",
-              },
-              {
-                date: "2024-03-08",
-                type: t("非计划", "Unscheduled"),
-                desc: "Hydraulic Pump Failure",
-                color: "#ef4444",
-              },
-              {
-                date: "2024-03-11",
-                type: t("计划", "Scheduled"),
-                desc: "Component Replacement",
-                color: "#22c55e",
-              },
-              {
-                date: "2024-03-14",
-                type: t("非计划", "Unscheduled"),
-                desc: "Avionics Fault",
-                color: "#f97316",
-              },
-            ].map((evt, i) => (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "6px 0",
-                  borderBottom: "1px solid rgba(148,163,184,0.08)",
-                }}
-              >
-                <span style={{ fontSize: 11, color: "#64748b", minWidth: 80 }}>
-                  {evt.date}
-                </span>
-                <span
+          {recentEvents.length > 0 ? (
+            <div style={{ fontSize: 13, color: "#94a3b8" }}>
+              {recentEvents.map((evt, i) => (
+                <div
+                  key={i}
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: evt.color,
-                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    padding: "6px 0",
+                    borderBottom: "1px solid rgba(148,163,184,0.08)",
                   }}
-                />
-                <span style={{ fontSize: 11, color: evt.color }}>
-                  {evt.type}
-                </span>
-                <span style={{ color: "#e2e8f0" }}>{evt.desc}</span>
-              </div>
-            ))}
-          </div>
+                >
+                  <span
+                    style={{ fontSize: 11, color: "#64748b", minWidth: 80 }}
+                  >
+                    {evt.date}
+                  </span>
+                  <span
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      background: "#3b82f6",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span style={{ color: "#e2e8f0" }}>{evt.title}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ color: "#64748b", fontSize: 13 }}>
+              {t("暂无数据", "No data")}
+            </div>
+          )}
         </div>
       </div>
     </div>

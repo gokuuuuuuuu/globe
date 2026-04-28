@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   LineChart,
@@ -331,60 +332,6 @@ const darkTooltipStyle = {
 
 // ===== Main Component =====
 
-// Phase-specific environment data
-const phaseEnvData = {
-  takeoff: {
-    location: "ZSPD (上海浦东)",
-    temperature: 22,
-    wind: { speed: 12, direction: "SE" },
-    visibility: 8,
-    humidity: 72,
-    risk: { score: 45, level: "Medium" as const },
-    alerts: [
-      {
-        level: "yellow" as const,
-        alert: "侧风提醒",
-        area: "RWY 16R",
-        timestamp: "2024-06-15 08:30",
-      },
-      {
-        level: "green" as const,
-        alert: "能见度良好",
-        area: "全场",
-        timestamp: "2024-06-15 08:00",
-      },
-    ],
-  },
-  landing: {
-    location: "ZBAA (北京首都)",
-    temperature: 18,
-    wind: { speed: 22, direction: "NW" },
-    visibility: 3,
-    humidity: 85,
-    risk: { score: 78, level: "High" as const },
-    alerts: [
-      {
-        level: "red" as const,
-        alert: "雷暴警告",
-        area: "进近区域",
-        timestamp: "2024-06-15 14:15",
-      },
-      {
-        level: "yellow" as const,
-        alert: "低能见度",
-        area: "RWY 01",
-        timestamp: "2024-06-15 14:00",
-      },
-      {
-        level: "yellow" as const,
-        alert: "阵风提醒",
-        area: "RWY 36R",
-        timestamp: "2024-06-15 13:45",
-      },
-    ],
-  },
-};
-
 export function EnvironmentDetailPage() {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -393,137 +340,120 @@ export function EnvironmentDetailPage() {
   const [selectedAirportCode, setSelectedAirportCode] = useState<string | null>(
     codeParam,
   );
-  const [envPhase] = useState<"takeoff" | "landing">("takeoff");
   const [envSearch, setEnvSearch] = useState("");
   const [envRiskFilter, setEnvRiskFilter] = useState<
     "all" | "red" | "yellow" | "green"
   >("all");
 
-  // ===== 机场列表 API 数据 =====
+  // ===== 机场列表 API 数据（分页 + 滚动加载） =====
   const [airportList, setAirportList] = useState<any[]>([]);
   const [listLoading, setListLoading] = useState(true);
+  const [listPage, setListPage] = useState(1);
+  const [listTotal, setListTotal] = useState(0);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const LIST_PAGE_SIZE = 30;
 
-  useEffect(() => {
-    setListLoading(true);
-    getEnvironmentAirports({ pageSize: 100 })
+  const fetchAirportList = (page: number, append = false) => {
+    const loading = page === 1 ? setListLoading : setLoadingMore;
+    loading(true);
+    getEnvironmentAirports({
+      page,
+      pageSize: LIST_PAGE_SIZE,
+      keyword: envSearch || undefined,
+      riskLevel:
+        envRiskFilter === "all"
+          ? undefined
+          : envRiskFilter === "red"
+            ? "高"
+            : envRiskFilter === "yellow"
+              ? "中"
+              : "低",
+    })
       .then((res: any) => {
-        setAirportList(res?.items ?? res ?? []);
+        const items = res?.items ?? [];
+        setAirportList((prev) => (append ? [...prev, ...items] : items));
+        setListTotal(res?.total ?? 0);
+        setListPage(page);
       })
       .catch(console.error)
-      .finally(() => setListLoading(false));
-  }, []);
+      .finally(() => loading(false));
+  };
+
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      fetchAirportList(1);
+    }, 300);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [envSearch, envRiskFilter]);
+
+  // 滚动自动加载更多
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          !loadingMore &&
+          airportList.length < listTotal
+        ) {
+          fetchAirportList(listPage + 1, true);
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadingMore, listPage, listTotal, airportList.length]);
 
   // ===== 环境详情 API 数据 =====
   const [envData, setEnvData] = useState<any>(null);
   const [envLoading, setEnvLoading] = useState(false);
 
+  // URL 带 code 参数时自动选中
   useEffect(() => {
     const code = searchParams.get("code");
-    if (!code) return;
+    if (code && code !== selectedAirportCode) {
+      setSelectedAirportCode(code);
+    }
+  }, [searchParams]);
+
+  // 选中机场时加载详情
+  useEffect(() => {
+    if (!selectedAirportCode) {
+      setEnvData(null);
+      return;
+    }
     setEnvLoading(true);
-    getEnvironmentAirportDetail(code)
+    getEnvironmentAirportDetail(selectedAirportCode)
       .then((res: any) => setEnvData(res))
       .catch(console.error)
       .finally(() => setEnvLoading(false));
-  }, [searchParams]);
+  }, [selectedAirportCode]);
 
-  // API 数据，不再 fallback 到 mock
-  const currentOverallRisk = envData?.overallRisk ?? null;
+  // API 数据映射
+  const currentOverallRisk = envData?.riskSummary
+    ? {
+        score: envData.riskSummary.score,
+        riskLevel: envData.riskSummary.riskLevel,
+        airQuality: envData.riskSummary.airQuality,
+        precipitation: envData.riskSummary.precipitation,
+        extremeEvent: envData.riskSummary.extremeEvent,
+      }
+    : null;
   const currentKeyFactors = envData?.keyFactors ?? null;
-  const currentTempTrendData =
-    envData?.tempTrendData ?? envData?.temperatureTrend ?? [];
+  const currentWeatherSummary = envData?.weatherSummary ?? null;
+  const currentAlerts = envData?.alerts ?? [];
+  const currentTempTrendData = envData?.tempTrendData ?? [];
   const currentHourlyForecast = envData?.hourlyForecast ?? [];
   const currentTempSparkline = envData?.tempSparkline ?? [];
   const currentVisSparkline = envData?.visSparkline ?? [];
   const currentHumSparkline = envData?.humSparkline ?? [];
-
-  // ===== 从 CSV 加载降落 METAR 报文 =====
-  interface MetarRecord {
-    flightNumber: string;
-    landingTime: string;
-    airportCode3: string;
-    airportCode4: string;
-    airportName: string;
-    metar: string;
-    runway: string;
-  }
-
-  const [metarRecords, setMetarRecords] = useState<MetarRecord[]>([]);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/data.csv");
-        const text = await res.text();
-        const lines = text.split("\n");
-        if (lines.length < 2) return;
-
-        const headers = lines[0].split(",");
-        const flightIdx = headers.findIndex((h) => h.includes("航班号"));
-        const landTimeIdx = headers.findIndex((h) => h.includes("降落时间"));
-        const code3Idx = headers.findIndex((h) => h.includes("降落机场三字码"));
-        const code4Idx = headers.findIndex((h) => h.includes("降落机场四字码"));
-        const metarIdx = headers.findIndex((h) => h.includes("降落metar报文"));
-        const runwayIdx = headers.findIndex((h) => h.includes("降落跑道"));
-        const nameIdx = headers.findIndex((h) => h.includes("降落机场名称"));
-
-        if (metarIdx === -1 || code3Idx === -1) return;
-
-        const records: MetarRecord[] = [];
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-          // CSV 解析（处理引号内逗号）
-          const row: string[] = [];
-          let cur = "";
-          let inQ = false;
-          for (let j = 0; j < line.length; j++) {
-            const c = line[j];
-            if (c === '"') {
-              inQ = !inQ;
-            } else if (c === "," && !inQ) {
-              row.push(cur);
-              cur = "";
-            } else {
-              cur += c;
-            }
-          }
-          row.push(cur);
-
-          const metar = row[metarIdx]?.trim();
-          const c3 = row[code3Idx]?.trim();
-          if (!metar || !c3 || metar === "nan") continue;
-
-          records.push({
-            flightNumber: row[flightIdx]?.trim() || "",
-            landingTime: row[landTimeIdx]?.trim() || "",
-            airportCode3: c3,
-            airportCode4: row[code4Idx]?.trim() || "",
-            airportName: nameIdx >= 0 ? row[nameIdx]?.trim() || "" : "",
-            metar,
-            runway: row[runwayIdx]?.trim() || "",
-          });
-        }
-        setMetarRecords(records);
-      } catch (e) {
-        console.error("加载METAR报文失败:", e);
-      }
-    };
-    load();
-  }, []);
-
-  // 根据选中机场过滤报文
-  const airportMetars = useMemo(() => {
-    if (!selectedAirportCode || metarRecords.length === 0) return [];
-    const code = selectedAirportCode.toUpperCase();
-    return metarRecords
-      .filter(
-        (r) =>
-          r.airportCode3.toUpperCase() === code ||
-          r.airportCode4.toUpperCase() === code,
-      )
-      .slice(0, 10); // 最多显示10条
-  }, [selectedAirportCode, metarRecords]);
 
   const pillClass = (level: string) =>
     level === "red"
@@ -588,7 +518,7 @@ export function EnvironmentDetailPage() {
               {t("机场环境总览", "Airport Environment Overview")}
             </h2>
             <span className="env-airport-list-count">
-              {airportList.length} {t("个机场", "airports")}
+              {listTotal} {t("个机场", "airports")}
             </span>
           </div>
           {/* Filters */}
@@ -646,107 +576,103 @@ export function EnvironmentDetailPage() {
                 {t("暂无机场数据", "No airport data")}
               </div>
             ) : (
-              airportList
-                .filter((a) => {
-                  const q = envSearch.toLowerCase();
-                  const nameZh = (a.name ?? a.nameZh ?? "").toLowerCase();
-                  const nameEn = (a.nameEn ?? a.name ?? "").toLowerCase();
-                  const code = (a.code ?? a.icaoCode ?? "").toLowerCase();
-                  const code4 = (a.icaoCode ?? a.code4 ?? "").toLowerCase();
-                  if (
-                    q &&
-                    !nameZh.includes(q) &&
-                    !nameEn.includes(q) &&
-                    !code.includes(q) &&
-                    !code4.includes(q)
-                  )
-                    return false;
-                  const rl = a.riskLevel ?? "";
-                  if (envRiskFilter === "red") return rl === "高";
-                  if (envRiskFilter === "yellow") return rl === "中";
-                  if (envRiskFilter === "green") return rl === "低";
-                  return true;
-                })
-                .sort(
-                  (a, b) =>
-                    (b.riskScore ?? b.environmentRisk ?? 0) -
-                    (a.riskScore ?? a.environmentRisk ?? 0),
-                )
-                .map((airport) => {
-                  const risk =
-                    airport.riskScore ?? airport.environmentRisk ?? 0;
-                  const riskLevelStr = airport.riskLevel ?? "";
-                  const riskZone = riskLevelStr
-                    ? riskLevelStr === "高"
-                      ? "red"
-                      : riskLevelStr === "中"
-                        ? "yellow"
-                        : "green"
-                    : risk >= 70
-                      ? "red"
-                      : risk >= 40
-                        ? "yellow"
-                        : "green";
-                  const riskColor =
-                    riskZone === "red"
-                      ? "#ef4444"
-                      : riskZone === "yellow"
-                        ? "#eab308"
-                        : "#22c55e";
-                  return (
-                    <div
-                      key={airport.id ?? airport.code}
-                      className="env-airport-card"
-                      onClick={() =>
-                        setSelectedAirportCode(airport.code ?? airport.icaoCode)
-                      }
-                    >
-                      <div className="env-airport-card-top">
-                        <div className="env-airport-card-code">
-                          {airport.code}
-                        </div>
-                        <span className={pillClass(riskZone)}>
-                          {riskZone === "red"
-                            ? t("高风险", "High")
-                            : riskZone === "yellow"
-                              ? t("中风险", "Medium")
-                              : t("低风险", "Low")}
-                        </span>
+              airportList.map((airport) => {
+                const risk = airport.riskScore ?? 0;
+                const riskLevelStr = airport.riskLevel ?? "";
+                const riskZone = riskLevelStr
+                  ? riskLevelStr === "高"
+                    ? "red"
+                    : riskLevelStr === "中"
+                      ? "yellow"
+                      : "green"
+                  : risk >= 70
+                    ? "red"
+                    : risk >= 40
+                      ? "yellow"
+                      : "green";
+                const riskColor =
+                  riskZone === "red"
+                    ? "#ef4444"
+                    : riskZone === "yellow"
+                      ? "#eab308"
+                      : "#22c55e";
+                return (
+                  <div
+                    key={airport.id ?? airport.code}
+                    className="env-airport-card"
+                    onClick={() =>
+                      setSelectedAirportCode(airport.code ?? airport.icaoCode)
+                    }
+                  >
+                    <div className="env-airport-card-top">
+                      <div className="env-airport-card-code">
+                        {airport.code}
                       </div>
-                      <div className="env-airport-card-name">
-                        {airport.name ?? airport.nameZh}
-                      </div>
-                      <div className="env-airport-card-meta">
-                        <span>{airport.city ?? airport.country ?? ""}</span>
-                        <span>
-                          {airport.totalFlightCount ?? airport.flightCount ?? 0}{" "}
-                          {t("航班", "flights")}
-                        </span>
-                        <span>
-                          {airport.personCount ?? airport.operatorCount ?? 0}{" "}
-                          {t("人员", "staff")}
-                        </span>
-                      </div>
-                      <div className="env-airport-card-risk">
-                        <div className="env-airport-card-risk-bar">
-                          <div
-                            className="env-airport-card-risk-fill"
-                            style={{
-                              width: `${risk * 10}%`,
-                              background: riskColor,
-                            }}
-                          />
-                        </div>
-                        <span
-                          className="env-airport-card-risk-score"
-                          style={{ color: riskColor }}
-                        >
-                          {risk.toFixed(1)}
-                        </span>
-                      </div>
+                      <span className={pillClass(riskZone)}>
+                        {riskZone === "red"
+                          ? t("高风险", "High")
+                          : riskZone === "yellow"
+                            ? t("中风险", "Medium")
+                            : t("低风险", "Low")}
+                      </span>
                     </div>
-                  );
-                })
+                    <div className="env-airport-card-name">
+                      {airport.name ?? airport.nameZh}
+                    </div>
+                    <div className="env-airport-card-meta">
+                      <span>{airport.city ?? airport.country ?? ""}</span>
+                      {airport.keyMetrics?.windSpeedKt != null && (
+                        <span>
+                          {airport.keyMetrics.windDirection}{" "}
+                          {airport.keyMetrics.windSpeedKt}kt
+                        </span>
+                      )}
+                      {airport.keyMetrics?.visibilityKm != null && (
+                        <span>
+                          {t("能见度", "Vis")} {airport.keyMetrics.visibilityKm}
+                          km
+                        </span>
+                      )}
+                      {airport.topRisk && (
+                        <span style={{ color: "#eab308" }}>
+                          {airport.topRisk}
+                        </span>
+                      )}
+                    </div>
+                    <div className="env-airport-card-risk">
+                      <div className="env-airport-card-risk-bar">
+                        <div
+                          className="env-airport-card-risk-fill"
+                          style={{
+                            width: `${risk}%`,
+                            background: riskColor,
+                          }}
+                        />
+                      </div>
+                      <span
+                        className="env-airport-card-risk-score"
+                        style={{ color: riskColor }}
+                      >
+                        {risk}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+            {!listLoading && airportList.length < listTotal && (
+              <div
+                ref={loadMoreRef}
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: "16px 0",
+                  color: "#94a3b8",
+                  fontSize: 12,
+                }}
+              >
+                {loadingMore ? t("加载中...", "Loading...") : ""}
+              </div>
             )}
           </div>
         </div>
@@ -789,255 +715,206 @@ export function EnvironmentDetailPage() {
           )}
 
           {/* Phase Environment Card */}
-          {(() => {
-            const pd = phaseEnvData[envPhase];
-            const riskColor =
-              pd.risk.level === "High"
-                ? "#ef4444"
-                : pd.risk.level === "Medium"
-                  ? "#eab308"
-                  : "#22c55e";
-            return (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  margin: "0 24px",
-                  gap: 16,
-                  marginBottom: 16,
-                }}
-              >
+          {envData &&
+            (() => {
+              const airport = envData.airport;
+              const ws = envData.weatherSummary;
+              return (
                 <div
                   style={{
-                    background: "rgba(15,23,42,0.6)",
-                    borderRadius: 10,
-                    border: "1px solid rgba(148,163,184,0.12)",
-                    padding: 16,
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    margin: "0 24px",
+                    gap: 16,
+                    marginBottom: 16,
                   }}
                 >
                   <div
                     style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "#f8fafc",
-                      marginBottom: 12,
+                      background: "rgba(15,23,42,0.6)",
+                      borderRadius: 10,
+                      border: "1px solid rgba(148,163,184,0.12)",
+                      padding: 16,
                     }}
                   >
-                    {t("机场环境", "Airport Environment")}
-                    <span
+                    <div
                       style={{
-                        fontSize: 12,
-                        fontWeight: 400,
-                        color: "#94a3b8",
-                        marginLeft: 8,
-                      }}
-                    >
-                      {pd.location}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                      gap: 12,
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "#64748b",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {t("温度", "Temp")}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: "#f8fafc",
-                        }}
-                      >
-                        {pd.temperature}°C
-                      </div>
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "#64748b",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {t("风速/风向", "Wind")}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: "#f8fafc",
-                        }}
-                      >
-                        {pd.wind.speed}kt{" "}
-                        <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                          {pd.wind.direction}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "#64748b",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {t("能见度", "Visibility")}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: pd.visibility < 5 ? "#ef4444" : "#f8fafc",
-                        }}
-                      >
-                        {pd.visibility}km
-                      </div>
-                    </div>
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 10,
-                          color: "#64748b",
-                          marginBottom: 4,
-                        }}
-                      >
-                        {t("湿度", "Humidity")}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 18,
-                          fontWeight: 700,
-                          color: "#f8fafc",
-                        }}
-                      >
-                        {pd.humidity}%
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style={{
-                      marginTop: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <span style={{ fontSize: 11, color: "#64748b" }}>
-                      {t("环境风险评分", "Env Risk Score")}:
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: 700,
-                        color: riskColor,
+                        color: "#f8fafc",
+                        marginBottom: 12,
                       }}
                     >
-                      {pd.risk.score}
-                    </span>
-                    <span
-                      style={{
-                        fontSize: 11,
-                        padding: "1px 8px",
-                        borderRadius: 4,
-                        background: `${riskColor}20`,
-                        color: riskColor,
-                      }}
-                    >
-                      {pd.risk.level === "High"
-                        ? t("高", "High")
-                        : pd.risk.level === "Medium"
-                          ? t("中", "Medium")
-                          : t("低", "Low")}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    background: "rgba(15,23,42,0.6)",
-                    borderRadius: 10,
-                    border: "1px solid rgba(148,163,184,0.12)",
-                    padding: 16,
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 700,
-                      color: "#f8fafc",
-                      marginBottom: 12,
-                    }}
-                  >
-                    {t("气象告警", "Weather Alerts")}
-                  </div>
-                  <div
-                    style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                  >
-                    {pd.alerts.map((a, i) => (
-                      <div
-                        key={i}
+                      {t("机场环境", "Airport Environment")}
+                      <span
                         style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 10,
-                          padding: "6px 10px",
-                          borderRadius: 6,
-                          background:
-                            a.level === "red"
-                              ? "rgba(239,68,68,0.08)"
-                              : a.level === "yellow"
-                                ? "rgba(234,179,8,0.08)"
-                                : "rgba(34,197,94,0.08)",
+                          fontSize: 12,
+                          fontWeight: 400,
+                          color: "#94a3b8",
+                          marginLeft: 8,
                         }}
                       >
-                        <span
+                        {airport?.code} ({airport?.name})
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr 1fr",
+                        gap: 12,
+                      }}
+                    >
+                      <div>
+                        <div
                           style={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: "50%",
-                            flexShrink: 0,
-                            background:
-                              a.level === "red"
-                                ? "#ef4444"
-                                : a.level === "yellow"
-                                  ? "#eab308"
-                                  : "#22c55e",
-                          }}
-                        />
-                        <span
-                          style={{
-                            fontSize: 12,
-                            color: "#e2e8f0",
-                            fontWeight: 600,
-                            flex: 1,
+                            fontSize: 10,
+                            color: "#64748b",
+                            marginBottom: 4,
                           }}
                         >
-                          {a.alert}
-                        </span>
-                        <span style={{ fontSize: 11, color: "#94a3b8" }}>
-                          {a.area}
-                        </span>
-                        <span style={{ fontSize: 10, color: "#64748b" }}>
-                          {a.timestamp}
-                        </span>
+                          {t("天气", "Weather")}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            color: "#f8fafc",
+                          }}
+                        >
+                          {ws?.condition ?? "--"}
+                        </div>
                       </div>
-                    ))}
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "#64748b",
+                            marginBottom: 4,
+                          }}
+                        >
+                          {t("温度", "Temp")}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            color: "#f8fafc",
+                          }}
+                        >
+                          {ws?.temperatureC ?? "--"}°C
+                        </div>
+                      </div>
+                      <div>
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: "#64748b",
+                            marginBottom: 4,
+                          }}
+                        >
+                          {t("能见度", "Visibility")}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 700,
+                            color:
+                              (ws?.visibilityKm ?? 99) < 5
+                                ? "#ef4444"
+                                : "#f8fafc",
+                          }}
+                        >
+                          {ws?.visibilityKm ?? "--"}km
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      background: "rgba(15,23,42,0.6)",
+                      borderRadius: 10,
+                      border: "1px solid rgba(148,163,184,0.12)",
+                      padding: 16,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#f8fafc",
+                        marginBottom: 12,
+                      }}
+                    >
+                      {t("气象告警", "Weather Alerts")}
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}
+                    >
+                      {currentAlerts.length === 0 ? (
+                        <div style={{ fontSize: 12, color: "#64748b" }}>
+                          {t("暂无告警", "No alerts")}
+                        </div>
+                      ) : (
+                        currentAlerts.map((a: any, i: number) => {
+                          const alertColor =
+                            a.level === "高"
+                              ? "#ef4444"
+                              : a.level === "中"
+                                ? "#eab308"
+                                : "#22c55e";
+                          const alertBg =
+                            a.level === "高"
+                              ? "rgba(239,68,68,0.08)"
+                              : a.level === "中"
+                                ? "rgba(234,179,8,0.08)"
+                                : "rgba(34,197,94,0.08)";
+                          return (
+                            <div
+                              key={i}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "6px 10px",
+                                borderRadius: 6,
+                                background: alertBg,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  borderRadius: "50%",
+                                  flexShrink: 0,
+                                  background: alertColor,
+                                }}
+                              />
+                              <span
+                                style={{
+                                  fontSize: 12,
+                                  color: "#e2e8f0",
+                                  fontWeight: 600,
+                                  flex: 1,
+                                }}
+                              >
+                                {a.title}
+                              </span>
+                              <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                                {a.level}
+                              </span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           <div className="env-body">
             {envLoading ? (
@@ -1093,50 +970,72 @@ export function EnvironmentDetailPage() {
                     <div className="env-gauge-layout">
                       <div className="env-gauge-wrapper">
                         <GaugeSVG score={currentOverallRisk?.score ?? 0} />
-                        <span className="env-risk-badge env-risk-badge-yellow">
-                          ▲ {t("中等风险", "MEDIUM RISK")}
+                        <span
+                          className={`env-risk-badge ${
+                            currentOverallRisk?.riskLevel === "高"
+                              ? "env-risk-badge-red"
+                              : currentOverallRisk?.riskLevel === "中"
+                                ? "env-risk-badge-yellow"
+                                : "env-risk-badge-green"
+                          }`}
+                        >
+                          ▲{" "}
+                          {currentOverallRisk?.riskLevel === "高"
+                            ? t("高风险", "HIGH RISK")
+                            : currentOverallRisk?.riskLevel === "中"
+                              ? t("中等风险", "MEDIUM RISK")
+                              : t("低风险", "LOW RISK")}
                         </span>
                       </div>
 
                       <div className="env-factor-list">
-                        {(currentOverallRisk?.factors ?? []).map(
-                          (f: any, i: number) => (
-                            <div className="env-factor-item" key={i}>
-                              <span
-                                className="env-factor-dot"
-                                style={{ background: f.color }}
-                              />
-                              <span className="env-factor-name">
-                                {t(
-                                  f.name === "Air Quality"
-                                    ? "空气质量"
-                                    : f.name === "Precipitation"
-                                      ? "降水"
-                                      : "极端事件",
-                                  f.name,
-                                )}
-                                :
-                              </span>
-                              <span
-                                className="env-factor-value"
-                                style={{ color: f.color }}
-                              >
-                                {t(
-                                  f.status === "Moderate"
-                                    ? "中等"
-                                    : f.status === "Low"
-                                      ? "低"
-                                      : "无",
-                                  f.status,
-                                )}{" "}
-                                (
-                                {f.status === "Moderate"
-                                  ? t("黄色", "Yellow")
-                                  : t("绿色", "Green")}
-                                )
-                              </span>
-                            </div>
-                          ),
+                        {currentOverallRisk?.extremeEvent && (
+                          <div className="env-factor-item">
+                            <span
+                              className="env-factor-dot"
+                              style={{ background: "#eab308" }}
+                            />
+                            <span className="env-factor-name">
+                              {t("首要风险", "Top Risk")}:
+                            </span>
+                            <span
+                              className="env-factor-value"
+                              style={{ color: "#eab308" }}
+                            >
+                              {currentOverallRisk.extremeEvent}
+                            </span>
+                          </div>
+                        )}
+                        {currentOverallRisk?.riskLevel && (
+                          <div className="env-factor-item">
+                            <span
+                              className="env-factor-dot"
+                              style={{
+                                background:
+                                  currentOverallRisk.riskLevel === "高"
+                                    ? "#ef4444"
+                                    : currentOverallRisk.riskLevel === "中"
+                                      ? "#eab308"
+                                      : "#22c55e",
+                              }}
+                            />
+                            <span className="env-factor-name">
+                              {t("风险等级", "Risk Level")}:
+                            </span>
+                            <span
+                              className="env-factor-value"
+                              style={{
+                                color:
+                                  currentOverallRisk.riskLevel === "高"
+                                    ? "#ef4444"
+                                    : currentOverallRisk.riskLevel === "中"
+                                      ? "#eab308"
+                                      : "#22c55e",
+                              }}
+                            >
+                              {currentOverallRisk.riskLevel}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -1176,7 +1075,7 @@ export function EnvironmentDetailPage() {
                               {t("温度", "Temperature")}
                             </div>
                             <div className="env-kf-value">
-                              {currentKeyFactors?.temperature ?? "--"}°C
+                              {currentKeyFactors?.temperatureC ?? "--"}°C
                             </div>
                           </div>
                         </div>
@@ -1192,13 +1091,10 @@ export function EnvironmentDetailPage() {
                           <div className="env-kf-icon env-kf-icon-wind">W</div>
                           <div>
                             <div className="env-kf-label">
-                              {t("风速", "Wind")}
+                              {t("天气", "Weather")}
                             </div>
                             <div className="env-kf-value">
-                              {currentKeyFactors?.wind?.speed ?? "--"} km/h
-                              <span className="env-kf-sub">
-                                , {currentKeyFactors?.wind?.direction ?? "--"}
-                              </span>
+                              {currentWeatherSummary?.condition ?? "--"}
                             </div>
                           </div>
                         </div>
@@ -1229,7 +1125,7 @@ export function EnvironmentDetailPage() {
                               {t("能见度", "Visibility")}
                             </div>
                             <div className="env-kf-value">
-                              {currentKeyFactors?.visibility ?? "--"} km
+                              {currentKeyFactors?.visibilityKm ?? "--"} km
                             </div>
                           </div>
                         </div>
@@ -1244,9 +1140,7 @@ export function EnvironmentDetailPage() {
                             <div className="env-kf-label">
                               {t("湿度", "Humidity")}
                             </div>
-                            <div className="env-kf-value">
-                              {currentKeyFactors?.humidity ?? "--"}%
-                            </div>
+                            <div className="env-kf-value">--</div>
                           </div>
                         </div>
                         <Sparkline data={currentHumSparkline} color="#22c55e" />
@@ -1271,14 +1165,14 @@ export function EnvironmentDetailPage() {
                         <div className="env-weather-title-row">
                           <span className="env-weather-icon">⛅</span>
                           <span className="env-weather-title">
-                            {t("多云", "Partly Cloudy")}
+                            {currentWeatherSummary?.condition ?? "--"}
                           </span>
                         </div>
                         <div className="env-weather-info">
-                          {t(
-                            "天气: 多云 | 降水概率: 8%",
-                            "Time: Partly cloudy | Precipitation: 8%",
-                          )}
+                          {t("天气", "Weather")}:{" "}
+                          {currentWeatherSummary?.condition ?? "--"} |{" "}
+                          {t("温度", "Temp")}:{" "}
+                          {currentKeyFactors?.temperatureC ?? "--"}°C
                         </div>
 
                         <div className="env-weather-stats">
@@ -1286,36 +1180,16 @@ export function EnvironmentDetailPage() {
                             <span className="env-weather-stat-label">
                               {t("当前温度", "Current conditions")}
                             </span>
-                            <span className="env-weather-stat-value">18°C</span>
-                          </div>
-                          <div className="env-weather-stat">
-                            <span className="env-weather-stat-label">
-                              {t("降水趋势", "Precipitation trend")}
+                            <span className="env-weather-stat-value">
+                              {currentKeyFactors?.temperatureC ?? "--"}°C
                             </span>
-                            <span className="env-weather-stat-value">5</span>
                           </div>
                           <div className="env-weather-stat">
                             <span className="env-weather-stat-label">
                               {t("能见度", "Visibility")}
                             </span>
                             <span className="env-weather-stat-value">
-                              12 km
-                            </span>
-                          </div>
-                          <div className="env-weather-stat">
-                            <span className="env-weather-stat-label">
-                              {t("风速", "Wind")}
-                            </span>
-                            <span className="env-weather-stat-value">
-                              15 km/h, W
-                            </span>
-                          </div>
-                          <div className="env-weather-stat">
-                            <span className="env-weather-stat-label">
-                              {t("极端事件", "Extreme Events")}
-                            </span>
-                            <span className="env-weather-stat-value">
-                              {t("无", "None")}
+                              {currentKeyFactors?.visibilityKm ?? "--"} km
                             </span>
                           </div>
                         </div>
@@ -1386,7 +1260,7 @@ export function EnvironmentDetailPage() {
             )}
           </div>
 
-          {/* Messages & Notices (merged from MessageDetailPage & NoticeDetailPage) */}
+          {/* METAR/TAF & Notices */}
           <div
             style={{
               display: "grid",
@@ -1395,200 +1269,7 @@ export function EnvironmentDetailPage() {
               marginTop: 20,
             }}
           >
-            {/* METAR Messages */}
-            <div
-              style={{
-                background: "rgba(15,23,42,0.6)",
-                borderRadius: 10,
-                border: "1px solid rgba(148,163,184,0.12)",
-                padding: 20,
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "#f8fafc",
-                  marginBottom: 12,
-                }}
-              >
-                {t("降落METAR报文", "Landing METAR Reports")}
-                {airportMetars.length > 0 && (
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 400,
-                      color: "#64748b",
-                      marginLeft: 8,
-                    }}
-                  >
-                    {t(
-                      `共 ${airportMetars.length} 条`,
-                      `${airportMetars.length} records`,
-                    )}
-                  </span>
-                )}
-              </h3>
-              {airportMetars.length === 0 ? (
-                <div
-                  style={{
-                    color: "#64748b",
-                    fontSize: 12,
-                    padding: "20px 0",
-                    textAlign: "center",
-                  }}
-                >
-                  {t(
-                    "暂无该机场的METAR报文数据",
-                    "No METAR data for this airport",
-                  )}
-                </div>
-              ) : (
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 10,
-                    maxHeight: 400,
-                    overflowY: "auto",
-                  }}
-                >
-                  {airportMetars.map((rec, idx) => (
-                    <div
-                      key={idx}
-                      style={{
-                        background: "rgba(0,0,0,0.25)",
-                        borderRadius: 8,
-                        padding: 12,
-                        border: "1px solid rgba(148,163,184,0.08)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          marginBottom: 8,
-                          fontSize: 11,
-                        }}
-                      >
-                        <span style={{ color: "#3b82f6", fontWeight: 600 }}>
-                          {rec.flightNumber}
-                        </span>
-                        <span style={{ color: "#64748b" }}>|</span>
-                        <span style={{ color: "#94a3b8" }}>
-                          {rec.landingTime}
-                        </span>
-                        {rec.runway && (
-                          <>
-                            <span style={{ color: "#64748b" }}>|</span>
-                            <span style={{ color: "#94a3b8" }}>
-                              {t("跑道", "RWY")} {rec.runway}
-                            </span>
-                          </>
-                        )}
-                        <span
-                          style={{
-                            marginLeft: "auto",
-                            color: "#475569",
-                            fontSize: 10,
-                          }}
-                        >
-                          {rec.airportCode4 || rec.airportCode3}
-                        </span>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "#cbd5e1",
-                          lineHeight: 1.7,
-                          whiteSpace: "pre-wrap",
-                        }}
-                      >
-                        {rec.metar}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Notices */}
-            <div
-              style={{
-                background: "rgba(15,23,42,0.6)",
-                borderRadius: 10,
-                border: "1px solid rgba(148,163,184,0.12)",
-                padding: 20,
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: "#f8fafc",
-                  marginBottom: 12,
-                }}
-              >
-                {t("通告信息", "Notice Information")}
-              </h3>
-              <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 8 }}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("通告", "Notice")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>
-                      {t("ZBAA雷暴警告", "ZBAA Thunderstorm Warning")}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("生效时间", "Effective")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>
-                      2024-06-15 14:00 (CST)
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("到期时间", "Expiration")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>
-                      2024-06-15 18:00 (CST)
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ color: "#64748b" }}>
-                      {t("来源", "Source")}:
-                    </span>{" "}
-                    <span style={{ color: "#e2e8f0" }}>
-                      Aviation Weather Center
-                    </span>
-                  </div>
-                </div>
-                <div style={{ marginTop: 8 }}>
-                  <div
-                    style={{ fontSize: 11, color: "#64748b", marginBottom: 4 }}
-                  >
-                    {t("影响范围", "Impact Area")}
-                  </div>
-                  <div style={{ color: "#e2e8f0", fontSize: 12 }}>
-                    {t(
-                      "影响机场：ZBAA, ZBAD, ZBTJ · 半径约100km · 雷暴、冰雹",
-                      "Affected: ZBAA, ZBAD, ZBTJ · Radius ~100km · Thunderstorm, Hail",
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {/* METAR / TAF from API */}
           </div>
         </>
       )}

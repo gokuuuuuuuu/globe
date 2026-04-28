@@ -1,4 +1,4 @@
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -8,7 +8,11 @@ import {
   getFlightPersonFleetComparison,
   getFlightPersonFlights,
   getFlightPersonTraining,
-  type RiskRange,
+  type FlightPersonDetail,
+  type FlightPersonOverview,
+  type FlightPersonRiskProfile,
+  type FlightPersonFleetComparison,
+  type FlightPersonTraining,
 } from "../api/flightPerson";
 import {
   LineChart,
@@ -261,23 +265,23 @@ export function PersonnelDetailPage() {
   const [activeNav, setActiveNav] = useState(
     searchParams.get("tab") || "risk-profile",
   );
-  const [person, setPerson] = useState<any>(null);
+  const [person, setPerson] = useState<FlightPersonDetail | null>(null);
   const [loading, setLoading] = useState(true);
 
   // 四个 Tab 的数据 + 头部摘要
-  const [overview, setOverview] = useState<any>(null);
-  const [riskProfile, setRiskProfile] = useState<any>(null);
-  const [fleetComparison, setFleetComparison] = useState<any>(null);
-  const [historicalFlights, setHistoricalFlights] = useState<any>(null);
-  const [trainingData, setTrainingData] = useState<any>(null);
-  const [riskRange, setRiskRange] = useState<RiskRange>("6m");
+  const [overview, setOverview] = useState<FlightPersonOverview | null>(null);
+  const [riskProfile, setRiskProfile] =
+    useState<FlightPersonRiskProfile | null>(null);
+  const [fleetComparison, setFleetComparison] =
+    useState<FlightPersonFleetComparison | null>(null);
+  const [historicalFlights, setHistoricalFlights] = useState<{
+    items: Record<string, unknown>[];
+    total: number;
+  } | null>(null);
+  const [trainingData, setTrainingData] = useState<FlightPersonTraining | null>(
+    null,
+  );
 
-  // Tab 3 历史航班筛选
-  const [flightsRiskLevel, setFlightsRiskLevel] = useState<
-    "" | "高" | "中" | "低"
-  >("");
-  const [flightsStartDate, setFlightsStartDate] = useState("");
-  const [flightsEndDate, setFlightsEndDate] = useState("");
 
   // 各 Tab 的加载状态（数据未到达前显示 loading）
   const [riskProfileLoading, setRiskProfileLoading] = useState(false);
@@ -311,7 +315,7 @@ export function PersonnelDetailPage() {
     let cancelled = false;
     setRiskProfile(null);
     setRiskProfileLoading(true);
-    getFlightPersonRiskProfile(empNo, { range: riskRange })
+    getFlightPersonRiskProfile(empNo)
       .then((res) => {
         if (!cancelled) setRiskProfile(res);
       })
@@ -322,7 +326,7 @@ export function PersonnelDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [empNo, activeNav, riskRange]);
+  }, [empNo, activeNav]);
 
   // Tab 2 个人与机队对比
   const [fleetError, setFleetError] = useState(false);
@@ -332,7 +336,7 @@ export function PersonnelDetailPage() {
     setFleetComparison(null);
     setFleetError(false);
     setFleetComparisonLoading(true);
-    getFlightPersonFleetComparison(empNo, { range: riskRange })
+    getFlightPersonFleetComparison(empNo)
       .then((res) => {
         if (!cancelled) setFleetComparison(res);
       })
@@ -346,7 +350,7 @@ export function PersonnelDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [empNo, activeNav, riskRange]);
+  }, [empNo, activeNav]);
 
   // Tab 3 历史航班
   useEffect(() => {
@@ -354,10 +358,10 @@ export function PersonnelDetailPage() {
     let cancelled = false;
     setHistoricalFlights(null);
     setHistoricalFlightsLoading(true);
-    const params: any = { page: 1, pageSize: 20 };
-    if (flightsRiskLevel) params.riskLevel = flightsRiskLevel;
-    if (flightsStartDate) params.startDate = flightsStartDate;
-    if (flightsEndDate) params.endDate = flightsEndDate;
+    const params: { page: number; pageSize: number; riskLevel?: string } = {
+      page: 1,
+      pageSize: 20,
+    };
     getFlightPersonFlights(empNo, params)
       .then((res) => {
         if (!cancelled) setHistoricalFlights(res);
@@ -369,7 +373,7 @@ export function PersonnelDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [empNo, activeNav, flightsRiskLevel, flightsStartDate, flightsEndDate]);
+  }, [empNo, activeNav]);
 
   // Tab 4 训练数据
   useEffect(() => {
@@ -391,39 +395,32 @@ export function PersonnelDetailPage() {
   }, [empNo, activeNav]);
 
   // 头部摘要：合并 detail + overview 的字段
-  const personMerged = {
+  const personMerged: Record<string, any> = {
     ...(person || {}),
     ...(overview || {}),
-    flightUnit: person?.flightUnit ?? overview?.unit,
-    team: person?.team,
-    riskScore: overview?.humanFactorScore ?? person?.riskScore,
-    highRiskFlightCount:
-      overview?.highRiskFlightCount90d ?? person?.highRiskFlightCount,
   };
 
-  // Tab 2 折线图：fleetComparison.trend.series → [{label, individual, fleet}]
+  // Tab 2 折线图：fleetComparison.trend.series
   const fleetTrendData =
-    fleetComparison?.trend?.series?.map((s: any) => ({
+    fleetComparison?.trend?.series?.map((s) => ({
       label: s.label,
       individual: s.self,
       fleet: s.fleetAvg,
     })) ?? null;
 
-  // Tab 2 雷达图：fleetComparison.radar
-  const fleetRadarData = fleetComparison?.radar
-    ? fleetComparison.radar.axes.map((axis: string, i: number) => ({
-        indicator: axis,
-        individual: fleetComparison.radar.self?.[i] ?? 0,
-        fleet: fleetComparison.radar.fleetAvg?.[i] ?? 0,
-      }))
-    : null;
+  // Tab 2 雷达图：fleetComparison.radar { axes[], self[], fleetAvg[] }
+  const fleetRadarData =
+    fleetComparison?.radar?.axes?.map((axis: string, i: number) => ({
+      indicator: axis,
+      individual: fleetComparison.radar.self[i] ?? 0,
+      fleet: fleetComparison.radar.fleetAvg[i] ?? 0,
+    })) ?? null;
 
   // Tab 3 历史航班
-  const flightItems: any[] = historicalFlights?.items ?? [];
+  const flightItems = historicalFlights?.items ?? [];
 
   // Tab 4 九维能力评估
-  const competencyItems: any[] = trainingData?.competencies ?? [];
-  const trainingRecommendations: any[] = trainingData?.recommendations ?? [];
+  const competencyItems = trainingData?.competencies ?? [];
 
   if (loading) {
     return (
@@ -539,8 +536,7 @@ export function PersonnelDetailPage() {
                     display: "inline-block",
                   }}
                 />
-                {overview?.riskGradeLabel ||
-                  riskLevelLabel(personMerged.riskLevel, t)}
+                {riskLevelLabel(personMerged.riskLevel, t)}
               </span>
             </div>
           </div>
@@ -549,18 +545,13 @@ export function PersonnelDetailPage() {
             <div className="pd-info-value">
               <div className="pd-hf-score">
                 <span className="pd-hf-score-text">
-                  {personMerged.riskScore || 0} /{" "}
-                  {overview?.humanFactorScoreMax || 100}
+                  {personMerged.riskScore || 0} / {100}
                 </span>
                 <div className="pd-hf-bar-bg">
                   <div
                     className="pd-hf-bar-fill"
                     style={{
-                      width: `${
-                        ((personMerged.riskScore || 0) /
-                          (overview?.humanFactorScoreMax || 100)) *
-                        100
-                      }%`,
+                      width: `${((personMerged.riskScore || 0) / 100) * 100}%`,
                     }}
                   />
                 </div>
@@ -608,11 +599,7 @@ export function PersonnelDetailPage() {
             (riskProfileLoading || !riskProfile ? (
               <TabLoading text={t("加载中...", "Loading...")} />
             ) : (
-              <RiskProfileSection
-                data={riskProfile}
-                range={riskRange}
-                onRangeChange={setRiskRange}
-              />
+              <RiskProfileSection data={riskProfile} />
             ))}
           {activeNav === "personal-trend" && (
             <div className="pd-card" style={{ padding: 20 }}>
@@ -695,20 +682,16 @@ export function PersonnelDetailPage() {
                     <h3 className="pd-card-title">
                       {t("个人与机队对比", "Personal vs Fleet")}
                     </h3>
-                    <select
-                      className="pd-dropdown"
-                      value={riskRange}
-                      onChange={(e) =>
-                        setRiskRange(e.target.value as RiskRange)
-                      }
-                    >
-                      <option value="1m">{t("1个月", "1 month")}</option>
-                      <option value="3m">{t("3个月", "3 months")}</option>
-                      <option value="6m">{t("6个月", "6 months")}</option>
-                    </select>
                   </div>
                   <ResponsiveContainer width="100%" height={280}>
-                    <LineChart data={fleetTrendData ?? peerAnalysisData}>
+                    <LineChart
+                      data={
+                        (fleetTrendData ?? peerAnalysisData) as Record<
+                          string,
+                          unknown
+                        >[]
+                      }
+                    >
                       <CartesianGrid
                         strokeDasharray="3 3"
                         stroke={GRID_STROKE}
@@ -995,149 +978,6 @@ export function PersonnelDetailPage() {
                     ))}
                   </div>
                 </div>
-
-                {/* 训练科目推荐 */}
-                <div className="pd-card" style={{ padding: 20 }}>
-                  <h3 className="pd-card-title" style={{ marginBottom: 16 }}>
-                    {t("训练科目推荐", "Training Subject Recommendations")}
-                  </h3>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 10,
-                    }}
-                  >
-                    {(trainingRecommendations.length > 0
-                      ? trainingRecommendations.map((r: any) => {
-                          const color =
-                            r.priority === "高"
-                              ? "#ef4444"
-                              : r.priority === "中"
-                                ? "#eab308"
-                                : "#22c55e";
-                          return {
-                            subject: r.title,
-                            dim: r.code,
-                            reason: r.description,
-                            priority: r.priority,
-                            color,
-                          };
-                        })
-                      : [
-                          {
-                            subject: t(
-                              "飞行路径自动化管理强化训练",
-                              "Flight Path Automation Management Training",
-                            ),
-                            dim: "FPA",
-                            reason: t(
-                              "当前评分偏低，需强化自动化飞行管理能力",
-                              "Current score is low, need to strengthen automation management",
-                            ),
-                            priority: t("高", "High"),
-                            color: "#ef4444",
-                          },
-                          {
-                            subject: t(
-                              "工作负荷管理场景模拟训练",
-                              "Workload Management Scenario Simulation",
-                            ),
-                            dim: "WLM",
-                            reason: t(
-                              "工作负荷管理得分不足，建议增加高压场景训练",
-                              "Workload management score insufficient, recommend high-pressure scenario training",
-                            ),
-                            priority: t("高", "High"),
-                            color: "#ef4444",
-                          },
-                          {
-                            subject: t(
-                              "CRM团队协作专项训练",
-                              "CRM Team Coordination Training",
-                            ),
-                            dim: "LTW",
-                            reason: t(
-                              "提升领导力与机组资源管理水平",
-                              "Improve leadership and crew resource management",
-                            ),
-                            priority: t("中", "Medium"),
-                            color: "#eab308",
-                          },
-                          {
-                            subject: t(
-                              "态势感知与威胁识别训练",
-                              "Situation Awareness & Threat Recognition Training",
-                            ),
-                            dim: "SAW",
-                            reason: t(
-                              "巩固态势感知能力，预防潜在风险",
-                              "Consolidate situation awareness, prevent potential risks",
-                            ),
-                            priority: t("低", "Low"),
-                            color: "#22c55e",
-                          },
-                        ]
-                    ).map((item: any, i: number) => (
-                      <div
-                        key={i}
-                        style={{
-                          background: "rgba(15,23,42,0.5)",
-                          borderRadius: 8,
-                          padding: "12px 16px",
-                          border: "1px solid rgba(148,163,184,0.1)",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 16,
-                        }}
-                      >
-                        <span
-                          style={{
-                            padding: "2px 8px",
-                            borderRadius: 4,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            color: item.color,
-                            background: `${item.color}20`,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {item.priority}
-                        </span>
-                        <div style={{ flex: 1 }}>
-                          <div
-                            style={{
-                              color: "#e2e8f0",
-                              fontSize: 13,
-                              fontWeight: 600,
-                            }}
-                          >
-                            {item.subject}
-                            <span
-                              style={{
-                                color: "#64748b",
-                                fontWeight: 400,
-                                marginLeft: 8,
-                                fontSize: 11,
-                              }}
-                            >
-                              ({item.dim})
-                            </span>
-                          </div>
-                          <div
-                            style={{
-                              color: "#94a3b8",
-                              fontSize: 11,
-                              marginTop: 2,
-                            }}
-                          >
-                            {item.reason}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
             ))}
           {activeNav === "training-scenarios" && (
@@ -1159,69 +999,7 @@ export function PersonnelDetailPage() {
                 <h3 className="pd-card-title">
                   {t("历史航班", "Historical Flights")}
                 </h3>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <select
-                    className="pd-dropdown"
-                    value={flightsRiskLevel}
-                    onChange={(e) =>
-                      setFlightsRiskLevel(
-                        e.target.value as "" | "高" | "中" | "低",
-                      )
-                    }
-                  >
-                    <option value="">{t("全部风险", "All Risk")}</option>
-                    <option value="高">{t("高", "High")}</option>
-                    <option value="中">{t("中", "Medium")}</option>
-                    <option value="低">{t("低", "Low")}</option>
-                  </select>
-                  <input
-                    type="date"
-                    value={flightsStartDate}
-                    onChange={(e) => setFlightsStartDate(e.target.value)}
-                    style={{
-                      background: "rgba(15,23,42,0.5)",
-                      border: "1px solid rgba(148,163,184,0.2)",
-                      borderRadius: 6,
-                      padding: "4px 8px",
-                      color: "#e2e8f0",
-                      fontSize: 12,
-                    }}
-                  />
-                  <span style={{ color: "#64748b" }}>—</span>
-                  <input
-                    type="date"
-                    value={flightsEndDate}
-                    onChange={(e) => setFlightsEndDate(e.target.value)}
-                    style={{
-                      background: "rgba(15,23,42,0.5)",
-                      border: "1px solid rgba(148,163,184,0.2)",
-                      borderRadius: 6,
-                      padding: "4px 8px",
-                      color: "#e2e8f0",
-                      fontSize: 12,
-                    }}
-                  />
-                  {(flightsRiskLevel || flightsStartDate || flightsEndDate) && (
-                    <button
-                      onClick={() => {
-                        setFlightsRiskLevel("");
-                        setFlightsStartDate("");
-                        setFlightsEndDate("");
-                      }}
-                      style={{
-                        background: "rgba(71,85,105,0.5)",
-                        border: "1px solid rgba(148,163,184,0.2)",
-                        borderRadius: 6,
-                        padding: "4px 10px",
-                        color: "#e2e8f0",
-                        fontSize: 12,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {t("重置", "Reset")}
-                    </button>
-                  )}
-                </div>
+                
               </div>
               {historicalFlightsLoading || !historicalFlights ? (
                 <div
@@ -1443,15 +1221,9 @@ export function PersonnelDetailPage() {
 
 interface RiskProfileSectionProps {
   data: any;
-  range: RiskRange;
-  onRangeChange: (r: RiskRange) => void;
 }
 
-function RiskProfileSection({
-  data,
-  range,
-  onRangeChange,
-}: RiskProfileSectionProps) {
+function RiskProfileSection({ data }: RiskProfileSectionProps) {
   const { t } = useLanguage();
 
   // 优先使用接口数据，缺字段时回退 mock
@@ -1470,13 +1242,18 @@ function RiskProfileSection({
       value: c.value,
     })) ?? keyRiskContributorsData;
 
-  const severityColor = (s: string) =>
-    s === "red" ? "#dc2626" : s === "yellow" ? "#eab308" : "#22c55e";
+  const statusColor = (s: string) =>
+    s === "警告" || s === "red"
+      ? "#dc2626"
+      : s === "关注" || s === "yellow"
+        ? "#eab308"
+        : "#22c55e";
   const indicatorList =
     data?.mainIndicators?.map((m: any) => ({
-      label: m.label,
-      labelZh: m.label,
-      color: severityColor(m.severity),
+      label: m.name || m.label,
+      labelZh: m.name || m.label,
+      description: m.description,
+      color: statusColor(m.status || m.severity),
     })) ?? topRiskIndicators;
 
   const peerData =
@@ -1497,15 +1274,6 @@ function RiskProfileSection({
             <h3 className="pd-card-title">
               {t("风险评分趋势", "Risk Score Trend")}
             </h3>
-            <select
-              className="pd-dropdown"
-              value={range}
-              onChange={(e) => onRangeChange(e.target.value as RiskRange)}
-            >
-              <option value="1m">{t("1个月", "1 month")}</option>
-              <option value="3m">{t("3个月", "3 months")}</option>
-              <option value="6m">{t("6个月", "6 months")}</option>
-            </select>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={trendData}>
@@ -1710,54 +1478,6 @@ function RiskProfileSection({
         </div>
 
         {/* Action Links */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div className="pd-action-link">
-            <div className="pd-action-link-text">
-              <span className="pd-action-link-title">
-                {t("查看推荐训练", "View Recommended Training")}
-              </span>
-              <span className="pd-action-link-sub">
-                {t("查看其他推荐训练", "View rest recommended training")}
-              </span>
-            </div>
-            {/* <svg
-              className="pd-action-link-chevron"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg> */}
-          </div>
-          <div className="pd-action-link">
-            <div className="pd-action-link-text">
-              <span className="pd-action-link-title">
-                {t(
-                  "相关高风险航班（近30天）",
-                  "Related High-Risk Flights (Last 30 Days)",
-                )}
-              </span>
-            </div>
-            {/* <svg
-              className="pd-action-link-chevron"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="9 18 15 12 9 6" />
-            </svg> */}
-          </div>
-        </div>
       </div>
     </>
   );

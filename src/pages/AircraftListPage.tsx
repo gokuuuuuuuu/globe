@@ -17,16 +17,6 @@ function riskLevelLabel(level: string, t: Function) {
   return t("低", "Low");
 }
 
-function statusLabel(status: string, t: Function) {
-  if (status === "AIRWORTHY") return t("适航", "Airworthy");
-  if (status === "RESTRICTED") return t("限制", "Restricted");
-  return status;
-}
-
-function statusClass(status: string) {
-  return status === "AIRWORTHY" ? "acl-status-ok" : "acl-status-restricted";
-}
-
 const PAGE_SIZE = 15;
 
 export function AircraftListPage() {
@@ -130,12 +120,13 @@ export function AircraftListPage() {
               <tr>
                 <th>{t("机号", "Tail Number")}</th>
                 <th>{t("机型", "Type")}</th>
-                <th>{t("机龄(年)", "Age(yr)")}</th>
-                <th>{t("总飞行小时", "Total Hours")}</th>
-                <th>{t("适航状态", "Status")}</th>
+                <th>{t("运营单位", "Operating Unit")}</th>
+                <th>{t("机龄", "Age")}</th>
+                <th>{t("总飞行小时", "Flight Hours")}</th>
+                <th>{t("适航状态", "Airworthiness")}</th>
                 <th>{t("风险等级", "Risk Level")}</th>
                 <th>{t("风险评分", "Risk Score")}</th>
-                <th>{t("高风险航班数", "High-Risk Flights")}</th>
+                <th>{t("高风险航班", "High Risk Flights")}</th>
                 <th>{t("操作", "Actions")}</th>
               </tr>
             </thead>
@@ -152,13 +143,14 @@ export function AircraftListPage() {
                 >
                   <td className="acl-td-tail">{ac.registration}</td>
                   <td>{ac.model}</td>
-                  <td>{ac.ageYears ?? "-"}</td>
-                  <td>{(ac.totalFlightHours ?? 0).toLocaleString()}</td>
+                  <td>{ac.operatingUnit || "—"}</td>
+                  <td>{ac.ageYears != null ? `${ac.ageYears}y` : "—"}</td>
                   <td>
-                    <span className={statusClass(ac.airworthinessStatus)}>
-                      {statusLabel(ac.airworthinessStatus, t)}
-                    </span>
+                    {ac.totalFlightHours != null
+                      ? ac.totalFlightHours.toLocaleString()
+                      : "—"}
                   </td>
+                  <td>{ac.airworthinessStatus || "—"}</td>
                   <td>
                     <span
                       className={`acl-risk-badge ${riskBadgeClass(ac.riskLevel)}`}
@@ -167,7 +159,7 @@ export function AircraftListPage() {
                     </span>
                   </td>
                   <td>{ac.riskScore}</td>
-                  <td>{ac.highRiskFlightCount}</td>
+                  <td>{ac.highRiskFlightCount ?? 0}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <button
                       className="acl-action-btn"

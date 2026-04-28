@@ -1,21 +1,109 @@
 import request from "./request";
 
-/** 航班统计（月度趋势 + 风险等级分布 + 状态分布 + 风险类型 TOP5） */
+// ============ 航班统计 ============
+
+export interface FlightAnalytics {
+  kpis: {
+    totalFlights: number;
+    highRiskFlights: number;
+    mediumRiskFlights: number;
+    avgRiskScore: number;
+  };
+  monthlyTrend: {
+    label: string;
+    total: number;
+    high: number;
+    medium: number;
+    low: number;
+  }[];
+  riskDistribution: { high: number; medium: number; low: number };
+  statusDistribution: Record<string, number>;
+  topRiskTypes: { name: string; count: number }[];
+}
+
+// ============ 人员统计 ============
+
+export interface PersonnelAnalytics {
+  kpis: {
+    totalPilots: number;
+    highRiskPersonnel: number;
+    mediumRiskPersonnel: number;
+    trainingCompletionRatePct: number;
+  };
+  monthlyTrend: { label: string; high: number; medium: number; low: number }[];
+  riskDistribution: { high: number; medium: number; low: number };
+  byUnit: { unit: string; totalCount: number; highRiskCount: number }[];
+  topHumanFactors: { name: string; count: number }[];
+}
+
+// ============ 机场统计 ============
+
+export interface AirportAnalytics {
+  kpis: {
+    airportTotal: number;
+    totalFlights: number;
+    avgDelayMin: number;
+    onTimeRatePct: number;
+  };
+  topAirportsOnTimeTrend: {
+    airport: string;
+    series: { label: string; value: number }[];
+  }[];
+  passengerThroughput: { airport: string; valueMillion: number }[];
+  delayRanking: {
+    rank: number;
+    code: string;
+    city: string;
+    delayCount: number;
+    avgDelayMin: number;
+  }[];
+  groundServiceEfficiency: { name: string; pct: number }[];
+  airportMatrix: {
+    code: string;
+    totalFlights: number;
+    avgDelayMin: number;
+    onTimeRatePct: number;
+  }[];
+}
+
+// ============ 飞机统计 ============
+
+export interface PlaneAnalytics {
+  kpis: {
+    fleetSize: number;
+    highRiskPlanes: number;
+    avgAgeYears: number;
+    maintenanceCompletionRatePct: number;
+  };
+  monthlyTrend: { label: string; high: number; medium: number; low: number }[];
+  modelDistribution: { model: string; count: number }[];
+  maintenanceTrend: { label: string; scheduled: number; unplanned: number }[];
+  topFailureTypes: { name: string; count: number }[];
+}
+
+// ============ API 函数 ============
+
 export function getFlightAnalytics() {
-  return request.get("/api/v1/analytics/flights");
+  return request.get<FlightAnalytics>("/api/v1/analytics/flights");
 }
 
-/** 人员统计（月度趋势 + 风险等级分布 + 各单位高风险数 + 人为因素 TOP5） */
 export function getPersonnelAnalytics() {
-  return request.get("/api/v1/analytics/personnel");
+  return request.get<PersonnelAnalytics>("/api/v1/analytics/personnel");
 }
 
-/** 飞机统计（月度趋势 + 机型分布 + 维护趋势 + 关键故障 TOP5） */
 export function getPlaneAnalytics() {
-  return request.get("/api/v1/analytics/planes");
+  return request.get<PlaneAnalytics>("/api/v1/analytics/planes");
 }
 
-/** 机场统计（准点率趋势 + 旅客吞吐量 + 延误排名 + 地面服务效率 + 表现矩阵） */
 export function getAirportAnalytics() {
-  return request.get("/api/v1/analytics/airports");
+  return request.get<AirportAnalytics>("/api/v1/analytics/airports");
+}
+
+export function exportAnalytics(
+  type: "flights" | "personnel" | "airports" | "planes" = "flights",
+) {
+  return request.get("/api/v1/analytics/export", {
+    params: { type },
+    responseType: "blob",
+  });
 }

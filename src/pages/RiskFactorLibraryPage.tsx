@@ -7,17 +7,18 @@ import {
   createRiskFactor,
   deleteRiskFactor,
   replaceRiskFactorRules,
+  type RiskFactorListParams,
+  type RiskFactorListItem,
+  type RuleItemDto,
+  type CreateRiskFactorDto,
 } from "../api/riskFactor";
-import type { RuleItemDto, CreateRiskFactorDto } from "../api/riskFactor";
 import { useToast } from "../components/Toast";
 import "./RiskFactorLibraryPage.css";
 
 // ===== Types =====
 
-type Importance = "HIGH" | "MEDIUM" | "LOW";
-type RuleSource = "MODEL_OUTPUT" | "MANUAL";
-
 interface FactorRule {
+  id?: number;
   condition: string;
   action: string;
 }
@@ -27,11 +28,11 @@ interface Factor {
   code: string;
   name: string;
   category: string;
-  importance: Importance;
-  rulesCount: number;
-  source: RuleSource;
-  updatedAt: string;
+  importance: string;
+  source: string;
   score: number;
+  ruleCount: number;
+  rules: FactorRule[];
 }
 
 interface CategoryOption {
@@ -72,14 +73,14 @@ export function RiskFactorLibraryPage() {
   const [createForm, setCreateForm] = useState<{
     name: string;
     category: string;
-    importance: Importance;
-    source: RuleSource;
+    importance: string;
+    source: string;
     score: number;
     rules: FactorRule[];
   }>({
     name: "",
     category: "",
-    importance: "MEDIUM",
+    importance: "中",
     source: "MANUAL",
     score: 50,
     rules: [],
@@ -89,9 +90,8 @@ export function RiskFactorLibraryPage() {
   // Fetch categories on mount
   useEffect(() => {
     getRiskFactorCategories()
-      .then((res: any) => {
-        const data = Array.isArray(res) ? res : (res?.data ?? []);
-        setCategories(data);
+      .then((res: { value: string; label: string }[]) => {
+        setCategories(Array.isArray(res) ? res : []);
       })
       .catch(() => {});
   }, []);
@@ -100,11 +100,12 @@ export function RiskFactorLibraryPage() {
   const fetchList = useCallback(async () => {
     setLoading(true);
     try {
-      const params: Record<string, any> = { page, pageSize };
+      const params: RiskFactorListParams = { page, pageSize };
       if (riskTypeFilter !== "all") params.category = riskTypeFilter;
       if (nameFilter) params.name = nameFilter;
-      const res: any = await getRiskFactorList(params);
-      const data = res?.data ?? res;
+      const res = await getRiskFactorList(params);
+      const data =
+        (res as { items?: RiskFactorListItem[]; total?: number }) ?? {};
       setFactors(data.items ?? []);
       setTotal(data.total ?? 0);
     } catch (err) {
@@ -133,26 +134,18 @@ export function RiskFactorLibraryPage() {
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const tImportance = (level: Importance) => {
-    const map: Record<Importance, [string, string]> = {
-      HIGH: ["高", "High"],
-      MEDIUM: ["中", "Medium"],
-      LOW: ["低", "Low"],
-    };
-    const entry = map[level];
-    return entry ? t(entry[0], entry[1]) : level;
+  const tImportance = (level: string) => {
+    // API 返回中文 "高"/"中"/"低"，直接显示
+    return level || "—";
   };
 
-  const importanceClass = (level: Importance) => {
-    const map: Record<Importance, string> = {
-      HIGH: "high",
-      MEDIUM: "medium",
-      LOW: "low",
-    };
-    return map[level] ?? "medium";
+  const importanceClass = (level: string) => {
+    if (level === "高" || level === "HIGH") return "high";
+    if (level === "中" || level === "MEDIUM") return "medium";
+    return "low";
   };
 
-  const tRuleSource = (src: RuleSource) => {
+  const tRuleSource = (src: string) => {
     if (src === "MODEL_OUTPUT") return t("模型输出", "Model Output");
     return t("人工定义", "Manual");
   };
@@ -162,29 +155,20 @@ export function RiskFactorLibraryPage() {
     return found ? found.label : value;
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return "-";
-    try {
-      const d = new Date(dateStr);
-      const pad = (n: number) => String(n).padStart(2, "0");
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-    } catch {
-      return dateStr;
-    }
-  };
-
   // Open edit modal — fetch full detail with rules
   const handleEdit = async (factor: Factor) => {
     setEditingFactor(factor);
     setEditRules([]);
     setEditLoading(true);
     try {
-      const res: any = await getRiskFactorDetail(factor.id);
-      const detail = res?.data ?? res;
-      const rules: FactorRule[] = (detail.rules ?? []).map((r: any) => ({
-        condition: r.condition ?? "",
-        action: r.action ?? "",
-      }));
+      const res = await getRiskFactorDetail(factor.id);
+      const detail = res as RiskFactorListItem;
+      const rules: FactorRule[] = (detail.rules ?? []).map(
+        (r: RuleItemDto) => ({
+          condition: r.condition ?? "",
+          action: r.action ?? "",
+        }),
+      );
       setEditRules(rules);
     } catch {
       setEditRules([]);
@@ -278,7 +262,7 @@ export function RiskFactorLibraryPage() {
       setCreateForm({
         name: "",
         category: "",
-        importance: "MEDIUM",
+        importance: "中",
         source: "MANUAL",
         score: 50,
         rules: [],
@@ -391,7 +375,6 @@ export function RiskFactorLibraryPage() {
                 <th>{t("重要度", "Importance")}</th>
                 <th>{t("规则数", "Rules Count")}</th>
                 <th>{t("规则来源", "Rule Source")}</th>
-                <th>{t("最后更新", "Last Update")}</th>
                 <th>{t("得分", "Score")}</th>
                 <th>{t("操作", "Actions")}</th>
               </tr>
@@ -411,9 +394,8 @@ export function RiskFactorLibraryPage() {
                       {tImportance(f.importance)}
                     </span>
                   </td>
-                  <td>{f.rulesCount}</td>
+                  <td>{f.ruleCount ?? 0}</td>
                   <td>{tRuleSource(f.source)}</td>
-                  <td>{formatDate(f.updatedAt)}</td>
                   <td>{f.score}</td>
                   <td>
                     <div className="rfl-actions">
@@ -685,13 +667,13 @@ export function RiskFactorLibraryPage() {
                       onChange={(e) =>
                         setCreateForm((f) => ({
                           ...f,
-                          importance: e.target.value as Importance,
+                          importance: e.target.value as string,
                         }))
                       }
                     >
-                      <option value="HIGH">{t("高", "High")}</option>
-                      <option value="MEDIUM">{t("中", "Medium")}</option>
-                      <option value="LOW">{t("低", "Low")}</option>
+                      <option value="高">{t("高", "High")}</option>
+                      <option value="中">{t("中", "Medium")}</option>
+                      <option value="低">{t("低", "Low")}</option>
                     </select>
                   </label>
                   <label style={{ color: "#ccc", fontSize: 13, flex: 1 }}>
@@ -703,7 +685,7 @@ export function RiskFactorLibraryPage() {
                       onChange={(e) =>
                         setCreateForm((f) => ({
                           ...f,
-                          source: e.target.value as RuleSource,
+                          source: e.target.value as string,
                         }))
                       }
                     >
