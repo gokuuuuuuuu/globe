@@ -149,7 +149,7 @@ export function AnalysisPage() {
                 innerRadius={40}
                 strokeWidth={0}
               >
-                {riskPie.map((e, i) => (
+                {riskPie.map((_, i) => (
                   <Cell key={i} fill={PIE_COLORS[i]} />
                 ))}
               </Pie>

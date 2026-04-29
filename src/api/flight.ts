@@ -420,6 +420,13 @@ export interface FlightEvidenceChainData {
   };
 }
 
+export interface FlightEvidenceExportData {
+  fileName: string;
+  contentType: string;
+  url?: string;
+  size?: number;
+}
+
 // ============ API 函数 ============
 
 export function getFlightList(params?: FlightListParams) {

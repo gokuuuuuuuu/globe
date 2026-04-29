@@ -22,8 +22,8 @@ interface AirportItem {
   topRisk: string | null;
   riskLevel: string;
   riskDrivers: { name: string; count: number }[];
-  lat?: number;
-  lon?: number;
+  lat?: number | null;
+  lon?: number | null;
 }
 
 // ===== Helpers =====
