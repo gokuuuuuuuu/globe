@@ -95,7 +95,7 @@ export function LoginPage() {
           </div>
           <h1 className="login-title">
             {t(
-              "重大风险智能预警平台",
+              "风险智能预警与训练支持系统",
               "Major Risk Intelligence Warning Platform",
             )}
           </h1>

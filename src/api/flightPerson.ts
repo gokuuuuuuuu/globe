@@ -153,6 +153,70 @@ export interface FlightPersonFlightsParams {
 
 // ============ Tab4 训练数据 /flight-persons/{empNo}/training ============
 
+export interface TrainingDeviationEntry {
+  label: string;
+  value: number;
+  valuePct: number;
+  category: string;
+}
+
+export interface TrainingDeviationMechanism {
+  label: string;
+  description: string;
+  entries: TrainingDeviationEntry[];
+}
+
+export interface TrainingDeviationChart {
+  title: string;
+  chartType: string;
+  unit: string;
+  xField: string;
+  yField: string;
+  precision: number;
+  bars: {
+    key: string;
+    label: string;
+    value: number;
+    displayValue: string;
+    category: string;
+  }[];
+}
+
+export interface TrainingDeviationItem {
+  id: number;
+  empNo: string;
+  sourceEmployeeId: string;
+  trainingDate: string;
+  trialNo: number;
+  folderName: string;
+  title: string;
+  subtitle: string;
+  rank: string;
+  seat: string;
+  seatCn: string;
+  isDeviated: boolean;
+  overallDescription: string;
+  charts?: {
+    overall?: TrainingDeviationChart;
+    cog?: TrainingDeviationChart;
+    act?: TrainingDeviationChart;
+    trans?: TrainingDeviationChart;
+  };
+  metadata: Record<string, string>;
+  mechanisms: {
+    cog: TrainingDeviationMechanism;
+    act: TrainingDeviationMechanism;
+    trans: TrainingDeviationMechanism;
+  };
+}
+
+export interface TrainingDeviationAnalysis {
+  empNo: string;
+  name: string;
+  total: number;
+  items: TrainingDeviationItem[];
+}
+
 export interface FlightPersonTraining {
   competencies: {
     code: string;
@@ -166,6 +230,7 @@ export interface FlightPersonTraining {
     priority: string;
     description: string;
   }[];
+  trainingDeviationAnalysis: TrainingDeviationAnalysis | null;
 }
 
 // ============ Tab5 中队月报 /flight-persons/{empNo}/squadron-monthly-report ============

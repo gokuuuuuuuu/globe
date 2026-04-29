@@ -1,4 +1,4 @@
-# MRIWP - 重大风险智能预警平台
+# MRIWP - 风险智能预警与训练支持系统
 
 Major Risk Intelligence Warning Platform (MRIWP) 是一个面向航空运营的综合风险监控与管理平台，提供航班风险评估、机场环境监控、人员管理、飞机维护追踪、治理闭环以及统计分析等功能。
 

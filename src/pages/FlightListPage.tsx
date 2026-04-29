@@ -4,9 +4,11 @@ import { useLanguage } from "../i18n/useLanguage";
 import {
   getFlightList,
   getFlightFilterOptions,
+  searchFlightAirports,
   exportFlights,
   type FlightListItem,
   type FlightListParams,
+  type FlightFilterAirport,
 } from "../api/flight";
 import "./FlightListPage.css";
 
@@ -28,17 +30,9 @@ const RISK_TYPE_OPTIONS = [
   "重要系统故障",
 ];
 
-const RISK_LEVELS = [
-  { value: "LOW", labelZh: "低风险", labelEn: "Low Risk" },
-  { value: "MEDIUM", labelZh: "中风险", labelEn: "Medium Risk" },
-  { value: "HIGH", labelZh: "高风险", labelEn: "High Risk" },
-];
-
-const FLIGHT_STATUSES = [
-  { value: "SCHEDULED", labelZh: "未起飞", labelEn: "Scheduled" },
-  { value: "CRUISING", labelZh: "巡航中", labelEn: "Cruising" },
-  { value: "LANDED", labelZh: "已落地", labelEn: "Landed" },
-];
+// Fallback 选项（API filterOptions 返回后会被覆盖）
+const DEFAULT_RISK_LEVELS = ["低", "中", "高"];
+const DEFAULT_STATUSES = ["未起飞", "巡航中", "已落地"];
 
 function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -94,10 +88,29 @@ export function FlightListPage() {
   };
 
   const [filterOptions, setFilterOptions] = useState<{
-    airports: { id: number; code: string; name: string }[];
     aircraftModels: string[];
     operatingUnits: string[];
-  }>({ airports: [], aircraftModels: [], operatingUnits: [] });
+    riskLevels: string[];
+    statuses: string[];
+  }>({
+    aircraftModels: [],
+    operatingUnits: [],
+    riskLevels: DEFAULT_RISK_LEVELS,
+    statuses: DEFAULT_STATUSES,
+  });
+
+  // Airport remote search
+  const [depAirportSearch, setDepAirportSearch] = useState("");
+  const [arrAirportSearch, setArrAirportSearch] = useState("");
+  const [depAirportOptions, setDepAirportOptions] = useState<
+    FlightFilterAirport[]
+  >([]);
+  const [arrAirportOptions, setArrAirportOptions] = useState<
+    FlightFilterAirport[]
+  >([]);
+  const [showDepDropdown, setShowDepDropdown] = useState(false);
+  const [showArrDropdown, setShowArrDropdown] = useState(false);
+  const airportSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Filters
   const [flightNumberFilter, setFlightNumberFilter] = useState("");
@@ -127,7 +140,7 @@ export function FlightListPage() {
     if (urlParamsRef.current.inited) return;
     urlParamsRef.current.inited = true;
     const risk = searchParams.get("risk");
-    if (risk === "high") setRiskLevelFilter("HIGH");
+    if (risk === "high") setRiskLevelFilter("高");
     const aircraft = searchParams.get("aircraft");
     if (aircraft) setAircraftNumberFilter(aircraft);
   }, []);
@@ -136,7 +149,12 @@ export function FlightListPage() {
   useEffect(() => {
     getFlightFilterOptions()
       .then((res) => {
-        setFilterOptions(res);
+        setFilterOptions({
+          aircraftModels: res.aircraftModels ?? [],
+          operatingUnits: res.operatingUnits ?? [],
+          riskLevels: res.riskLevels ?? DEFAULT_RISK_LEVELS,
+          statuses: res.statuses ?? DEFAULT_STATUSES,
+        });
       })
       .catch((err) => {
         console.error("Failed to load filter options:", err);
@@ -165,7 +183,7 @@ export function FlightListPage() {
     if (operatingUnitFilter) params.operatingUnit = operatingUnitFilter;
     if (riskLevelFilter || urlRisk)
       params.riskLevel =
-        riskLevelFilter || (urlRisk === "high" ? "HIGH" : undefined);
+        riskLevelFilter || (urlRisk === "high" ? "高" : undefined);
     if (statusFilter) params.status = statusFilter;
     if (riskTypeFilter) params.riskType = riskTypeFilter;
     return params;
@@ -201,6 +219,10 @@ export function FlightListPage() {
     setAircraftNumberFilter("");
     setDepartureFilter("");
     setArrivalFilter("");
+    setDepAirportSearch("");
+    setArrAirportSearch("");
+    setDepAirportOptions([]);
+    setArrAirportOptions([]);
     setOperatingUnitFilter("");
     setAircraftTypeFilter("");
     setStatusFilter("");
@@ -303,33 +325,157 @@ export function FlightListPage() {
           </div>
           <div className="fl-filter-item">
             <label>{t("出发机场", "Departure Airport")}</label>
-            <select
-              className="fl-select"
-              value={departureFilter}
-              onChange={(e) => setDepartureFilter(e.target.value)}
-            >
-              <option value="">{t("全部", "All")}</option>
-              {filterOptions.airports.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.code} - {a.name}
-                </option>
-              ))}
-            </select>
+            <input
+              className="fl-input"
+              placeholder={t("搜索机场代码/名称...", "Search airport...")}
+              value={depAirportSearch}
+              onFocus={() => {
+                if (depAirportOptions.length > 0) setShowDepDropdown(true);
+              }}
+              onBlur={() => setTimeout(() => setShowDepDropdown(false), 200)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setDepAirportSearch(val);
+                setDepartureFilter("");
+                if (airportSearchTimer.current)
+                  clearTimeout(airportSearchTimer.current);
+                if (val.trim().length >= 2) {
+                  airportSearchTimer.current = setTimeout(() => {
+                    searchFlightAirports(val.trim())
+                      .then((r) => {
+                        setDepAirportOptions(r.items ?? []);
+                        setShowDepDropdown(true);
+                      })
+                      .catch(() => {});
+                  }, 300);
+                } else {
+                  setDepAirportOptions([]);
+                  setShowDepDropdown(false);
+                }
+              }}
+            />
+            {showDepDropdown && depAirportOptions.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  zIndex: 20,
+                  background: "#1e293b",
+                  border: "1px solid rgba(96,165,250,0.3)",
+                  borderRadius: 6,
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  width: "100%",
+                  top: "100%",
+                  left: 0,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                }}
+              >
+                {depAirportOptions.map((a) => (
+                  <div
+                    key={a.id}
+                    style={{
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      fontSize: 12,
+                      color: "#e2e8f0",
+                      borderBottom: "1px solid rgba(148,163,184,0.06)",
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setDepartureFilter(String(a.id));
+                      setDepAirportSearch(a.label);
+                      setShowDepDropdown(false);
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(96,165,250,0.15)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    {a.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="fl-filter-item">
             <label>{t("到达机场", "Arrival Airport")}</label>
-            <select
-              className="fl-select"
-              value={arrivalFilter}
-              onChange={(e) => setArrivalFilter(e.target.value)}
-            >
-              <option value="">{t("全部", "All")}</option>
-              {filterOptions.airports.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.code} - {a.name}
-                </option>
-              ))}
-            </select>
+            <input
+              className="fl-input"
+              placeholder={t("搜索机场代码/名称...", "Search airport...")}
+              value={arrAirportSearch}
+              onFocus={() => {
+                if (arrAirportOptions.length > 0) setShowArrDropdown(true);
+              }}
+              onBlur={() => setTimeout(() => setShowArrDropdown(false), 200)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setArrAirportSearch(val);
+                setArrivalFilter("");
+                if (airportSearchTimer.current)
+                  clearTimeout(airportSearchTimer.current);
+                if (val.trim().length >= 2) {
+                  airportSearchTimer.current = setTimeout(() => {
+                    searchFlightAirports(val.trim())
+                      .then((r) => {
+                        setArrAirportOptions(r.items ?? []);
+                        setShowArrDropdown(true);
+                      })
+                      .catch(() => {});
+                  }, 300);
+                } else {
+                  setArrAirportOptions([]);
+                  setShowArrDropdown(false);
+                }
+              }}
+            />
+            {showArrDropdown && arrAirportOptions.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  zIndex: 20,
+                  background: "#1e293b",
+                  border: "1px solid rgba(96,165,250,0.3)",
+                  borderRadius: 6,
+                  maxHeight: 180,
+                  overflowY: "auto",
+                  width: "100%",
+                  top: "100%",
+                  left: 0,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                }}
+              >
+                {arrAirportOptions.map((a) => (
+                  <div
+                    key={a.id}
+                    style={{
+                      padding: "8px 12px",
+                      cursor: "pointer",
+                      fontSize: 12,
+                      color: "#e2e8f0",
+                      borderBottom: "1px solid rgba(148,163,184,0.06)",
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setArrivalFilter(String(a.id));
+                      setArrAirportSearch(a.label);
+                      setShowArrDropdown(false);
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(96,165,250,0.15)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
+                  >
+                    {a.label}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <div className="fl-filter-item">
             <label>{t("机型", "Aircraft Type")}</label>
@@ -372,9 +518,9 @@ export function FlightListPage() {
               onChange={(e) => setRiskLevelFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {RISK_LEVELS.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {t(r.labelZh, r.labelEn)}
+              {filterOptions.riskLevels.map((r) => (
+                <option key={r} value={r}>
+                  {r}
                 </option>
               ))}
             </select>
@@ -389,9 +535,9 @@ export function FlightListPage() {
               onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="">{t("全部", "All")}</option>
-              {FLIGHT_STATUSES.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {t(s.labelZh, s.labelEn)}
+              {filterOptions.statuses.map((s) => (
+                <option key={s} value={s}>
+                  {s}
                 </option>
               ))}
             </select>

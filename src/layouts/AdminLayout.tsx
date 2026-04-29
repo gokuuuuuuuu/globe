@@ -107,7 +107,7 @@ export function AdminLayout() {
         <div className="al-brand">
           <div className="al-brand-mark">M</div>
           <div className="al-brand-name">
-            {t("重大风险智能预警平台", "MRIWP")}
+            {t("风险智能预警与训练支持系统", "MRIWP")}
           </div>
         </div>
 

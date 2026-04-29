@@ -72,16 +72,6 @@ function formatUTC8(iso: string | null | undefined): string {
   return `${utc8.getUTCFullYear()}-${pad(utc8.getUTCMonth() + 1)}-${pad(utc8.getUTCDate())} ${pad(utc8.getUTCHours())}:${pad(utc8.getUTCMinutes())}`;
 }
 
-const defaultFlightInfo = {
-  flightId: "737-AR123",
-  date: "Oct 26, 2023",
-  aircraft: "Boeing 737-800",
-  pilot: "Joren Conman",
-  route: "KORD-KJFK",
-  status: "Complete",
-  summary: "Summary are critical analysis...",
-};
-
 // Icons for sidebar nav
 function NavIcon({ type }: { type: string }) {
   const s = {
@@ -187,7 +177,7 @@ export function FlightReportPage() {
       .finally(() => setLoading(false));
   }, [flightId]);
 
-  const flightInfo = report?.facts || defaultFlightInfo;
+  const flightInfo = report?.facts;
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -343,15 +333,42 @@ export function FlightReportPage() {
         <div className="fr-content">
           {/* 1. Flight Facts */}
           <div id="flight-facts" className="fr-section">
-            <h2 className="fr-section-title">
-              {t("航班事实", "Flight Facts")}
-            </h2>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h2 className="fr-section-title" style={{ margin: 0 }}>
+                {t("航班事实", "Flight Facts")}
+              </h2>
+              <button
+                onClick={() =>
+                  navigate(`/risk-monitoring/fact-detail?id=${flightId}`)
+                }
+                style={{
+                  background: "rgba(59,130,246,0.15)",
+                  border: "1px solid rgba(59,130,246,0.3)",
+                  color: "#60a5fa",
+                  borderRadius: 6,
+                  padding: "4px 14px",
+                  cursor: "pointer",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  whiteSpace: "nowrap",
+                  marginBottom: 5,
+                }}
+              >
+                {t("事实报告", "Fact Report")}
+              </button>
+            </div>
             <div className="fr-card">
               <div className="fr-grid-4">
                 <div>
                   <div className="fr-env-label">{t("航班号", "Flight No")}</div>
                   <div className="fr-env-value">
-                    {flightInfo?.flightNo || flightInfo?.flightId || "-"}
+                    {flightInfo?.flightNo || "-"}
                   </div>
                 </div>
                 <div>
@@ -387,11 +404,11 @@ export function FlightReportPage() {
                         style={{ cursor: "pointer", color: "#60a5fa" }}
                         onClick={() =>
                           navigate(
-                            `/personnel-center/personnel-detail?id=${flightInfo.pf.empNo}`,
+                            `/personnel-center/personnel-detail?id=${flightInfo!.pf!.empNo}`,
                           )
                         }
                       >
-                        {flightInfo.pf.name}
+                        {flightInfo!.pf!.name}
                       </span>
                     ) : (
                       "-"
@@ -406,11 +423,11 @@ export function FlightReportPage() {
                         style={{ cursor: "pointer", color: "#60a5fa" }}
                         onClick={() =>
                           navigate(
-                            `/personnel-center/personnel-detail?id=${flightInfo.pm.empNo}`,
+                            `/personnel-center/personnel-detail?id=${flightInfo!.pm!.empNo}`,
                           )
                         }
                       >
-                        {flightInfo.pm.name}
+                        {flightInfo!.pm!.name}
                       </span>
                     ) : (
                       "-"
@@ -694,7 +711,12 @@ export function FlightReportPage() {
                 </div>
               </div>
               {/* 右：Shapley 致因分解 */}
-              <ShapleyCard flightId={Number(flightId) || 1001} t={t} />
+              <ShapleyCard
+                flightId={Number(flightId) || 1001}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                shapleyData={(report as any)?.majorRiskVisualAnalysis?.shapley}
+                t={t}
+              />
             </div>
             {/* 下方：风险因果链路（横向） */}
             <CausalChainView flightId={Number(flightId) || 1001} t={t} />
@@ -915,28 +937,162 @@ export function FlightReportPage() {
             </div>
           </div>
 
-          {/* 8. Evidence Chain (evidenceSources) */}
+          {/* 8. Evidence Chain */}
           <div id="evidence-chain" className="fr-section">
             <h2 className="fr-section-title">
               {t("证据链", "Evidence Chain")}
             </h2>
-            <div className="fr-card">
-              <div className="fr-text">
-                {report?.evidenceSources?.length ? (
-                  <ul>
-                    {report.evidenceSources.map((es, i) => (
-                      <li key={i}>
-                        <strong>{es.name}:</strong> {es.desc}
-                      </li>
+            {(() => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const eva = (report as any)?.evidenceVisualAnalysis;
+              const facts = eva?.facts;
+              if (!facts?.length) {
+                return (
+                  <div className="fr-card">
+                    <div className="fr-text">
+                      <p style={{ color: "#64748b" }}>
+                        {t("暂无证据链数据", "No evidence chain data")}
+                      </p>
+                    </div>
+                  </div>
+                );
+              }
+              const consistencyColor = (c: string) =>
+                c === "high"
+                  ? "#22c55e"
+                  : c === "medium"
+                    ? "#f97316"
+                    : "#64748b";
+              return (
+                <>
+                  {eva.summary && (
+                    <p
+                      style={{
+                        fontSize: 13,
+                        color: "#94a3b8",
+                        marginBottom: 16,
+                      }}
+                    >
+                      {eva.summary}
+                    </p>
+                  )}
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 1fr",
+                      gap: 12,
+                    }}
+                  >
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    {facts.map((fact: any) => (
+                      <div
+                        key={fact.factId}
+                        style={{
+                          background: "rgba(15,23,42,0.5)",
+                          border: "1px solid rgba(148,163,184,0.1)",
+                          borderRadius: 10,
+                          padding: 16,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 700,
+                            color: "#60a5fa",
+                            marginBottom: 6,
+                          }}
+                        >
+                          {fact.factId} {fact.title}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#cbd5e1",
+                            lineHeight: 1.6,
+                            marginBottom: 10,
+                          }}
+                        >
+                          {fact.description}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 12,
+                            color: "#94a3b8",
+                            fontWeight: 600,
+                            marginBottom: 6,
+                          }}
+                        >
+                          {t("证据链：", "Evidence:")}
+                        </div>
+                        <ul
+                          style={{
+                            margin: 0,
+                            paddingLeft: 16,
+                            fontSize: 12,
+                            color: "#cbd5e1",
+                            lineHeight: 1.8,
+                          }}
+                        >
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {fact.evidence?.map((ev: any, i: number) => (
+                            <li key={i}>
+                              <strong style={{ color: "#e2e8f0" }}>
+                                {ev.type}：
+                              </strong>
+                              {ev.content}
+                            </li>
+                          ))}
+                        </ul>
+                        <div
+                          style={{
+                            marginTop: 10,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 6,
+                          }}
+                        >
+                          <span style={{ fontSize: 11, color: "#94a3b8" }}>
+                            {t("一致性：", "Consistency:")}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#fff",
+                              background: consistencyColor(fact.consistency),
+                              padding: "1px 10px",
+                              borderRadius: 10,
+                            }}
+                          >
+                            {fact.consistencyLabel}
+                          </span>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
-                ) : (
-                  <p style={{ color: "#64748b" }}>
-                    {t("暂无证据来源数据", "No evidence source data")}
-                  </p>
-                )}
-              </div>
-            </div>
+                  </div>
+                  {eva.rawText?.evidenceChain && (
+                    <div
+                      style={{
+                        marginTop: 12,
+                        fontSize: 11,
+                        color: "#64748b",
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 6,
+                      }}
+                    >
+                      <span style={{ color: "#3b82f6" }}>ℹ</span>
+                      <span>
+                        {t(
+                          "说明：个别时间记录存在秒级偏差，未发现关键证据冲突。",
+                          "Note: Minor time discrepancies exist; no critical evidence conflicts found.",
+                        )}
+                      </span>
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           {/* 9. Evidence Appendix */}

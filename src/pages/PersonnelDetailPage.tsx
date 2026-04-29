@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { TrainingDeviationSection } from "../components/TrainingDeviationSection";
 import {
   getFlightPersonDetail,
   getFlightPersonOverview,
@@ -188,6 +189,24 @@ const navItems: NavItem[] = [
     ),
   },
   {
+    key: "training-deviation",
+    label: "Deviation Analysis",
+    labelZh: "训练偏差分析",
+    icon: (
+      <svg
+        className="pd-nav-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+      </svg>
+    ),
+  },
+  {
     key: "training-scenarios",
     label: "Recommended Scenarios",
     labelZh: "推荐训练场景",
@@ -281,7 +300,6 @@ export function PersonnelDetailPage() {
   const [trainingData, setTrainingData] = useState<FlightPersonTraining | null>(
     null,
   );
-
 
   // 各 Tab 的加载状态（数据未到达前显示 loading）
   const [riskProfileLoading, setRiskProfileLoading] = useState(false);
@@ -377,7 +395,11 @@ export function PersonnelDetailPage() {
 
   // Tab 4 训练数据
   useEffect(() => {
-    if (!empNo || activeNav !== "training-data") return;
+    if (
+      !empNo ||
+      (activeNav !== "training-data" && activeNav !== "training-deviation")
+    )
+      return;
     let cancelled = false;
     setTrainingData(null);
     setTrainingDataLoading(true);
@@ -980,6 +1002,15 @@ export function PersonnelDetailPage() {
                 </div>
               </div>
             ))}
+          {activeNav === "training-deviation" && (
+            <div className="pd-card" style={{ padding: 20 }}>
+              <TrainingDeviationSection
+                data={trainingData?.trainingDeviationAnalysis}
+                loading={trainingDataLoading}
+                t={t}
+              />
+            </div>
+          )}
           {activeNav === "training-scenarios" && (
             <TrainingScenariosSection t={t} />
           )}
@@ -999,7 +1030,6 @@ export function PersonnelDetailPage() {
                 <h3 className="pd-card-title">
                   {t("历史航班", "Historical Flights")}
                 </h3>
-                
               </div>
               {historicalFlightsLoading || !historicalFlights ? (
                 <div

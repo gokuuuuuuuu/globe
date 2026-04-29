@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
 import type {
@@ -137,6 +137,19 @@ export function PersonnelListPage() {
     if (riskParam === "high") params.riskLevel = "高";
     return params;
   };
+
+  // searchText 防抖自动搜索
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      setPage(1);
+      setSearchVersion((v) => v + 1);
+    }, 300);
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, [searchText]);
 
   useEffect(() => {
     setLoading(true);

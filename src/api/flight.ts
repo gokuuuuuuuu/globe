@@ -69,9 +69,25 @@ export interface FlightListResult {
 // ============ filter-options ============
 
 export interface FlightFilterOptions {
-  airports: { id: number; code: string; name: string }[];
+  airportRemote: boolean;
+  airportEndpoint: string;
   aircraftModels: string[];
   operatingUnits: string[];
+  riskLevels: string[];
+  statuses: string[];
+  governanceStatuses: string[];
+}
+
+export interface FlightFilterAirport {
+  id: number;
+  code: string;
+  iataCode: string | null;
+  name: string;
+  city: string | null;
+  country: string | null;
+  totalFlightCount: number;
+  value: number;
+  label: string;
 }
 
 // ============ 详情 /flights/{id} ============
@@ -418,6 +434,13 @@ export function getFlightFilterOptions() {
   return request.get<FlightFilterOptions>("/api/v1/flights/filter-options");
 }
 
+export function searchFlightAirports(keyword: string) {
+  return request.get<{ items: FlightFilterAirport[]; total: number }>(
+    "/api/v1/flights/filter-options/airports",
+    { params: { keyword } },
+  );
+}
+
 export function exportFlights(params?: FlightListParams) {
   return request.get("/api/v1/flights/export", {
     params,
@@ -451,4 +474,47 @@ export function getFlightMajorRiskDetail(id: number) {
   return request.get<FlightMajorRiskDetailData>(
     `/api/v1/flights/${id}/major-risk-detail`,
   );
+}
+
+// ============ 事实详情 /flights/{id}/fact-detail ============
+
+export interface FactDetailChart {
+  id: string;
+  title: string;
+  chartType: string;
+  xField: string;
+  yFields: string[];
+  unit: string;
+  points: Record<string, number | string>[];
+}
+
+export interface FactDetailBlock {
+  type: "paragraph" | "table" | "list" | "chart";
+  text?: string;
+  title?: string;
+  columns?: string[];
+  rows?: Record<string, string>[];
+  items?: string[];
+  chart?: FactDetailChart;
+}
+
+export interface FactDetailSection {
+  id: string;
+  title: string;
+  blocks: FactDetailBlock[];
+}
+
+export interface FlightFactDetail {
+  id: number;
+  flightId: number;
+  flightNo: string;
+  title: string;
+  subtitle: string;
+  generatedAt: string;
+  sections: FactDetailSection[];
+  charts: FactDetailChart[];
+}
+
+export function getFlightFactDetail(id: number) {
+  return request.get<FlightFactDetail>(`/api/v1/flights/${id}/fact-detail`);
 }

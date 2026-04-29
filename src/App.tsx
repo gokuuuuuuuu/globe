@@ -9,6 +9,7 @@ import { HomePage } from "./pages/HomePage";
 import { FlightListPage } from "./pages/FlightListPage";
 import { FlightDetailPage } from "./pages/FlightDetailPage";
 import { FlightReportPage } from "./pages/FlightReportPage";
+import { FactDetailPage } from "./pages/FactDetailPage";
 import { FactorExplanationPage } from "./pages/FactorExplanationPage";
 import { EvidenceChainPage } from "./pages/EvidenceChainPage";
 import { MajorRiskDetailPage } from "./pages/MajorRiskDetailPage";
@@ -77,6 +78,10 @@ function App() {
                 <Route
                   path="risk-monitoring/flight-report"
                   element={<FlightReportPage />}
+                />
+                <Route
+                  path="risk-monitoring/fact-detail"
+                  element={<FactDetailPage />}
                 />
                 <Route
                   path="risk-monitoring/factor-explanation"

@@ -16,7 +16,11 @@ import {
 } from "../data/flightData";
 import { ALL_PERSONS } from "../data/personData";
 import { AnalysisPage } from "./AnalysisPage";
-import { getDashboardOverview, type DashboardOverview } from "../api/dashboard";
+import {
+  getDashboardOverview,
+  type DashboardOverview,
+  type DashboardTab,
+} from "../api/dashboard";
 import { useLanguage } from "../i18n/useLanguage";
 import { useAuthStore, isFullDataAccess } from "../store/useAuthStore";
 import { Timeline } from "../components/Timeline";
@@ -152,6 +156,7 @@ export function HomePage() {
   };
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [dashboard, setDashboard] = useState<DashboardOverview | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
   const { setRiskZones, setHomeObjectTab } = useAppStore();
   // Per-tab red/yellow filter state
   const [redYellowByTab, setRedYellowByTab] = useState<
@@ -266,7 +271,8 @@ export function HomePage() {
     };
   }, []);
 
-  // ===== Display stats: prefer API data, fallback to local =====
+  // ===== Display stats: use API data, loading state shows 0 =====
+  const loadingStats = { total: 0, red: 0, yellow: 0, green: 0 };
   const flightStatsDisplay = dashboard
     ? {
         total: dashboard.summary.flightTotal,
@@ -274,7 +280,7 @@ export function HomePage() {
         yellow: dashboard.riskDistribution.medium,
         green: dashboard.riskDistribution.low,
       }
-    : flightStats;
+    : loadingStats;
   const airportStatsDisplay = dashboard
     ? {
         total: dashboard.summary.airportTotal,
@@ -282,7 +288,7 @@ export function HomePage() {
         yellow: 0,
         green: dashboard.summary.airportTotal,
       }
-    : airportStats;
+    : loadingStats;
   const personnelStatsDisplay = dashboard
     ? {
         total: dashboard.summary.personTotal,
@@ -291,7 +297,13 @@ export function HomePage() {
         lowRisk: dashboard.summary.personTotal,
         techCounts: {} as Record<string, number>,
       }
-    : personnelStats;
+    : {
+        total: 0,
+        highRisk: 0,
+        mediumRisk: 0,
+        lowRisk: 0,
+        techCounts: {} as Record<string, number>,
+      };
 
   // ===== Risk lists =====
   const highRiskFlights = useMemo(() => {
@@ -336,86 +348,89 @@ export function HomePage() {
       .sort((a, b) => (b.riskValue ?? 0) - (a.riskValue ?? 0));
   }, [riskFilter]);
 
-  // Top critical item for hero card — prefer API urgentAlert for flights tab
+  // Top critical item for hero card — use API urgentAlert
   const topCriticalItem = useMemo(() => {
-    if (objectTab === "flights" && dashboard?.urgentAlert) {
-      const ua = dashboard.urgentAlert;
+    const ua = dashboard?.urgentAlert as Record<string, any> | null;
+    if (!ua) return null;
+
+    if (objectTab === "flights") {
       return {
         code: ua.flightNo,
         name: ua.route,
-        region: ua.aircraftModel,
-        score: ua.riskScore.toFixed(1),
+        region: ua.aircraftModel || "",
+        score: (ua.riskScore10 ?? ua.riskScore ?? 0).toFixed(1),
         flights: ua.aircraftModel || "-",
-        staff: ua.status,
-        alerts: String(ua.riskTags.length || 1),
+        staff: ua.status || "-",
+        alerts: String(ua.alertCount || 1),
         id: ua.id,
+        alertNo: ua.alertNo,
+        primaryRisk: ua.primaryRisk,
       };
     }
-    if (objectTab === "flights" && highRiskFlights.length > 0) {
-      const f = highRiskFlights[0];
-      const score = (
-        (f.humanRisk + f.machineRisk + f.environmentRisk) /
-        3
-      ).toFixed(1);
+    if (objectTab === "airports") {
       return {
-        code: f.flightNumber,
-        name: `${getIcaoCode(f.fromAirport)} → ${getIcaoCode(f.toAirport)}`,
-        region: f.operatingUnit || "",
-        score,
-        flights: f.aircraftType || "-",
-        staff:
-          f.status === "巡航中"
-            ? t("飞行中", "In Flight")
-            : f.status === "未起飞"
-              ? t("计划中", "Scheduled")
-              : t("已降落", "Landed"),
-        alerts: "1",
-        id: f.id,
+        code: ua.code || ua.title,
+        name: ua.name || ua.subtitle || "",
+        region: ua.city ? `${ua.city} · ${ua.country || ""}` : "",
+        score: (ua.riskScore10 ?? ua.riskScore ?? 0).toFixed(1),
+        flights: String(ua.flightTotal ?? "-"),
+        staff: String(ua.personTotal ?? "-"),
+        alerts: String(ua.alertCount || 1),
+        id: ua.code || ua.id,
+        primaryRisk: ua.primaryRisk,
       };
     }
-    if (objectTab === "airports" && highRiskAirports.length > 0) {
-      const a = highRiskAirports[0];
+    if (objectTab === "personnel") {
       return {
-        code: a.code4,
-        name: a.nameZh || a.name,
-        region: `${a.countryCode} · CAAC`,
-        score: a.environmentRisk.toFixed(1),
-        flights: a.flightCount.toString(),
-        staff: a.operatorCount.toString(),
-        alerts: a.environmentRisk >= 7 ? "3" : "1",
-        id: a.id,
-      };
-    }
-    if (objectTab === "personnel" && highRiskPersonnel.length > 0) {
-      const p = highRiskPersonnel[0];
-      return {
-        code: p.name,
-        name: p.pfTechnology,
-        region: `ID: ${p.pfId}`,
-        score: (p.riskValue ?? 0).toFixed(1),
-        flights: p.totalFlightHours ? `${p.totalFlightHours}h` : "-",
-        staff: p.currentAircraftType || "-",
-        alerts: "1",
-        id: p.id,
+        code: ua.name || ua.title,
+        name: ua.techGrade || ua.subtitle || "",
+        region: `ID: ${ua.empNo || ua.id}`,
+        score: (ua.riskScore10 ?? ua.riskScore ?? 0).toFixed(1),
+        flights: ua.flightTotal != null ? `${ua.flightTotal}` : "-",
+        staff: ua.aircraftType || "-",
+        alerts: String(ua.alertCount || 1),
+        id: ua.empNo || ua.id,
+        primaryRisk: ua.primaryRisk,
       };
     }
     return null;
-  }, [
-    objectTab,
-    dashboard,
-    highRiskFlights,
-    highRiskAirports,
-    highRiskPersonnel,
-    t,
-  ]);
+  }, [objectTab, dashboard]);
 
   const riskListRef = useRef<HTMLDivElement>(null);
 
+  // 缓存每个 tab+risk 组合的 dashboard 数据，避免重复请求
+  const dashboardCacheRef = useRef<Record<string, DashboardOverview>>({});
   useEffect(() => {
-    getDashboardOverview()
-      .then((data) => setDashboard(data))
-      .catch(console.error);
-  }, []);
+    const cacheKey = `${objectTab}_${riskFilter}`;
+    const cached = dashboardCacheRef.current[cacheKey];
+    if (cached) {
+      setDashboard(cached);
+      setDashboardLoading(false);
+      return;
+    }
+    setDashboard(null);
+    setDashboardLoading(true);
+    const tabMap: Record<ObjectTab, DashboardTab> = {
+      flights: "flights",
+      airports: "airports",
+      personnel: "personnel",
+    };
+    const riskMap: Record<string, "all" | "red" | "yellow"> = {
+      all: "all",
+      red: "red",
+      yellow: "yellow",
+    };
+    getDashboardOverview({
+      tab: tabMap[objectTab],
+      risk: riskMap[riskFilter] ?? "all",
+    })
+      .then((data) => {
+        dashboardCacheRef.current[cacheKey] = data;
+        setDashboard(data);
+      })
+      .catch(console.error)
+      .finally(() => setDashboardLoading(false));
+  }, [objectTab, riskFilter]);
 
   useEffect(() => {
     if (selectedFlightRouteId && riskListRef.current) {
@@ -428,7 +443,7 @@ export function HomePage() {
     }
   }, [selectedFlightRouteId]);
 
-  const renderView = () => {
+  const renderedView = useMemo(() => {
     if (!atlas || !world) return null;
     switch (view) {
       case "globe":
@@ -438,7 +453,7 @@ export function HomePage() {
       default:
         return <GlobeView atlas={atlas} world={world} />;
     }
-  };
+  }, [atlas, world, view]);
 
   // Current stats based on active tab
   const currentStats =
@@ -494,7 +509,7 @@ export function HomePage() {
             </p>
           </div>
         )}
-        {!isLoading && !error && canRender && renderView()}
+        {!isLoading && !error && canRender && renderedView}
       </div>
       <div className="grain" />
       <div className="vignette" />
@@ -816,20 +831,37 @@ export function HomePage() {
         </div>
 
         {/* Critical Alert Hero Card */}
+        {dashboardLoading && !topCriticalItem && (
+          <div
+            className="glass hero-compact"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 100,
+              color: "#64748b",
+              fontSize: 13,
+            }}
+          >
+            {t("加载中...", "Loading...")}
+          </div>
+        )}
         {topCriticalItem && (
           <div
             className={`glass ${riskFilter === "yellow" ? "glass-tint-yellow" : "glass-tint-red"} hero-compact`}
             style={{ cursor: "pointer" }}
             onClick={() => {
               if (objectTab === "flights")
-                navigate("/risk-monitoring/flight-detail");
+                navigate(
+                  `/risk-monitoring/flight-detail?id=${topCriticalItem?.id}`,
+                );
               else if (objectTab === "airports")
                 navigate(
                   `/airport-center/airport-detail?code=${topCriticalItem?.id}`,
                 );
               else
                 navigate(
-                  `/personnel-center/personnel-detail?id=${topCriticalItem?.id}`,
+                  `/personnel-center/personnel-detail?empNo=${topCriticalItem?.id}`,
                 );
             }}
           >
@@ -963,8 +995,82 @@ export function HomePage() {
           </div>
 
           <div className="list-rows" ref={riskListRef}>
-            {/* Flight items */}
-            {objectTab === "flights" &&
+            {/* Loading state */}
+            {dashboardLoading && !dashboard?.riskQueue?.length && (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "40px 0",
+                  color: "#64748b",
+                  fontSize: 13,
+                }}
+              >
+                {t("加载风险队列...", "Loading risk queue...")}
+              </div>
+            )}
+            {/* API-driven risk queue */}
+            {dashboard?.riskQueue?.length > 0 &&
+              (dashboard.riskQueue as Record<string, any>[]).map(
+                (item, idx) => {
+                  const riskZone =
+                    item.riskColor === "red"
+                      ? "red"
+                      : item.riskColor === "yellow"
+                        ? "yellow"
+                        : "green";
+                  const score = (
+                    item.riskScore10 ??
+                    item.riskScore ??
+                    0
+                  ).toFixed(1);
+                  const title =
+                    item.flightNo ||
+                    item.code ||
+                    item.name ||
+                    item.title ||
+                    `#${idx + 1}`;
+                  const subtitle =
+                    item.route || item.subtitle || item.techGrade || "";
+                  return (
+                    <div key={item.id ?? idx} id={`risk-card-${item.id}`}>
+                      <div
+                        className={`ap-row ${riskZone}`}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => {
+                          if (objectTab === "flights")
+                            navigate(
+                              `/risk-monitoring/flight-detail?id=${item.id}`,
+                            );
+                          else if (objectTab === "airports")
+                            navigate(
+                              `/airport-center/airport-detail?code=${item.code}`,
+                            );
+                          else
+                            navigate(
+                              `/personnel-center/personnel-detail?empNo=${item.empNo || item.id}`,
+                            );
+                        }}
+                      >
+                        <span className="ap-num">
+                          {String(item.rank || idx + 1).padStart(2, "0")}
+                        </span>
+                        <div className="ap-info">
+                          <div className="code">{title}</div>
+                          <div className="meta">{subtitle}</div>
+                        </div>
+                        <div className="ap-right">
+                          <div className={`score ${riskZone}`}>{score}</div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                },
+              )}
+
+            {/* Local fallback — Flight items (only if no API queue and not loading) */}
+            {!dashboardLoading &&
+              !dashboard?.riskQueue?.length &&
+              objectTab === "flights" &&
               highRiskFlights.map((flight, idx) => {
                 const { riskZone } = calculateRiskFromEnvironmentRisk(
                   flight.environmentRisk,
@@ -1080,7 +1186,9 @@ export function HomePage() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              navigate("/risk-monitoring/flight-detail");
+                              navigate(
+                                `/risk-monitoring/flight-detail?id=${flight.id}`,
+                              );
                             }}
                           >
                             {t("查看航班", "View Flight")}
@@ -1093,8 +1201,10 @@ export function HomePage() {
                 );
               })}
 
-            {/* Airport items */}
-            {objectTab === "airports" &&
+            {/* Airport items (local fallback) */}
+            {!dashboardLoading &&
+              !dashboard?.riskQueue?.length &&
+              objectTab === "airports" &&
               highRiskAirports.map((airport, idx) => {
                 const riskZone =
                   airport.environmentRisk >= 7
@@ -1194,8 +1304,10 @@ export function HomePage() {
                 );
               })}
 
-            {/* Personnel items */}
-            {objectTab === "personnel" &&
+            {/* Personnel items (local fallback) */}
+            {!dashboardLoading &&
+              !dashboard?.riskQueue?.length &&
+              objectTab === "personnel" &&
               highRiskPersonnel.map((person, idx) => {
                 const rv = person.riskValue ?? 0;
                 const riskZone =

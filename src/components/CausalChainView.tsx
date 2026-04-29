@@ -81,16 +81,49 @@ function extractChain(seed: number): {
   return { nodes, edges: chainEdges, chainIds: chain };
 }
 
+/** Shapley bar item from API */
+interface ShapleyBar {
+  key: string;
+  value: number;
+  displayValue: string;
+  semanticGroup: string;
+}
+
+interface ShapleyData {
+  bars?: ShapleyBar[];
+  title?: string;
+  description?: string;
+  target?: string;
+  unit?: string;
+  imageUrl?: string | null;
+}
+
+const BAR_COLORS: Record<string, string> = {
+  attitude: "#6366f1",
+  operation: "#8b5cf6",
+  weather: "#22c55e",
+  eventTime: "#06b6d4",
+  crew: "#f97316",
+  personnel: "#eab308",
+  airport: "#ec4899",
+  otherSemanticGroups: "#94a3b8",
+};
+
 /** Shapley 致因分解卡片 */
 export function ShapleyCard({
-  flightId,
+  shapleyData,
   t,
 }: {
-  flightId: number;
+  flightId?: number;
+  shapleyData?: ShapleyData | null;
   t: (zh: string, en: string) => string;
 }) {
-  const shapleyIdx = ((flightId * 7 + 3) % 35) + 1;
-  const shapleyUrl = `/shapley/accident_${shapleyIdx}_exact_shapley.png`;
+  const bars = shapleyData?.bars;
+  const hasBars = bars && bars.length > 0;
+
+  const maxAbs = hasBars
+    ? Math.max(...bars.map((b) => Math.abs(b.value)), 0.01)
+    : 1;
 
   return (
     <div
@@ -109,22 +142,114 @@ export function ShapleyCard({
           fontSize: 13,
           fontWeight: 600,
           color: "#e2e8f0",
-          marginBottom: 8,
+          marginBottom: 4,
         }}
       >
-        {t("Shapley 致因分解", "Shapley Causal Decomposition")}
+        {shapleyData?.title ||
+          t("Shapley 致因分解", "Shapley Causal Decomposition")}
       </div>
+      {shapleyData?.target && (
+        <div style={{ fontSize: 11, color: "#60a5fa", marginBottom: 4 }}>
+          Target: {shapleyData.target}
+        </div>
+      )}
       <div style={{ fontSize: 11, color: "#64748b", marginBottom: 12 }}>
-        {t(
-          "各语义因素组对风险事件的贡献度",
-          "Contribution of semantic factor groups to risk events",
-        )}
+        {shapleyData?.description ||
+          t(
+            "各语义因素组对风险事件的贡献度",
+            "Contribution of semantic factor groups to risk events",
+          )}
       </div>
-      <img
-        src={shapleyUrl}
-        alt="Shapley Decomposition"
-        style={{ width: "100%", borderRadius: 8, background: "#fff" }}
-      />
+
+      {hasBars ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {[...bars]
+            .sort((a, b) => b.value - a.value)
+            .map((bar) => {
+              const pct = (Math.abs(bar.value) / maxAbs) * 100;
+              const isPositive = bar.value >= 0;
+              const color = BAR_COLORS[bar.key] || "#64748b";
+              return (
+                <div
+                  key={bar.key}
+                  style={{ display: "flex", alignItems: "center", gap: 8 }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: "#94a3b8",
+                      width: 90,
+                      textAlign: "right",
+                      flexShrink: 0,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {bar.semanticGroup}
+                  </span>
+                  <div
+                    style={{
+                      flex: 1,
+                      height: 18,
+                      position: "relative",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* Center line */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: "50%",
+                        top: 0,
+                        bottom: 0,
+                        width: 1,
+                        background: "rgba(148,163,184,0.2)",
+                      }}
+                    />
+                    {/* Bar */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        height: 14,
+                        borderRadius: 2,
+                        background: color,
+                        opacity: 0.85,
+                        ...(isPositive
+                          ? { left: "50%", width: `${pct / 2}%` }
+                          : { right: "50%", width: `${pct / 2}%` }),
+                      }}
+                    />
+                  </div>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: isPositive ? "#22c55e" : "#ef4444",
+                      width: 50,
+                      textAlign: "left",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {bar.value > 0 ? "+" : ""}
+                    {bar.value.toFixed(2)}
+                  </span>
+                </div>
+              );
+            })}
+        </div>
+      ) : (
+        <div
+          style={{
+            padding: 20,
+            textAlign: "center",
+            color: "#64748b",
+            fontSize: 12,
+          }}
+        >
+          暂无致因分解数据
+        </div>
+      )}
     </div>
   );
 }

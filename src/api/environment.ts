@@ -180,6 +180,25 @@ export interface EnvironmentAirportDetail {
   humSparkline: number[];
   metarMessages: EnvironmentMetarMessage[];
   notices: EnvironmentNoticeItem[];
+  weatherProvider: { name: string };
+}
+
+// ============ 逐小时天气预报 ============
+
+export interface HourlyForecastItem {
+  fxTime: string;
+  temp: string;
+  icon: string;
+  text: string;
+  wind360: string;
+  windDir: string;
+  windScale: string;
+  windSpeed: string;
+  humidity: string;
+  precip: string;
+  pressure: string;
+  cloud: string;
+  dew: string;
 }
 
 // ============ API 函数 ============
@@ -208,5 +227,16 @@ export function getEnvironmentMessage(id: number) {
 export function getEnvironmentNotice(id: number) {
   return request.get<EnvironmentNoticeItem>(
     `/api/v1/environment/notices/${id}`,
+  );
+}
+
+/** 机场逐小时天气预报（和风天气 QWeather） */
+export function getEnvironmentHourlyForecast(
+  code: string,
+  params?: { hours?: "24h" | "72h" | "168h"; lang?: string; unit?: "m" | "i" },
+) {
+  return request.get<{ hourly: HourlyForecastItem[] }>(
+    `/api/v1/environment/airports/${code}/hourly-forecast`,
+    { params },
   );
 }
