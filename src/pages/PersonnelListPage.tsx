@@ -238,7 +238,7 @@ export function PersonnelListPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = t("人员列表.xlsx", "personnel_list.xlsx");
+      a.download = `${t("人员列表", "Personnel List (High-Risk)")}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {

@@ -42,26 +42,6 @@
   margin: 0;
 }
 
-.ec-btn-primary {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 4px;
-  border: none;
-  background: #3b82f6;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.ec-btn-primary:hover {
-  background: #2563eb;
-}
-
 /* Content */
 .ec-content {
   padding: 0 24px 24px;
@@ -334,17 +314,6 @@
 .ec-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.96);
-}
-
-.ec-btn-download {
-  background: rgba(96, 165, 250, 0.1);
-  border-color: rgba(96, 165, 250, 0.25);
-  color: #60a5fa;
-}
-
-.ec-btn-download:hover {
-  background: rgba(96, 165, 250, 0.2);
-  color: #93c5fd;
 }
 
 /* Footer */

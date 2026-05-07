@@ -243,7 +243,7 @@ export function FlightListPage() {
       );
       const a = document.createElement("a");
       a.href = url;
-      a.download = "flights.xlsx";
+      a.download = `${t("航班列表", "Flight List")}.xlsx`;
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {

@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "../i18n/useLanguage";
-import { downloadCSV } from "../utils/exportUtils";
 import "./MaintenanceInfoPage.css";
 
 // ===== Mock Data =====
@@ -227,25 +226,6 @@ function CalendarIcon() {
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
     </svg>
   );
 }
@@ -481,39 +461,6 @@ export function MaintenanceInfoPage() {
             <span className="mt-btn-icon" style={{ marginLeft: 2 }}>
               ▾
             </span>
-          </button>
-          <button
-            className="mt-btn"
-            onClick={() => {
-              const headers = [
-                t("日期", "Date"),
-                t("记录ID", "Record ID"),
-                t("事件类型", "Event Type"),
-                t("描述", "Description"),
-                t("关键系统", "Critical Systems"),
-                t("状态", "Status"),
-                t("重复", "Repeated"),
-                t("严重性", "Criticality"),
-                t("飞行阶段", "Phases"),
-              ];
-              const rows = sortedData.map((r) => [
-                r.date,
-                r.recordId,
-                r.eventType,
-                r.description,
-                r.criticalSystems,
-                r.status,
-                r.repeated ? t("是", "Yes") : t("否", "No"),
-                r.criticality,
-                r.phases.join(", "),
-              ]);
-              downloadCSV(t("维护记录", "maintenance_records"), headers, rows);
-            }}
-          >
-            <span className="mt-btn-icon">
-              <DownloadIcon />
-            </span>
-            {t("导出", "Export")}
           </button>
         </div>
       </div>

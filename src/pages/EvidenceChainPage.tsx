@@ -38,7 +38,6 @@ interface EvidenceItem {
   time: string;
   relation: string;
   badge?: { text: string; type: "red" | "yellow" | "verified" };
-  hasDownload: boolean;
 }
 
 const evidenceItems: EvidenceItem[] = [
@@ -49,7 +48,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Linked to Risk Factor: Continuous Duty Periods > 12h",
     badge: { text: "Red", type: "red" },
-    hasDownload: true,
   },
   {
     category: "Training Records",
@@ -58,7 +56,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Compliant with Training Policy",
     badge: { text: "Verified", type: "verified" },
-    hasDownload: true,
   },
   {
     category: "Maintenance Records",
@@ -67,7 +64,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Potentially Impacts Aircraft Availability",
     badge: { text: "Yellow", type: "yellow" },
-    hasDownload: true,
   },
   {
     category: "Messages",
@@ -76,7 +72,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Linked to Risk Factor: Conneguees",
     badge: { text: "Red", type: "red" },
-    hasDownload: true,
   },
   {
     category: "Notices",
@@ -85,7 +80,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Compliant with Training Policy",
     badge: { text: "Verified", type: "verified" },
-    hasDownload: true,
   },
   {
     category: "Rule Clauses",
@@ -94,7 +88,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Linked to Risk Factor: Continuous Duty Periods > 12h",
     badge: undefined,
-    hasDownload: true,
   },
   {
     category: "Messages",
@@ -103,7 +96,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Linked to Risk Factor: Continuous Duty Periods > 12h",
     badge: undefined,
-    hasDownload: true,
   },
   {
     category: "Notices",
@@ -112,7 +104,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Compliant scots",
     badge: undefined,
-    hasDownload: true,
   },
   {
     category: "Manual Feedback",
@@ -121,7 +112,6 @@ const evidenceItems: EvidenceItem[] = [
     time: "2023-10-15 09:30 UTC",
     relation: "Potentially Impacts Aircraft Availability",
     badge: { text: "Yellow", type: "yellow" },
-    hasDownload: false,
   },
 ];
 
@@ -183,10 +173,6 @@ export function EvidenceChainPage() {
           </button>
           <h1 className="ec-page-title">{t("证据链", "Evidence Chain")}</h1>
         </div>
-        <button className="ec-btn-primary">
-          <span>&#8595;</span>{" "}
-          {t("下载完整证据包", "Download Full Evidence Package")}
-        </button>
       </div>
 
       <div className="ec-content">
@@ -336,11 +322,6 @@ export function EvidenceChainPage() {
                 <button className="ec-btn">
                   {t("查看相关规则", "View Related Rule")}
                 </button>
-                {item.hasDownload && (
-                  <button className="ec-btn ec-btn-download">
-                    &#8595; {t("下载证据包", "Download Evidence Package")}
-                  </button>
-                )}
               </div>
             </div>
           ))}

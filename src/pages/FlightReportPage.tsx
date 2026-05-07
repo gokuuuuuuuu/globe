@@ -164,13 +164,20 @@ export function FlightReportPage() {
   const [report, setReport] = useState<FlightReportData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeAppendixTab, setActiveAppendixTab] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!flightId) return;
     setLoading(true);
     setError(null);
     getFlightReport(Number(flightId))
-      .then((data) => setReport(data))
+      .then((data) => {
+        setReport(data);
+        const firstTab = data.evidenceAppendixData?.tabs?.[0]?.id ?? null;
+        setActiveAppendixTab(firstTab);
+      })
       .catch((err: unknown) =>
         setError(err instanceof Error ? err.message : "加载失败"),
       )
@@ -178,6 +185,11 @@ export function FlightReportPage() {
   }, [flightId]);
 
   const flightInfo = report?.facts;
+  const appendix = report?.evidenceAppendixData;
+  const activeAppendixSection =
+    appendix?.sections?.find((s) => s.id === activeAppendixTab) ??
+    appendix?.sections?.[0] ??
+    null;
 
   const scrollToSection = (id: string) => {
     setActiveSection(id);
@@ -1101,12 +1113,227 @@ export function FlightReportPage() {
               {t("证据附录", "Evidence Appendix")}
             </h2>
             <div className="fr-card">
-              <div className="fr-evidence-block">
-                <p>
-                  {report?.evidenceAppendix ||
-                    t("暂无证据附录", "No evidence appendix available")}
-                </p>
-              </div>
+              {appendix && appendix.tabs?.length ? (
+                <>
+                  {appendix.description && (
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "rgba(255,255,255,0.55)",
+                        margin: "0 0 12px",
+                        lineHeight: 1.7,
+                      }}
+                    >
+                      {appendix.description}
+                    </p>
+                  )}
+
+                  {appendix.sourceSummary && (
+                    <div className="fr-ea-summary">
+                      <span className="fr-ea-summary-pill">
+                        {t("证据来源", "Sources")}：
+                        {appendix.sourceSummary.total}
+                      </span>
+                      <span className="fr-ea-summary-pill">
+                        {t("关联事实", "Related Facts")}：
+                        {appendix.sourceSummary.relatedFactCount}
+                      </span>
+                      {appendix.sourceSummary.types?.map((tp) => (
+                        <span key={tp.type} className="fr-ea-summary-pill">
+                          {tp.type} × {tp.count}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="fr-ea-tabs" role="tablist">
+                    {appendix.tabs.map((tab) => {
+                      const active =
+                        (activeAppendixTab ?? appendix.tabs[0].id) === tab.id;
+                      const labelText = tab.label.replace(
+                        new RegExp(`^${tab.shortLabel}\\s*`),
+                        "",
+                      );
+                      return (
+                        <button
+                          key={tab.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={active}
+                          className={`fr-ea-tab ${active ? "fr-ea-tab-active" : ""}`}
+                          onClick={() => setActiveAppendixTab(tab.id)}
+                        >
+                          <span className="fr-ea-tab-id">{tab.shortLabel}</span>
+                          <span>{labelText || tab.type}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {activeAppendixSection ? (
+                    <div>
+                      <div className="fr-ea-section-header">
+                        <h3 className="fr-ea-section-title">
+                          {activeAppendixSection.title}
+                        </h3>
+                        <span className="fr-ea-section-type">
+                          {activeAppendixSection.type}
+                        </span>
+                      </div>
+
+                      {activeAppendixSection.description && (
+                        <p className="fr-ea-section-desc">
+                          {activeAppendixSection.description}
+                        </p>
+                      )}
+
+                      {activeAppendixSection.relatedFacts?.length > 0 && (
+                        <div className="fr-ea-related">
+                          <span className="fr-ea-related-label">
+                            {t("关联事实", "Related Facts")}：
+                          </span>
+                          {activeAppendixSection.relatedFacts.map((rf) => (
+                            <span
+                              key={rf.factId}
+                              className="fr-ea-related-chip"
+                            >
+                              <span className="fr-ea-related-chip-id">
+                                {rf.factId}
+                              </span>
+                              {rf.title}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+
+                      {activeAppendixSection.meta?.length > 0 && (
+                        <div className="fr-ea-meta">
+                          {activeAppendixSection.meta.map((m) => (
+                            <div key={m.label}>
+                              <div className="fr-ea-meta-label">{m.label}</div>
+                              <div className="fr-ea-meta-value">{m.value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {activeAppendixSection.columns?.length > 0 &&
+                        activeAppendixSection.rows?.length > 0 && (
+                          <div className="fr-ea-table-wrap">
+                            <table className="fr-ea-table">
+                              <thead>
+                                <tr>
+                                  {activeAppendixSection.columns.map((col) => (
+                                    <th
+                                      key={col.key}
+                                      className={
+                                        col.align === "right"
+                                          ? "fr-ea-align-right"
+                                          : col.align === "center"
+                                            ? "fr-ea-align-center"
+                                            : ""
+                                      }
+                                    >
+                                      {col.label}
+                                      {col.unit ? ` (${col.unit})` : ""}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {activeAppendixSection.rows.map((row, ri) => (
+                                  <tr key={ri}>
+                                    {activeAppendixSection.columns.map(
+                                      (col) => {
+                                        const hl =
+                                          activeAppendixSection.highlights?.find(
+                                            (h) =>
+                                              h.rowIndex === ri &&
+                                              h.field === col.key,
+                                          );
+                                        const cls = [
+                                          col.align === "right"
+                                            ? "fr-ea-align-right"
+                                            : col.align === "center"
+                                              ? "fr-ea-align-center"
+                                              : "",
+                                          hl
+                                            ? hl.level === "danger"
+                                              ? "fr-ea-cell-danger"
+                                              : hl.level === "warning"
+                                                ? "fr-ea-cell-warning"
+                                                : "fr-ea-cell-info"
+                                            : "",
+                                        ]
+                                          .filter(Boolean)
+                                          .join(" ");
+                                        const v = row[col.key];
+                                        return (
+                                          <td key={col.key} className={cls}>
+                                            {v === null || v === undefined
+                                              ? "—"
+                                              : String(v)}
+                                          </td>
+                                        );
+                                      },
+                                    )}
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+
+                      <div className="fr-ea-notes-block">
+                        {activeAppendixSection.dataDescription?.length > 0 && (
+                          <div className="fr-ea-notes-card">
+                            <div className="fr-ea-notes-title">
+                              {t("数据说明", "Data Description")}
+                            </div>
+                            <ul className="fr-ea-notes-list">
+                              {activeAppendixSection.dataDescription.map(
+                                (d, i) => (
+                                  <li key={i}>{d}</li>
+                                ),
+                              )}
+                            </ul>
+                          </div>
+                        )}
+                        {activeAppendixSection.notes?.length > 0 && (
+                          <div className="fr-ea-notes-card">
+                            <div className="fr-ea-notes-title">
+                              {t("备注", "Notes")}
+                            </div>
+                            <ul className="fr-ea-notes-list">
+                              {activeAppendixSection.notes.map((n, i) => (
+                                <li key={i}>{n}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {appendix.notes?.length > 0 && (
+                    <div className="fr-ea-footer">
+                      <div className="fr-ea-footer-title">
+                        ℹ {t("附录说明", "Appendix Notes")}
+                      </div>
+                      {appendix.notes.map((n, i) => (
+                        <div key={i}>· {n}</div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="fr-evidence-block">
+                  <p>
+                    {report?.evidenceAppendix ||
+                      t("暂无证据附录", "No evidence appendix available")}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
