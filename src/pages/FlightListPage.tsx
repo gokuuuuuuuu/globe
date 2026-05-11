@@ -10,6 +10,7 @@ import {
   type FlightListParams,
   type FlightFilterAirport,
 } from "../api/flight";
+import { useToast } from "../components/Toast";
 import "./FlightListPage.css";
 
 const PAGE_SIZE = 25;
@@ -73,6 +74,7 @@ function statusDisplay(
 
 export function FlightListPage() {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const page = parseInt(searchParams.get("page") || "1", 10);
@@ -110,6 +112,8 @@ export function FlightListPage() {
   >([]);
   const [showDepDropdown, setShowDepDropdown] = useState(false);
   const [showArrDropdown, setShowArrDropdown] = useState(false);
+  const [depNoResult, setDepNoResult] = useState(false);
+  const [arrNoResult, setArrNoResult] = useState(false);
   const airportSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Filters
@@ -211,6 +215,26 @@ export function FlightListPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const handleSearch = () => {
+    if (depAirportSearch.trim() && !departureFilter) {
+      toast(
+        t(
+          "请从下拉列表中选择出发机场",
+          "Please select a departure airport from the list",
+        ),
+        "error",
+      );
+      return;
+    }
+    if (arrAirportSearch.trim() && !arrivalFilter) {
+      toast(
+        t(
+          "请从下拉列表中选择到达机场",
+          "Please select an arrival airport from the list",
+        ),
+        "error",
+      );
+      return;
+    }
     setPage(1);
     setSearchVersion((v) => v + 1);
   };
@@ -223,6 +247,8 @@ export function FlightListPage() {
     setArrAirportSearch("");
     setDepAirportOptions([]);
     setArrAirportOptions([]);
+    setDepNoResult(false);
+    setArrNoResult(false);
     setOperatingUnitFilter("");
     setAircraftTypeFilter("");
     setStatusFilter("");
@@ -337,68 +363,86 @@ export function FlightListPage() {
                 const val = e.target.value;
                 setDepAirportSearch(val);
                 setDepartureFilter("");
+                setDepNoResult(false);
                 if (airportSearchTimer.current)
                   clearTimeout(airportSearchTimer.current);
                 if (val.trim().length >= 2) {
                   airportSearchTimer.current = setTimeout(() => {
                     searchFlightAirports(val.trim())
                       .then((r) => {
-                        setDepAirportOptions(r.items ?? []);
+                        const items = r.items ?? [];
+                        setDepAirportOptions(items);
+                        setDepNoResult(items.length === 0);
                         setShowDepDropdown(true);
                       })
                       .catch(() => {});
                   }, 300);
                 } else {
                   setDepAirportOptions([]);
+                  setDepNoResult(false);
                   setShowDepDropdown(false);
                 }
               }}
             />
-            {showDepDropdown && depAirportOptions.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  zIndex: 20,
-                  background: "#1e293b",
-                  border: "1px solid rgba(96,165,250,0.3)",
-                  borderRadius: 6,
-                  maxHeight: 180,
-                  overflowY: "auto",
-                  width: "100%",
-                  top: "100%",
-                  left: 0,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-                }}
-              >
-                {depAirportOptions.map((a) => (
-                  <div
-                    key={a.id}
-                    style={{
-                      padding: "8px 12px",
-                      cursor: "pointer",
-                      fontSize: 12,
-                      color: "#e2e8f0",
-                      borderBottom: "1px solid rgba(148,163,184,0.06)",
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setDepartureFilter(String(a.id));
-                      setDepAirportSearch(a.label);
-                      setShowDepDropdown(false);
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(96,165,250,0.15)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                  >
-                    {a.label}
-                  </div>
-                ))}
-              </div>
-            )}
+            {showDepDropdown &&
+              (depAirportOptions.length > 0 || depNoResult) && (
+                <div
+                  style={{
+                    position: "absolute",
+                    zIndex: 20,
+                    background: "#1e293b",
+                    border: "1px solid rgba(96,165,250,0.3)",
+                    borderRadius: 6,
+                    maxHeight: 180,
+                    overflowY: "auto",
+                    width: "100%",
+                    top: "100%",
+                    left: 0,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  {depNoResult ? (
+                    <div
+                      style={{
+                        padding: "8px 12px",
+                        fontSize: 12,
+                        color: "#94a3b8",
+                        textAlign: "center",
+                      }}
+                    >
+                      {t("暂无对应机场", "No matching airports")}
+                    </div>
+                  ) : (
+                    depAirportOptions.map((a) => (
+                      <div
+                        key={a.id}
+                        style={{
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          color: "#e2e8f0",
+                          borderBottom: "1px solid rgba(148,163,184,0.06)",
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setDepartureFilter(String(a.id));
+                          setDepAirportSearch(a.label);
+                          setShowDepDropdown(false);
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "rgba(96,165,250,0.15)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
+                      >
+                        {a.label}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
           </div>
           <div className="fl-filter-item">
             <label>{t("到达机场", "Arrival Airport")}</label>
@@ -414,68 +458,86 @@ export function FlightListPage() {
                 const val = e.target.value;
                 setArrAirportSearch(val);
                 setArrivalFilter("");
+                setArrNoResult(false);
                 if (airportSearchTimer.current)
                   clearTimeout(airportSearchTimer.current);
                 if (val.trim().length >= 2) {
                   airportSearchTimer.current = setTimeout(() => {
                     searchFlightAirports(val.trim())
                       .then((r) => {
-                        setArrAirportOptions(r.items ?? []);
+                        const items = r.items ?? [];
+                        setArrAirportOptions(items);
+                        setArrNoResult(items.length === 0);
                         setShowArrDropdown(true);
                       })
                       .catch(() => {});
                   }, 300);
                 } else {
                   setArrAirportOptions([]);
+                  setArrNoResult(false);
                   setShowArrDropdown(false);
                 }
               }}
             />
-            {showArrDropdown && arrAirportOptions.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  zIndex: 20,
-                  background: "#1e293b",
-                  border: "1px solid rgba(96,165,250,0.3)",
-                  borderRadius: 6,
-                  maxHeight: 180,
-                  overflowY: "auto",
-                  width: "100%",
-                  top: "100%",
-                  left: 0,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
-                }}
-              >
-                {arrAirportOptions.map((a) => (
-                  <div
-                    key={a.id}
-                    style={{
-                      padding: "8px 12px",
-                      cursor: "pointer",
-                      fontSize: 12,
-                      color: "#e2e8f0",
-                      borderBottom: "1px solid rgba(148,163,184,0.06)",
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setArrivalFilter(String(a.id));
-                      setArrAirportSearch(a.label);
-                      setShowArrDropdown(false);
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(96,165,250,0.15)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                  >
-                    {a.label}
-                  </div>
-                ))}
-              </div>
-            )}
+            {showArrDropdown &&
+              (arrAirportOptions.length > 0 || arrNoResult) && (
+                <div
+                  style={{
+                    position: "absolute",
+                    zIndex: 20,
+                    background: "#1e293b",
+                    border: "1px solid rgba(96,165,250,0.3)",
+                    borderRadius: 6,
+                    maxHeight: 180,
+                    overflowY: "auto",
+                    width: "100%",
+                    top: "100%",
+                    left: 0,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.4)",
+                  }}
+                >
+                  {arrNoResult ? (
+                    <div
+                      style={{
+                        padding: "8px 12px",
+                        fontSize: 12,
+                        color: "#94a3b8",
+                        textAlign: "center",
+                      }}
+                    >
+                      {t("暂无对应机场", "No matching airports")}
+                    </div>
+                  ) : (
+                    arrAirportOptions.map((a) => (
+                      <div
+                        key={a.id}
+                        style={{
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          fontSize: 12,
+                          color: "#e2e8f0",
+                          borderBottom: "1px solid rgba(148,163,184,0.06)",
+                        }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setArrivalFilter(String(a.id));
+                          setArrAirportSearch(a.label);
+                          setShowArrDropdown(false);
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "rgba(96,165,250,0.15)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
+                      >
+                        {a.label}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
           </div>
           <div className="fl-filter-item">
             <label>{t("机型", "Aircraft Type")}</label>

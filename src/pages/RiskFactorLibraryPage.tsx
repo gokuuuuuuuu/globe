@@ -647,14 +647,34 @@ export function RiskFactorLibraryPage() {
       {showCreateModal && (
         <div
           className="rfl-modal-overlay"
-          onClick={() => setShowCreateModal(false)}
+          onClick={() => {
+            setShowCreateModal(false);
+            setCreateForm({
+              name: "",
+              category: "",
+              importance: "中",
+              source: "MANUAL",
+              score: 50,
+              rules: [],
+            });
+          }}
         >
           <div className="rfl-modal" onClick={(e) => e.stopPropagation()}>
             <div className="rfl-modal-header">
               <h3>{t("添加风险因子", "Add Risk Factor")}</h3>
               <button
                 className="rfl-modal-close"
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setCreateForm({
+                    name: "",
+                    category: "",
+                    importance: "中",
+                    source: "MANUAL",
+                    score: 50,
+                    rules: [],
+                  });
+                }}
               >
                 &#10005;
               </button>
@@ -797,7 +817,17 @@ export function RiskFactorLibraryPage() {
             <div className="rfl-modal-footer">
               <button
                 className="rfl-modal-btn rfl-modal-cancel"
-                onClick={() => setShowCreateModal(false)}
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setCreateForm({
+                    name: "",
+                    category: "",
+                    importance: "中",
+                    source: "MANUAL",
+                    score: 50,
+                    rules: [],
+                  });
+                }}
               >
                 {t("取消", "Cancel")}
               </button>

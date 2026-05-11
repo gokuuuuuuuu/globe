@@ -514,14 +514,25 @@ export function SystemManagementPage() {
       {showAddModal && (
         <div
           className="smp-modal-overlay"
-          onClick={() => setShowAddModal(false)}
+          onClick={() => {
+            setShowAddModal(false);
+            setNewUser({ name: "", email: "", password: "", role: "ANALYST" });
+          }}
         >
           <div className="smp-modal" onClick={(e) => e.stopPropagation()}>
             <div className="smp-modal-header">
               <h3>{t("添加用户", "Add User")}</h3>
               <button
                 className="smp-modal-close"
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setNewUser({
+                    name: "",
+                    email: "",
+                    password: "",
+                    role: "ANALYST",
+                  });
+                }}
               >
                 &#10005;
               </button>
@@ -629,7 +640,15 @@ export function SystemManagementPage() {
             <div className="smp-modal-footer">
               <button
                 className="smp-modal-btn smp-modal-cancel"
-                onClick={() => setShowAddModal(false)}
+                onClick={() => {
+                  setShowAddModal(false);
+                  setNewUser({
+                    name: "",
+                    email: "",
+                    password: "",
+                    role: "ANALYST",
+                  });
+                }}
               >
                 {t("取消", "Cancel")}
               </button>
