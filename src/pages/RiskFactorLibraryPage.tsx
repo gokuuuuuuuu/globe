@@ -180,11 +180,25 @@ export function RiskFactorLibraryPage() {
   // Save edited rules
   const handleSaveRules = async () => {
     if (!editingFactor) return;
+    // 过滤空规则并trim
+    const validRules = editRules.filter(
+      (r) => r.condition.trim() || r.action.trim(),
+    );
+    if (validRules.some((r) => !r.condition.trim() || !r.action.trim())) {
+      toast(
+        t(
+          "规则的条件和动作不能为空",
+          "Rule condition and action cannot be empty",
+        ),
+        "error",
+      );
+      return;
+    }
     setSaveLoading(true);
     try {
-      const rules: RuleItemDto[] = editRules.map((r) => ({
-        condition: r.condition,
-        action: r.action,
+      const rules: RuleItemDto[] = validRules.map((r) => ({
+        condition: r.condition.trim(),
+        action: r.action.trim(),
       }));
       await replaceRiskFactorRules(editingFactor.id, rules);
       toast(t("规则保存成功", "Rules saved successfully"), "success");
@@ -242,19 +256,21 @@ export function RiskFactorLibraryPage() {
 
   // Create factor
   const handleCreate = async () => {
-    if (!createForm.name || !createForm.category) return;
+    if (!createForm.name?.trim() || !createForm.category) return;
     setCreateLoading(true);
     try {
       const data: CreateRiskFactorDto = {
-        name: createForm.name,
+        name: createForm.name.trim(),
         category: createForm.category,
         importance: createForm.importance,
         source: createForm.source,
         score: createForm.score,
-        rules: createForm.rules.map((r) => ({
-          condition: r.condition,
-          action: r.action,
-        })),
+        rules: createForm.rules
+          .filter((r) => r.condition.trim() || r.action.trim())
+          .map((r) => ({
+            condition: r.condition.trim(),
+            action: r.action.trim(),
+          })),
       };
       await createRiskFactor(data);
       toast(t("因子创建成功", "Factor created successfully"), "success");
@@ -703,11 +719,15 @@ export function RiskFactorLibraryPage() {
                       type="number"
                       min={0}
                       max={100}
+                      step={1}
                       value={createForm.score}
+                      onKeyDown={(e) => {
+                        if (e.key === ".") e.preventDefault();
+                      }}
                       onChange={(e) =>
                         setCreateForm((f) => ({
                           ...f,
-                          score: Number(e.target.value),
+                          score: Math.round(Number(e.target.value)) && Math.min(100, Math.round(Number(e.target.value))),
                         }))
                       }
                     />

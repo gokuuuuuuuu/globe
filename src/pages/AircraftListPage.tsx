@@ -11,7 +11,7 @@ function riskBadgeClass(level: string) {
   return "acl-risk-low";
 }
 
-function riskLevelLabel(level: string, t: Function) {
+function riskLevelLabel(level: string, t) {
   if (level === "HIGH") return t("高", "High");
   if (level === "MEDIUM") return t("中", "Medium");
   return t("低", "Low");
@@ -180,7 +180,7 @@ export function AircraftListPage() {
         )}
       </div>
 
-      <div className="acl-pagination">
+      <div className="acl-pagination" style={{ marginBottom: 30 }}>
         <span>
           {total} {t("条结果", "results")} | {t("第", "Page")} {page} /{" "}
           {totalPages}

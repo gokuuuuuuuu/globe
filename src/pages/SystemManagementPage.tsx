@@ -117,7 +117,7 @@ export function SystemManagementPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const handleAddUser = async () => {
-    if (!newUser.name || !newUser.email || !newUser.password) {
+    if (!newUser.name?.trim() || !newUser.email?.trim() || !newUser.password) {
       setAddError(t("请填写所有必填项", "Please fill in all required fields"));
       return;
     }
@@ -125,8 +125,8 @@ export function SystemManagementPage() {
     setAddError("");
     try {
       const dto: CreateUserDto = {
-        name: newUser.name,
-        email: newUser.email,
+        name: newUser.name.trim(),
+        email: newUser.email.trim(),
         password: newUser.password,
         roles: [newUser.role],
       };

@@ -1,7 +1,8 @@
 .acl-root {
   padding: 24px;
   background: #000;
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
   color: rgba(255, 255, 255, 0.96);
 }
 .acl-breadcrumb {

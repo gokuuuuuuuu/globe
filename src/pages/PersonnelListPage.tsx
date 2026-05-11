@@ -145,7 +145,7 @@ export function PersonnelListPage() {
     searchTimerRef.current = setTimeout(() => {
       setPage(1);
       setSearchVersion((v) => v + 1);
-    }, 300);
+    }, 500);
     return () => {
       if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     };
@@ -512,7 +512,7 @@ export function PersonnelListPage() {
           </svg>
           <input
             placeholder={t(
-              "搜索工号、姓名、单位...",
+              "搜索工号、姓名、飞行单位...",
               "Search employee ID, name, unit...",
             )}
             value={searchText}
