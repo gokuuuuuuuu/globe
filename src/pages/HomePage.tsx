@@ -284,17 +284,17 @@ export function HomePage() {
   const airportStatsDisplay = dashboard
     ? {
         total: dashboard.summary.airportTotal,
-        red: 0,
-        yellow: 0,
-        green: dashboard.summary.airportTotal,
+        red: dashboard.riskDistribution.high,
+        yellow: dashboard.riskDistribution.medium,
+        green: dashboard.riskDistribution.low,
       }
     : loadingStats;
   const personnelStatsDisplay = dashboard
     ? {
         total: dashboard.summary.personTotal,
-        highRisk: 0,
-        mediumRisk: 0,
-        lowRisk: dashboard.summary.personTotal,
+        highRisk: dashboard.riskDistribution.high,
+        mediumRisk: dashboard.riskDistribution.medium,
+        lowRisk: dashboard.riskDistribution.low,
         techCounts: {} as Record<string, number>,
       }
     : {
