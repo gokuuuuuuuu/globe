@@ -157,7 +157,7 @@ export const useAppStore = create<AppState>((set) => ({
   setSidebarTab: (tab) => set({ sidebarTab: tab }),
   searchQuery: "",
   setSearchQuery: (query) => set({ searchQuery: query }),
-  riskZones: ["red", "yellow"], // 默认只展示红黄风险区间
+  riskZones: ["red", "yellow", "green"], // 默认展示全部风险区间，可在工作台用"仅红黄"按钮过滤
   setRiskZones: (zones) => set({ riskZones: zones }),
   homeObjectTab: "flights",
   setHomeObjectTab: (tab) => set({ homeObjectTab: tab }),

@@ -131,7 +131,6 @@ export function AdminLayout() {
         {/* Meta area */}
         <div className="al-nav-meta">
           <div className="al-meta-item">
-            <span className="al-meta-value">2026‑03‑23 / 02:20:14</span>
           </div>
           {user && (
             <>

@@ -230,6 +230,69 @@ export interface FlightReportEnvironmentFactor {
   }[];
 }
 
+// 证据附录结构化数据
+export interface EvidenceAppendixTab {
+  id: string;
+  label: string;
+  shortLabel: string;
+  type: string;
+  relatedFactIds: string[];
+}
+
+export interface EvidenceAppendixMetaItem {
+  label: string;
+  value: string;
+}
+
+export interface EvidenceAppendixColumn {
+  key: string;
+  label: string;
+  unit?: string;
+  align?: "left" | "right" | "center";
+}
+
+export interface EvidenceAppendixHighlight {
+  rowIndex: number;
+  field: string;
+  level: "danger" | "warning" | "info";
+}
+
+export interface EvidenceAppendixRelatedFact {
+  factId: string;
+  title: string;
+}
+
+export interface EvidenceAppendixSection {
+  id: string;
+  type: string;
+  title: string;
+  label: string;
+  description: string;
+  relatedFactIds: string[];
+  relatedFacts: EvidenceAppendixRelatedFact[];
+  meta: EvidenceAppendixMetaItem[];
+  columns: EvidenceAppendixColumn[];
+  rows: Record<string, string | number | null>[];
+  dataDescription: string[];
+  notes: string[];
+  highlights: EvidenceAppendixHighlight[];
+}
+
+export interface EvidenceAppendixSourceSummary {
+  total: number;
+  types: { type: string; count: number }[];
+  relatedFactCount: number;
+}
+
+export interface EvidenceAppendixData {
+  title: string;
+  description: string;
+  tabs: EvidenceAppendixTab[];
+  sections: EvidenceAppendixSection[];
+  sourceSummary: EvidenceAppendixSourceSummary;
+  notes: string[];
+}
+
 export interface FlightReportData {
   // 结构化数据
   facts: FlightReportFacts;
@@ -241,6 +304,7 @@ export interface FlightReportData {
   environmentFactorData: FlightReportEnvironmentFactor;
   factorExplanations: { name: string; desc: string }[];
   evidenceSources: { name: string; desc: string }[];
+  evidenceAppendixData?: EvidenceAppendixData;
   // HTML 富文本（备用渲染）
   compositeConclusion?: string;
   majorRiskDetail?: string;
