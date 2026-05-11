@@ -256,7 +256,27 @@ export function RiskFactorLibraryPage() {
 
   // Create factor
   const handleCreate = async () => {
-    if (!createForm.name?.trim() || !createForm.category) return;
+    if (!createForm.name?.trim()) {
+      toast(t("请输入因子名称", "Please enter a factor name"), "error");
+      return;
+    }
+    if (!createForm.category) {
+      toast(t("请选择风险类型", "Please select a risk type"), "error");
+      return;
+    }
+    const hasEmptyRule = createForm.rules.some(
+      (r) => !r.condition.trim() || !r.action.trim(),
+    );
+    if (hasEmptyRule) {
+      toast(
+        t(
+          "规则的条件和动作不能为空",
+          "Rule condition and action cannot be empty",
+        ),
+        "error",
+      );
+      return;
+    }
     setCreateLoading(true);
     try {
       const data: CreateRiskFactorDto = {
@@ -727,7 +747,9 @@ export function RiskFactorLibraryPage() {
                       onChange={(e) =>
                         setCreateForm((f) => ({
                           ...f,
-                          score: Math.round(Number(e.target.value)) && Math.min(100, Math.round(Number(e.target.value))),
+                          score:
+                            Math.round(Number(e.target.value)) &&
+                            Math.min(100, Math.round(Number(e.target.value))),
                         }))
                       }
                     />
@@ -782,9 +804,7 @@ export function RiskFactorLibraryPage() {
               <button
                 className="rfl-modal-btn rfl-modal-save"
                 onClick={handleCreate}
-                disabled={
-                  createLoading || !createForm.name || !createForm.category
-                }
+                disabled={createLoading}
               >
                 {createLoading
                   ? t("创建中...", "Creating...")
