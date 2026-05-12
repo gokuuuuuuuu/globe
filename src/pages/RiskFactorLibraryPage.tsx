@@ -75,7 +75,7 @@ export function RiskFactorLibraryPage() {
     category: string;
     importance: string;
     source: string;
-    score: number;
+    score: number | "";
     rules: FactorRule[];
   }>({
     name: "",
@@ -264,6 +264,10 @@ export function RiskFactorLibraryPage() {
       toast(t("请选择风险类型", "Please select a risk type"), "error");
       return;
     }
+    if (createForm.score === "") {
+      toast(t("请输入得分", "Please enter a score"), "error");
+      return;
+    }
     const hasEmptyRule = createForm.rules.some(
       (r) => !r.condition.trim() || !r.action.trim(),
     );
@@ -284,7 +288,7 @@ export function RiskFactorLibraryPage() {
         category: createForm.category,
         importance: createForm.importance,
         source: createForm.source,
-        score: createForm.score,
+        score: createForm.score as number,
         rules: createForm.rules
           .filter((r) => r.condition.trim() || r.action.trim())
           .map((r) => ({
@@ -764,14 +768,18 @@ export function RiskFactorLibraryPage() {
                       onKeyDown={(e) => {
                         if (e.key === ".") e.preventDefault();
                       }}
-                      onChange={(e) =>
-                        setCreateForm((f) => ({
-                          ...f,
-                          score:
-                            Math.round(Number(e.target.value)) &&
-                            Math.min(100, Math.round(Number(e.target.value))),
-                        }))
-                      }
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setCreateForm((f) => ({ ...f, score: "" }));
+                        } else {
+                          const num = Math.min(
+                            100,
+                            Math.max(0, Math.round(Number(val))),
+                          );
+                          setCreateForm((f) => ({ ...f, score: num }));
+                        }
+                      }}
                     />
                   </label>
                 </div>
